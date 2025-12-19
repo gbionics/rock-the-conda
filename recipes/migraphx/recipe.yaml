@@ -1,0 +1,83 @@
+context:
+  name: migraphx
+  version: "7.0.2"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
+  sha256: 33979c1d8f514d65f823f28b2cd2eb11338477403f295e6367244a3abb0abadd
+  patches:
+    - fix-msgpack-cmake.patch
+    - fix-rocmlir-find.patch
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+    - python
+    - pip
+    - msgpack-cxx
+    - openmpi
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - rocblas
+    - openmpi
+    - miopen-hip
+    - hipblaslt
+    - hipblas
+    - hipblas-common
+    - composable-kernel
+    - cpp-half
+    - nlohmann_json
+    - msgpack-cxx
+    - sqlite
+    - rocmlir
+    - libprotobuf
+    - python
+    - pybind11
+  run:
+    - cpp-half
+    - nlohmann_json
+    - msgpack-cxx
+    - sqlite
+    - libprotobuf
+    - python
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
+tests:
+  - package_contents:
+      include:
+        - migraphx/migraphx.h
+        - migraphx/migraphx.hpp
+      lib:
+        - libmigraphx_c${{ dso_ext }}
+
+about:
+  repository: https://github.com/ROCm/AMDMIGraphX
+  license: MIT
+  license_file: LICENSE
+  summary: "AMD's graph optimization engine for machine learning inference"
+  description: |
+    MIGraphX is AMD's graph inference engine that accelerates machine learning
+    model inference. It provides graph optimization and compilation for efficient
+    execution of deep learning models on AMD GPUs using the HIP programming model.
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
