@@ -1,0 +1,274 @@
+context:
+  version: "2.10.0"
+  build_number: 0
+  # Use a higher build number for the ROCm variant, to ensure that it's
+  # preferred by conda's solver over CPU builds.
+  rocm_build: ${{ build_number + 200 }}
+  rocm_short_version: "7.0"
+
+recipe:
+  name: pytorch-rocm
+  version: ${{ version }}
+
+source:
+  # The "pytorch-v" tarballs contain submodules; the "pytorch-" ones don't.
+  - url: https://github.com/pytorch/pytorch/releases/download/v${{ version }}/pytorch-v${{ version }}.tar.gz
+    sha256: fa8ccbe87f83f48735505371c1c313b4aa6db400b0ae4f8a02844d1e150c695f
+    patches:
+      - patches/0001-Force-usage-of-python-3-and-error-without-numpy.patch
+      # fix BLAS calling convention for OpenBLAS
+      - patches/0003-Use-BLAS_USE_CBLAS_DOT-for-OpenBLAS-builds.patch
+      - patches/0004-Fix-FindOpenBLAS.patch
+      # point to headers that are now living in $PREFIX/include instead of $SP_DIR/torch/include
+      - patches/0005-use-our-own-PREFIX-for-include-paths-etc.patch
+      - patches/0006-make-ATEN_INCLUDE_DIR-relative-to-TORCH_INSTALL_PREF.patch
+      # skip a test that fails with numpy v2.3
+      - patches/0009-skip-test_norm_matrix_degenerate_shapes-on-numpy-2.3.patch
+      # backport https://github.com/pytorch/pytorch/pull/127702
+      - patches/0010-Define-PY_SSIZE_T_CLEAN-before-include-Python.h.patch
+      # backport https://github.com/pytorch/pytorch/pull/166824
+      - patches/0011-Add-USE_SYSTEM-options-for-KLEIDI-CUDNN_FRONTEND-CUT.patch
+      - patches/0012-Fix-building-kineto-against-system-fmt.patch
+      - patches/0014-Use-Intel-LLVM-openmp.patch
+
+build:
+  number: ${{ rocm_build }}
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+outputs:
+  - package:
+      name: libtorch
+      version: ${{ version }}
+    build:
+      string: rocm${{ rocm_version | replace(".", "") }}_h${{ hash }}_${{ rocm_build }}
+      script:
+        file: build.sh
+        env:
+          PKG_NAME: libtorch
+      dynamic_linking:
+        missing_dso_allowlist:
+          - "*/libamdhip64.so.*"
+          - "*/libhsa-runtime64.so.*"
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        - pkg-config
+        - make
+        - grep
+        - rsync
+        - lld 20.*
+        - llvm-openmp
+        # We use python to build libtorch as well because it is easier
+        - python
+        - libprotobuf
+        - protobuf
+      host:
+        # ROCm requirements
+        - rocm-core ${{ rocm_short_version }}.*
+        - rocm-cmake
+        - hipblas
+        - hipblaslt
+        - hipfft
+        - hipsolver
+        - hipsparse
+        - miopen-hip
+        - rocblas
+        - rocfft
+        - rocrand
+        - rocsolver
+        - rocsparse
+        - roctracer
+        - rccl
+        # Other requirements
+        - python
+        - numpy
+        - pip
+        - setuptools
+        - pyyaml
+        - requests
+        - six
+        - libblas
+        - libcblas
+        - liblapack
+        - libabseil
+        - libprotobuf
+        - llvm-openmp
+        - sleef
+        - libuv
+        - typing_extensions
+        - pybind11 <3.0.2
+        - pybind11-abi
+        - eigen
+        - zlib
+        - fmt
+        - packaging
+      run:
+        - llvm-openmp
+      run_exports:
+        - ${{ pin_subpackage('libtorch', upper_bound="x.x") }}
+      ignore_run_exports:
+        from_package:
+          - python
+          - numpy
+      run_constraints:
+        - pytorch ==${{ version }} rocm*_*_${{ rocm_build }}
+        # if using OpenBLAS, ensure that a version compatible with OpenMP is used
+        - libopenblas * openmp_*
+        - openblas * openmp_*
+    tests:
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - ${{ compiler('hip') }}
+            - cmake
+            - ninja
+            - pkg-config
+        files:
+          source:
+            - cmake_test/
+        script:
+          - test -f $PREFIX/lib/libc10.so
+          - test -f $PREFIX/lib/libshm.so
+          - test -f $PREFIX/lib/libtorch.so
+          - test -f $PREFIX/lib/libtorch_cpu.so
+          - test -f $PREFIX/lib/libtorch_global_deps.so
+          - test -f $PREFIX/lib/libc10_hip.so
+          - test -f $PREFIX/lib/libtorch_hip.so
+          # CMake files in share
+          - test -f $PREFIX/share/cmake/Torch/TorchConfig.cmake
+          # test integrity of CMake metadata
+          - cd cmake_test
+          - cmake -GNinja -DCMAKE_CXX_STANDARD=17 $CMAKE_ARGS .
+
+  - package:
+      name: pytorch
+      version: ${{ version }}
+    build:
+      string: rocm${{ rocm_version | replace(".", "") }}_py${{ CONDA_PY }}_h${{ hash }}_${{ rocm_build }}
+      script:
+        file: build.sh
+        env:
+          PKG_NAME: pytorch
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        - make
+        - libprotobuf
+        - protobuf
+      host:
+        - ${{ pin_subpackage('libtorch', exact=True) }}
+        # ROCm requirements
+        - rocm-core ${{ rocm_short_version }}.*
+        - rocm-cmake
+        - hipblas
+        - hipblaslt
+        - hipfft
+        - hipsolver
+        - hipsparse
+        - miopen-hip
+        - rocblas
+        - rocfft
+        - rocrand
+        - rocsolver
+        - rocsparse
+        - roctracer
+        - rccl
+        # Other requirements
+        - python
+        - numpy
+        - pip
+        - setuptools
+        - pyyaml
+        - requests
+        - six
+        - libblas
+        - libcblas
+        - liblapack
+        - libabseil
+        - libprotobuf
+        - llvm-openmp
+        - pybind11 <3.0.2
+        - pybind11-abi
+        - eigen
+        - sleef
+        - libuv
+        - pkg-config
+        - typing_extensions
+        - zlib
+        - fmt
+        - packaging
+      run:
+        - ${{ pin_subpackage('libtorch', exact=True) }}
+        - llvm-openmp
+        - python
+        # other requirements, see https://github.com/pytorch/pytorch/blame/main/requirements.txt
+        - filelock
+        - fsspec
+        - jinja2
+        - networkx
+        - optree >=0.13.0
+        - pybind11 <3.0.2
+        - setuptools
+        - sympy >=1.13.3
+        - typing_extensions >=4.10.0
+        - mpmath <1.4
+      run_exports:
+        - ${{ pin_subpackage('pytorch', upper_bound="x.x") }}
+        - ${{ pin_subpackage('libtorch', upper_bound="x.x") }}
+      ignore_run_exports:
+        from_package:
+          - libmagma_sparse
+      run_constraints:
+        - pytorch-rocm ==${{ version }}
+    tests:
+      - python:
+          imports:
+            - torch
+            - torch._C
+      - script:
+          - python -c "import torch; print(torch.__version__)"
+          - python -c "import torch; torch.tensor(1).to('cpu').numpy(); print('numpy support enabled!')"
+          # Verify numpy interop
+          - python -c "import torch; import numpy"
+          - python -c "import numpy; import torch"
+          - python -c "import numpy as np;import torch;x = torch.tensor([2], dtype=torch.complex128);res = torch.dot(x, x); assert res.real == 4.0, res"
+          # distributed support
+          - python -c "import torch; assert torch.distributed.is_available()"
+          # ROCm backend checks
+          - python -c "import torch; avail = torch.cuda.is_available(); print('ROCm available:', avail)"
+          - python -c "import torch; count = torch.cuda.device_count(); print('GPU count:', count)"
+          - python -c "import torch; assert torch.version.hip is not None"
+          # python-version-specific library
+          - test -f $PREFIX/lib/libtorch_python.so
+
+about:
+  homepage: https://pytorch.org/
+  repository: https://github.com/pytorch/pytorch
+  license: BSD-3-Clause
+  license_file:
+    - LICENSE
+    - NOTICE
+  summary: "PyTorch is an optimized tensor library for deep learning using GPUs and CPUs (ROCm build)"
+  description: |
+    PyTorch is a Python package that provides two high-level features:
+    - Tensor computation (like NumPy) with strong GPU acceleration
+    - Deep neural networks built on a tape-based autograd system
+    You can reuse your favorite Python packages such as NumPy, SciPy, and Cython to extend PyTorch when needed.
+  documentation: https://pytorch.org/docs/stable/index.html
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
