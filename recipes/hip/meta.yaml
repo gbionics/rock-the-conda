@@ -69,6 +69,8 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
+        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - numactl
         - rocm-core {{ version }}.*
@@ -122,6 +124,8 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
+        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - {{ pin_subpackage("hip-devel", exact=True) }}
       run:
@@ -182,6 +186,8 @@ outputs:
         - cmake-package-check
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+        - libstdcxx-devel_linux-64 >=15  # [linux]
         - cmake
         - ninja
       files:
@@ -205,6 +211,8 @@ outputs:
         - cmake-package-check
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
+        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+        - libstdcxx-devel_linux-64 >=15  # [linux]
         - cmake
         - ninja
       files:
@@ -216,6 +224,8 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
+        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - numactl
         - rocm-core  {{ version }}.*
