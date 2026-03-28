@@ -3,7 +3,6 @@ name: Build conda packages
 on:
   workflow_dispatch:
   pull_request:
-  push:
 
 env:
   # Change to 'true' to ignore cache and force a full rebuild, but please restore to 'false' before merging
@@ -11,16 +10,19 @@ env:
 
 jobs:
   build-packages:
-    name: '[pixi:build-packages:${{ matrix.os }}]'
-    runs-on: ${{ matrix.os }}
+    name: '[pixi:build-packages:${{ matrix.job_name }}]'
+    runs-on: ${{ matrix.runs_on }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04
+          - job_name: 'build-strix-packages'
+            runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
+            target_channel: https://prefix.dev/rock-the-conda-strix
+
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up pixi
       uses: prefix-dev/setup-pixi@v0.9.0
@@ -28,8 +30,15 @@ jobs:
     - name: Print pixi info
       run: pixi info
 
-    - name: Remove local condarc
-      run: rm -f $HOME/.condarc
+    - name: Install global ccache
+      shell: bash
+      run: |
+        pixi global install ccache
+
+    - uses: Chocobo1/setup-ccache-action@v1
+      with:
+        install_ccache: false
+        update_packager_index: false
 
     - name: Restore build cache
       id: cache-restore
@@ -37,10 +46,10 @@ jobs:
       with:
         path: |
           ${{ matrix.folder_cache }}
-        key: ${{ runner.os }}-conda-pkgs-cache
+        key: ${{ matrix.job_name }}-conda-pkgs-cache
         # allow a later run to pick up a cache that has an extra suffix
         restore-keys: |
-          ${{ runner.os }}-conda-pkgs-cache
+          ${{ matrix.job_name }}-conda-pkgs-cache
 
     - name: Optional force full rebuild
       if: ${{ env.IGNORE_CACHE_AND_DO_FULL_REBUILD == 'true' }}
@@ -48,10 +57,15 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    - name: Patch HIP GPU targets for strix build
+      if: ${{ matrix.job_name == 'build-strix-packages' }}
+      shell: bash
+      run: |
+        sed -i 's|^export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS=.*$|export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS="gfx1150;gfx1151"|' recipes/hip/activate/hip-clang_activate.sh
+        grep '^export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS=' recipes/hip/activate/hip-clang_activate.sh
+
     - name: Build packages
-      # We can't build all packages in github actions, because of lack of memory for hipblaslt
-      # So we build only the packages that are lightweight enough to be built in a github action
-      run: pixi run build-packages-lightweight
+      run: pixi run build-packages
 
     - name: Save build cache
       uses: actions/cache/save@v4
@@ -59,4 +73,4 @@ jobs:
       with:
         path: |
           ${{ matrix.folder_cache }}
-        key: ${{ runner.os }}-conda-pkgs-cache-${{ github.run_id }}-${{ github.run_attempt }}
+        key: ${{ matrix.job_name }}-conda-pkgs-cache-${{ github.run_id }}-${{ github.run_attempt }}

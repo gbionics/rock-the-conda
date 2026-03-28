@@ -1,14 +1,14 @@
 [workspace]
-authors = ["Silvio <silvio.traversaro@iit.it>"]
+authors = ["Silvio Traversaro <silvio.traversaro@gbionics.ai>"]
 channels = ["https://prefix.dev/conda-forge"]
 name = "rocktheconda"
 platforms = ["linux-64", "win-64"]
-version = "0.1.0"
 
 [activation.env]
 CONDA_BUILD_ARGS = "-c conda-forge -c local --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml "
-
+RATTLER_BUILD_ARGS = "-c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
+CMAKE_C_COMPILER_LAUNCHER = "ccache"
+CMAKE_CXX_COMPILER_LAUNCHER = "ccache"
 
 [tasks]
 download-therock-base = "git clone https://github.com/ROCm/TheRock"
@@ -36,7 +36,7 @@ build-rocprim = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./
 build-rocfft-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocfft" }
 build-rocfft = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocfft", depends-on = ["build-hip", "build-rocm-core"]  }
 build-hipfft = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipfft", depends-on = ["build-hip", "build-rocm-core", "build-rocfft"]  }
-# This task is used to build all the packages in the packages list that are buildable on a GitHub Action node (so excluding hipblaslt and all the packages that depend on it)
+# This task is used to build all the packages in the packages list that are buildable on a public GitHub Action node (so excluding hipblaslt and all the packages that depend on it)
 build-packages-lightweight = { cmd = "echo 'Lightweight packages build'", depends-on = ["build-hipfft", "build-rocprim"] }
 build-rocblas-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocblas"  }
 build-rocsolver-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocsolver"  }
@@ -88,6 +88,7 @@ graphviz = "*"
 pkg-config = "*"
 
 vcs2l = "*"
+ccache = "*"
 
 # commented as it is also a dep from TheRock's requirements.txt, but
 # it is also used by our scripts
