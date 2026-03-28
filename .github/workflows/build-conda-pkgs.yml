@@ -40,6 +40,7 @@ jobs:
       with:
         install_ccache: false
         update_packager_index: false
+        prepend_symlinks_to_path: false
 
     # sccache is used for caching of HIP compilation units
     - name: Run sccache-cache
