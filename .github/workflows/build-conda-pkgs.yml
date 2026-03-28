@@ -30,10 +30,10 @@ jobs:
     - name: Print pixi info
       run: pixi info
 
-    - name: Install global ccache
+    - name: Install global ccache and sccache
       shell: bash
       run: |
-        pixi global install ccache
+        pixi global install ccache sccache
 
     - uses: Chocobo1/setup-ccache-action@v1
       with:

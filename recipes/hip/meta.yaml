@@ -39,6 +39,8 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
+    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+    - libstdcxx-devel_linux-64 >=15  # [linux]
     - cmake
     - make
     - cppheaderparser
@@ -162,7 +164,6 @@ outputs:
       run:
         - {{ pin_subpackage("hipcc", exact=True) }}
     run_exports:
-      strong:
         - {{ pin_subpackage("hip-runtime-amd") }}
     files:
       - etc/conda/activate.d/hip-clang_activate.sh

@@ -190,7 +190,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/numpy-2.3.3-py312h33ff503_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openjpeg-2.5.3-h55fea9a_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/openldap-2.6.10-he970967_0.conda
-      - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.5.2-h26f9b46_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.1-h35e630c_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/packaging-25.0-pyh29332c3_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/pango-1.56.4-hadf4263_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/patch-2.8-hb03c661_1002.conda
@@ -237,6 +237,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/ruamel.yaml-0.18.15-py312h4c3975b_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/ruamel.yaml.clib-0.2.12-py312h4c3975b_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/s3transfer-0.14.0-pyhd8ed1ab_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/sccache-0.14.0-he64ecbb_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/scramp-1.4.4-pyhd8ed1ab_0.tar.bz2
       - conda: https://prefix.dev/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/simdjson-3.13.0-h84d6215_0.conda
@@ -459,6 +460,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/ruamel.yaml-0.18.15-py312he06e257_1.conda
       - conda: https://prefix.dev/conda-forge/win-64/ruamel.yaml.clib-0.2.12-py312he06e257_1.conda
       - conda: https://prefix.dev/conda-forge/noarch/s3transfer-0.14.0-pyhd8ed1ab_0.conda
+      - conda: https://prefix.dev/conda-forge/win-64/sccache-0.14.0-h18a1a76_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/scramp-1.4.4-pyhd8ed1ab_0.tar.bz2
       - conda: https://prefix.dev/conda-forge/noarch/setuptools-80.9.0-pyhff2d567_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/simdjson-3.13.0-hc790b64_0.conda
@@ -3961,17 +3963,17 @@ packages:
   license_family: BSD
   size: 780253
   timestamp: 1748010165522
-- conda: https://prefix.dev/conda-forge/linux-64/openssl-3.5.2-h26f9b46_0.conda
-  sha256: c9f54d4e8212f313be7b02eb962d0cb13a8dae015683a403d3accd4add3e520e
-  md5: ffffb341206dd0dab0c36053c048d621
+- conda: https://prefix.dev/conda-forge/linux-64/openssl-3.6.1-h35e630c_1.conda
+  sha256: 44c877f8af015332a5d12f5ff0fb20ca32f896526a7d0cdb30c769df1144fb5c
+  md5: f61eb8cd60ff9057122a3d338b99c00f
   depends:
   - __glibc >=2.17,<3.0.a0
   - ca-certificates
   - libgcc >=14
   license: Apache-2.0
   license_family: Apache
-  size: 3128847
-  timestamp: 1754465526100
+  size: 3164551
+  timestamp: 1769555830639
 - conda: https://prefix.dev/conda-forge/win-64/openssl-3.5.2-h725018a_0.conda
   sha256: 2413f3b4606018aea23acfa2af3c4c46af786739ab4020422e9f0c2aec75321b
   md5: 150d3920b420a27c0848acca158f94dc
@@ -4928,6 +4930,30 @@ packages:
   license_family: Apache
   size: 65987
   timestamp: 1757487748738
+- conda: https://prefix.dev/conda-forge/linux-64/sccache-0.14.0-he64ecbb_0.conda
+  sha256: 83f881b318b9a39723ee8b5f0a5329240b4b65c692a8a998d4217333b8c801d4
+  md5: 513b2505df7c927f2f048aa2e3f48f7d
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - openssl >=3.5.5,<4.0a0
+  constrains:
+  - __glibc >=2.17
+  license: Apache-2.0
+  license_family: APACHE
+  size: 6181856
+  timestamp: 1770690886352
+- conda: https://prefix.dev/conda-forge/win-64/sccache-0.14.0-h18a1a76_0.conda
+  sha256: 7a2cbb5c405e8ec04cf9d77f8d567cb57a3b8e2cb875b8962795edd9569dedb7
+  md5: 531701ba481a1f2f3228f3f077a0e97a
+  depends:
+  - vc >=14.3,<15
+  - vc14_runtime >=14.44.35208
+  - ucrt >=10.0.20348.0
+  license: Apache-2.0
+  license_family: APACHE
+  size: 6698663
+  timestamp: 1770690927791
 - conda: https://prefix.dev/conda-forge/noarch/scramp-1.4.4-pyhd8ed1ab_0.tar.bz2
   sha256: 200e0a38729edeff573db643c4408eebf7cd4951b4b39a1fa9a9b331be9b2467
   md5: 2fac165a69d120a1689e1955ba1a4bfd
