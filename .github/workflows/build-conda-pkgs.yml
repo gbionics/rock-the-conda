@@ -31,8 +31,6 @@ jobs:
         # avoid donwloading and re-uploading the pixi cache every time
         cache: false
 
-    cache: true
-
     - name: Print pixi info
       run: pixi info
 
