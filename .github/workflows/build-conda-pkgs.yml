@@ -35,11 +35,17 @@ jobs:
       run: |
         pixi global install ccache sccache
 
+    # ccache is used for caching of C and C++ compilation units
     - uses: Chocobo1/setup-ccache-action@v1
       with:
         install_ccache: false
         update_packager_index: false
 
+    # sccache is used for caching of HIP compilation units
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
+    # this is the cache of conda packages
     - name: Restore build cache
       id: cache-restore
       uses: actions/cache/restore@v4
