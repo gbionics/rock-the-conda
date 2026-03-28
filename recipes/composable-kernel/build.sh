@@ -18,7 +18,7 @@ cmake -GNinja \
     ..
 
 # Depending on the specific machine you are running this in, you may need to
-# limit the number of threads to avoid out of memory issues, it is possible to do that with "--parallel 4",
+# change the number of threads to avoid out of memory issues, it is possible to do that with "--parallel 4",
 # where 4  is the number of threads
-cmake --build . 
+cmake --build .  --parallel 8
 cmake --install .
