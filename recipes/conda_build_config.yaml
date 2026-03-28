@@ -22,6 +22,11 @@ rocm_version:
     - None
     - '7.0'
 
+llmvdev:
+    - 20
+clangdev:
+    - 20
+
 zip_keys:
   -
     - hip_compiler_version

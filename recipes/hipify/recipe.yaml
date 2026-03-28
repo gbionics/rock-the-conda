@@ -30,7 +30,7 @@ requirements:
     - clangdev
   run:
     - perl
-    - llvm
+    - llvm 20.*
 
 tests:
   - script:
