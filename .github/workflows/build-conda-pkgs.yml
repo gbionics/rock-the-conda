@@ -25,7 +25,13 @@ jobs:
     - uses: actions/checkout@v6
 
     - name: Set up pixi
-      uses: prefix-dev/setup-pixi@v0.9.0
+      uses: prefix-dev/setup-pixi@v0.9.4
+      with:
+        # In the gb-located strix halo self-hosted runner getting the cache is slow, so it is just faster to
+        # avoid donwloading and re-uploading the pixi cache every time
+        cache: false
+
+    cache: true
 
     - name: Print pixi info
       run: pixi info
