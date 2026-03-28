@@ -40,7 +40,7 @@ tests:
         - ck/library/reference_tensor_operation/gpu/reference_gemm.hpp
         - ck/library/tensor_operation_instance/gpu/grouped_gemm.hpp
       lib:
-        - libdevice_conv_operations.a
+        - device_conv_operations
 
 about:
   repository: https://github.com/ROCm/composable_kernel
