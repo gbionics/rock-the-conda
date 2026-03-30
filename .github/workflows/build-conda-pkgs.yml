@@ -14,6 +14,8 @@ jobs:
   build-packages:
     name: '[pixi:build-packages:${{ matrix.job_name }}]'
     runs-on: ${{ matrix.runs_on }}
+    # The default value of this is 360, we keep it large as rocm builds can take a long time
+    timeout-minutes: 3600
     strategy:
       fail-fast: false
       matrix:
