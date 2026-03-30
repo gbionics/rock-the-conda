@@ -7,6 +7,8 @@ on:
 env:
   # Change to 'true' to ignore cache and force a full rebuild, but please restore to 'false' before merging
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
+  # This env variable triggers the GHA cache support in sccache
+  SCCACHE_GHA_ENABLED: "on"
 
 jobs:
   build-packages:
