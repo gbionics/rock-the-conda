@@ -1,0 +1,87 @@
+context:
+  name: onnxruntime
+  version: "1.24.2"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/microsoft/onnxruntime/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: e4f44579f0bdd06d1cc7abdb2a6740dc06ac10699d502c0f8d9576203550bd4d
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+  dynamic_linking:
+    missing_dso_allowlist:
+      - if: linux
+        then:
+          - "*/libamdhip64.so.*"
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+    - python
+  host:
+    - rocm-core ${{ rocm_version }}.*
+    - migraphx
+    - miopen-hip
+    - rocblas
+    - hipblas
+    - hipblas-common
+    - hipblaslt
+    - composable-kernel
+    - cpp-half
+    - python
+    - numpy
+    - pybind11
+    - zlib
+    - libabseil
+    - libprotobuf
+    - libre2-11
+    - flatbuffers
+    - nlohmann_json
+    - ms-gsl
+    - libboost-devel
+    - safeint
+  run:
+    - python
+    - protobuf
+    - python-flatbuffers
+    - coloredlogs
+    - packaging
+    - sympy
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
+tests:
+  - package_contents:
+      include:
+        - onnxruntiem/onnxruntime_c_api.h
+        - onnxruntime/onnxruntime_cxx_api.h
+      lib:
+        - libonnxruntime${{ dso_ext }}
+
+about:
+  homepage: https://github.com/microsoft/onnxruntime
+  repository: https://github.com/microsoft/onnxruntime
+  license: MIT
+  license_file: LICENSE
+  summary: "Cross-platform ML inferencing and training accelerator with ROCm/MIGraphX support"
+  description: |
+    ONNX Runtime is a cross-platform inference and training machine-learning
+    accelerator. This package is built with ROCm and MIGraphX support for
+    AMD GPU acceleration.
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
