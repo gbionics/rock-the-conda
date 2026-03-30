@@ -55,3 +55,143 @@ index b052ec51c..e0e007548 100644
  #include "lib/common/environment.hpp"
  #include "lib/common/filesystem.hpp"
  #include "lib/common/logging.hpp"
+diff --git a/external/elfio/elfio/elf_types.hpp b/external/elfio/elfio/elf_types.hpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/external/elfio/elfio/elf_types.hpp
++++ b/external/elfio/elfio/elf_types.hpp
+@@ -22,6 +22,9 @@ THE SOFTWARE.
+ #ifndef ELFTYPES_H
+ #define ELFTYPES_H
+ 
++// Missing cstdint for uint16_t, uint32_t, uint64_t
++#include <cstdint>
++
+ #ifdef __cplusplus
+ namespace ELFIO {
+ #endif
+diff --git a/source/lib/common/logging.cpp b/source/lib/common/logging.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/common/logging.cpp
++++ b/source/lib/common/logging.cpp
+@@ -20,6 +20,9 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ // THE SOFTWARE.
+ 
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
++
+ #include "lib/common/logging.hpp"
+ #include "lib/common/environment.hpp"
+ #include "lib/common/filesystem.hpp"
+diff --git a/source/lib/output/generateStats.cpp b/source/lib/output/generateStats.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/output/generateStats.cpp
++++ b/source/lib/output/generateStats.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "generateStats.hpp"
+ #include "domain_type.hpp"
+diff --git a/source/lib/rocprofiler-sdk-tool/tool.cpp b/source/lib/rocprofiler-sdk-tool/tool.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/rocprofiler-sdk-tool/tool.cpp
++++ b/source/lib/rocprofiler-sdk-tool/tool.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #define _GNU_SOURCE     1
+ #define _DEFAULT_SOURCE 1
+diff --git a/source/lib/output/generateRocpd.cpp b/source/lib/output/generateRocpd.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/output/generateRocpd.cpp
++++ b/source/lib/output/generateRocpd.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "generateRocpd.hpp"
+ #include "lib/common/uuid_v7.hpp"
+diff --git a/source/lib/output/sql/common.cpp b/source/lib/output/sql/common.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/output/sql/common.cpp
++++ b/source/lib/output/sql/common.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "lib/output/sql/common.hpp"
+ #include "lib/output/kernel_symbol_info.hpp"
+diff --git a/source/lib/python/rocpd/source/serialization/sql.cpp b/source/lib/python/rocpd/source/serialization/sql.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/python/rocpd/source/serialization/sql.cpp
++++ b/source/lib/python/rocpd/source/serialization/sql.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "lib/python/rocpd/source/serialization/sql.hpp"
+ #include "lib/output/sql/common.hpp"
+diff --git a/source/lib/rocprofiler-sdk/agent.cpp b/source/lib/rocprofiler-sdk/agent.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/rocprofiler-sdk/agent.cpp
++++ b/source/lib/rocprofiler-sdk/agent.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "lib/rocprofiler-sdk/agent.hpp"
+ #include "lib/common/environment.hpp"
+diff --git a/source/lib/rocprofiler-sdk/counters/evaluate_ast.cpp b/source/lib/rocprofiler-sdk/counters/evaluate_ast.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/rocprofiler-sdk/counters/evaluate_ast.cpp
++++ b/source/lib/rocprofiler-sdk/counters/evaluate_ast.cpp
+@@ -18,6 +18,9 @@
+ // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "lib/rocprofiler-sdk/counters/evaluate_ast.hpp"
+ #include "lib/common/logging.hpp"
+diff --git a/source/lib/rocprofiler-sdk/hsa/queue.cpp b/source/lib/rocprofiler-sdk/hsa/queue.cpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/rocprofiler-sdk/hsa/queue.cpp
++++ b/source/lib/rocprofiler-sdk/hsa/queue.cpp
+@@ -18,6 +18,9 @@
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE. */
++
++// Missing fmt/ranges.h for fmt::join
++#include <fmt/ranges.h>
+ 
+ #include "lib/rocprofiler-sdk/hsa/queue.hpp"
+ #include "lib/common/scope_destructor.hpp"
