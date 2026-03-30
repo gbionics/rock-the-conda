@@ -7,9 +7,11 @@ platforms = ["linux-64", "win-64"]
 [activation.env]
 CONDA_BUILD_ARGS = "-c conda-forge -c local --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
-# We use ccache for C and C++ as it used in TheRock, and sccache for HIP as ccache does not support HIP caching
-CMAKE_C_COMPILER_LAUNCHER = "ccache"
-CMAKE_CXX_COMPILER_LAUNCHER = "ccache"
+# We use sccache for C and C++, and HIP as ccache does not support HIP caching and mixing ccache and sccache does not work well with HIP workloads
+# Note that ccache can create problem of cross-talking across pixi workspaces, so make sure that in this case you only use
+# ccache with this pixi workspace
+CMAKE_C_COMPILER_LAUNCHER = "sccache"
+CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
 CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 
 [tasks]

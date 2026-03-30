@@ -34,17 +34,10 @@ jobs:
     - name: Print pixi info
       run: pixi info
 
-    - name: Install global ccache and sccache
+    - name: Install global sccache
       shell: bash
       run: |
-        pixi global install ccache sccache
-
-    # ccache is used for caching of C and C++ compilation units
-    - uses: Chocobo1/setup-ccache-action@v1
-      with:
-        install_ccache: false
-        update_packager_index: false
-        prepend_symlinks_to_path: false
+        pixi global install sccache
 
     # sccache is used for caching of HIP compilation units
     - name: Run sccache-cache
