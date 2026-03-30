@@ -14,7 +14,7 @@ source:
     - 0002-disable-cpackaging.patch
 
 build:
-  number: 0
+  number: 2
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -32,7 +32,7 @@ requirements:
     - rocm-core ${{ version }}.*
     - rocr-runtime
     - glog
-    - fmt ==10.2.1
+    - fmt
 
 tests:
   - package_contents:

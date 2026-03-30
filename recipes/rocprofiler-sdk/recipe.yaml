@@ -31,12 +31,13 @@ requirements:
   host:
     - rocprofiler-register
     - aqlprofile
-    - fmt ==10.2.1
+    - fmt
     - yaml-cpp
     - gotcha
     - glog
     - elfio
     - tbb-devel
+    - pybind11
 
 about:
   repository: https://github.com/ROCm/rocprofiler-sdk
