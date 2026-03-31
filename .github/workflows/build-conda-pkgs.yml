@@ -9,6 +9,8 @@ env:
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
+  # If true, upload the packages to the matrix-specified target channel
+  ROCK_THE_CONDA_UPLOAD_PACKAGES: "false"
 
 jobs:
   build-packages:
@@ -23,7 +25,7 @@ jobs:
           - job_name: 'build-strix-packages'
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
-            target_channel: https://prefix.dev/rock-the-conda-strix
+            target_channel: rock-the-conda-strix
 
     steps:
     - uses: actions/checkout@v6
@@ -38,17 +40,8 @@ jobs:
     - name: Print pixi info
       run: pixi info
 
-    - name: Install global sccache
-      shell: bash
-      run: |
-        pixi global install sccache
-
-    # sccache is used for caching of HIP compilation units
-    - name: Run sccache-cache
-      uses: mozilla-actions/sccache-action@v0.0.9
-
     # this is the cache of conda packages
-    - name: Restore build cache
+    - name: Restore cache of conda packages
       id: cache-restore
       uses: actions/cache/restore@v4
       with:
@@ -82,3 +75,10 @@ jobs:
         path: |
           ${{ matrix.folder_cache }}
         key: ${{ matrix.job_name }}-conda-pkgs-cache-${{ github.run_id }}-${{ github.run_attempt }}
+
+    - name: Upload packages
+      if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
+      env:
+        ROCK_THE_CONDA_PREFIX_DEV_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
+        ROCK_THE_CONDA_TARGET_CHANNEL: ${{ matrix.target_channel }}
+      run: pixi run upload-all
