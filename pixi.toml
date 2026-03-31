@@ -5,14 +5,22 @@ name = "rocktheconda"
 platforms = ["linux-64", "win-64"]
 
 [activation.env]
-CONDA_BUILD_ARGS = "-c conda-forge -c local --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
 # We use sccache for C and C++, and HIP as ccache does not support HIP caching and mixing ccache and sccache does not work well with HIP workloads
 # Note that ccache can create problem of cross-talking across pixi workspaces, so make sure that in this case you only use
 # ccache with this pixi workspace
 CMAKE_C_COMPILER_LAUNCHER = "sccache"
 CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
 CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
+
+[feature.strix-archs.activation.env]
+ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
+CONDA_BUILD_ARGS = "-c conda-forge -c local -c https://prefix.dev/rock-the-conda-strix --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
+RATTLER_BUILD_ARGS = "-c conda-forge -c https://prefix.dev/rock-the-conda-strix --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
+
+[feature.all-archs.activation.env]
+ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
+CONDA_BUILD_ARGS = "-c conda-forge -c local -c https://prefix.dev/rock-the-conda --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
+RATTLER_BUILD_ARGS = "-c conda-forge -c https://prefix.dev/rock-the-conda --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
 
 [tasks]
 download-therock-base = "git clone https://github.com/ROCm/TheRock"
@@ -122,4 +130,8 @@ conda-forge-pinning = "*"
 
 [target.unix.dependencies]
 python-magic = ">=0.4.27"
+
+[environments]
+default = ["strix-archs"]
+all-archs = ["all-archs"]
 

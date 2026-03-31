@@ -25,7 +25,6 @@ jobs:
           - job_name: 'build-strix-packages'
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
-            target_channel: rock-the-conda-strix
 
     steps:
     - uses: actions/checkout@v6
@@ -83,5 +82,4 @@ jobs:
       if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
       env:
         ROCK_THE_CONDA_PREFIX_DEV_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
-        ROCK_THE_CONDA_TARGET_CHANNEL: ${{ matrix.target_channel }}
       run: pixi run upload-all
