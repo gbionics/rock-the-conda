@@ -42,7 +42,9 @@ requirements:
     - elfio
     - tbb-devel
     - pybind11
+    - zlib
     - elfutils
+    - libdrm
 
 about:
   repository: https://github.com/ROCm/rocprofiler-sdk
