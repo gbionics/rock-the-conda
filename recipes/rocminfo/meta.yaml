@@ -10,11 +10,6 @@ package:
 source:
   url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/rocminfo.tar.gz
   sha256: 6f3235bea6b8e92460de66a7f40366d17e20ae36693324eccd3eb3fa4e75cc98
-  patches:
-    # Backport for https://github.com/ROCm/rocm-systems/pull/743
-    - patches/743.patch
-    # Backport for 
-    - patches/1317.patch
 
 build:
   number: 0
