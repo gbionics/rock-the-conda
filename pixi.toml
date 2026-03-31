@@ -11,6 +11,14 @@ platforms = ["linux-64", "win-64"]
 CMAKE_C_COMPILER_LAUNCHER = "sccache"
 CMAKE_CXX_COMPILER_LAUNCHER = "sccache"
 CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
+# The tritron and pytorch recipes are quite complex, so keep them as proper forks
+# to simplify rebasing on latest versions of the feedstock
+TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
+TRITON_FEEDSTOCK_COMMIT = "67a0a93f16a2a262668344d3da75a1c3998d633d"
+PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
+PYTORCH_CPU_FEEDSTOCK_COMMIT = "CHANGE_ME_PYTORCH_CPU_COMMIT"
+LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
+LIBMAGMA_FEEDSTOCK_COMMIT = "CHANGE_ME_LIBMAGMA_COMMIT"
 
 [feature.strix-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
@@ -87,6 +95,16 @@ build-miopen-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe
 build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-rocblas", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
 build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-clang22-activation", "build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }
 bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
+
+# External feedstocks for pytorch enablement.
+download-triton-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/triton-feedstock/.git || git clone $TRITON_FEEDSTOCK_REPO ./feedstocks/triton-feedstock) && git -C ./feedstocks/triton-feedstock fetch --all --tags && git -C ./feedstocks/triton-feedstock checkout $TRITON_FEEDSTOCK_COMMIT" }
+download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/pytorch-cpu-feedstock/.git || git clone $PYTORCH_CPU_FEEDSTOCK_REPO ./feedstocks/pytorch-cpu-feedstock) && git -C ./feedstocks/pytorch-cpu-feedstock fetch --all --tags && git -C ./feedstocks/pytorch-cpu-feedstock checkout $PYTORCH_CPU_FEEDSTOCK_COMMIT" }
+download-libmagma-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/libmagma-feedstock/.git || git clone $LIBMAGMA_FEEDSTOCK_REPO ./feedstocks/libmagma-feedstock) && git -C ./feedstocks/libmagma-feedstock fetch --all --tags && git -C ./feedstocks/libmagma-feedstock checkout $LIBMAGMA_FEEDSTOCK_COMMIT" }
+build-triton-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
+build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
+build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
+
+
 clean = "rm -rf feedstocks conda-bld"
 # Upload all build packages to rock-the-conda channel, needs pixi auth login before
 upload-all = { cmd = "python recipes/upload_all.py" }
