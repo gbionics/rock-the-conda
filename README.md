@@ -25,15 +25,14 @@ The workspace defines two pixi environments for targeting different channels:
 | Environment | Channel | Description |
 |---|---|---|
 | `default` (includes `strix-archs` feature) | [`rock-the-conda-strix`](https://prefix.dev/channels/rock-the-conda-strix) | Builds targeting Strix (gfx1150/gfx1151) architectures. This is the active development channel. |
-| `all-archs` | [`rock-the-conda`](https://prefix.dev/channels/rock-the-conda) | Builds targeting all ROCm GPU architectures. **Currently halted.** |
+| `all-archs` | [`rock-the-conda`](https://prefix.dev/channels/rock-the-conda) | Builds targeting all ROCm GPU architectures. **No work is currently done here.** |
 
-By default, `pixi run build-packages` builds and publishes to the `rock-the-conda-strix` channel. To build for all architectures instead (once work resumes), use:
+By default, `pixi run build-packages` builds and publishes to the `rock-the-conda-strix` channel. To build for all architectures instead (this is not currently tested in CI, so it may fail), use:
 
 ~~~bash
 pixi run -e all-archs build-packages
 ~~~
 
-Each environment sets `CONDA_BUILD_ARGS`, `RATTLER_BUILD_ARGS`, and `ROCK_THE_CONDA_TARGET_CHANNEL` automatically.
 
 The recipe to build are configured in `recipes` folder and build in order the following feedstocks:
 - `rocm-core`

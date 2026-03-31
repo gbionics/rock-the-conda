@@ -35,7 +35,13 @@ def main():
     print(f"Found {len(conda_packages)} packages to upload")
 
     # Channel (overridable via env var)
-    channel = os.environ.get("ROCK_THE_CONDA_TARGET_CHANNEL", DEFAULT_CHANNEL)
+    # ROCK_THE_CONDA_TARGET_CHANNEL can be a full URL like https://prefix.dev/rock-the-conda-strix
+    # or just a channel name like rock-the-conda-strix. Extract the channel name for pixi upload.
+    channel_raw = os.environ.get("ROCK_THE_CONDA_TARGET_CHANNEL", DEFAULT_CHANNEL)
+    if "/" in channel_raw:
+        channel = channel_raw.rstrip("/").rsplit("/", 1)[-1]
+    else:
+        channel = channel_raw
 
     # Optional API key (overrides default pixi auth)
     api_key = os.environ.get("ROCK_THE_CONDA_PREFIX_DEV_TOKEN")
