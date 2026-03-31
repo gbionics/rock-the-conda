@@ -356,7 +356,7 @@ tests:
   - if: (build_platform == target_platform) and (hip_compiler_version != "None")
     then:
       - script:
-          - test_rocm_minimal.py
+          - python test_rocm_minimal.py
         files:
           recipe:
             - test_rocm_minimal.py
