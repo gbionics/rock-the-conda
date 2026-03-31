@@ -334,7 +334,7 @@ tests:
               - check_file "$PREFIX/lib/libggml-hip${SHLIB_EXT}" "libggml-hip${SHLIB_EXT}"
 
         # Packaged everywhere but for CUDA builds and on linux_aarch64
-          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None" or hip_compiler_version == "None")
+          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None" and hip_compiler_version == "None")
             then:
               - check_file "$PREFIX/lib/libggml-blas${SHLIB_EXT}" "libggml-blas${SHLIB_EXT}"
 
@@ -342,7 +342,7 @@ tests:
           - echo "Checking pkg-config file..."
           - check_file "$PREFIX/lib/pkgconfig/llama.pc" "llama.pc"
 
-  - if: (build_platform == target_platform) and (cuda_compiler_version == "None")
+  - if: (build_platform == target_platform) and (cuda_compiler_version == "None") and (hip_compiler_version == "None")
     then:
       - script:
           - llama-cli --help
@@ -352,6 +352,16 @@ tests:
             - if: cuda_compiler_version != "None"
               then:
                 - cuda-version ${{ cuda_compiler_version }}
+
+  - if: (build_platform == target_platform) and (hip_compiler_version != "None")
+    then:
+      - script: python test_rocm_minimal.py
+        files:
+          source:
+            - test_rocm_minimal.py
+        requirements:
+          run:
+            - rocminfo
 
 about:
   homepage: https://github.com/ggml-org/llama.cpp
