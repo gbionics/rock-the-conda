@@ -65,8 +65,8 @@ jobs:
         sed -i 's|^export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS=.*$|export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS="gfx1150;gfx1151"|' recipes/hip/activate/hip-clang_activate.sh
         grep '^export CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS=' recipes/hip/activate/hip-clang_activate.sh
 
-    - name: Start sccache server
-      run: pixi run sccache --start-server
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build packages
       run: pixi run build-packages
