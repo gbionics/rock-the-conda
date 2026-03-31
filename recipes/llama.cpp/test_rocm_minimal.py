@@ -78,12 +78,16 @@ def download_model(model_path):
     try:
         print(f"Downloading minimal GGML model (~27MB)...\n  {MODEL_URL}")
 
+        last_percent = [-1]  # mutable container for closure
+
         def download_progress(block_num, block_size, total_size):
             downloaded = block_num * block_size
             if downloaded > total_size:
                 downloaded = total_size
             percent = min(100, (downloaded * 100) // total_size)
-            print(f"\r  Progress: {percent}%", end="", flush=True)
+            if percent != last_percent[0]:
+                last_percent[0] = percent
+                print(f"\r  Progress: {percent}%", end="", flush=True)
 
         urllib.request.urlretrieve(MODEL_URL, model_path, download_progress)
         print("\n✓ Model downloaded successfully")
@@ -190,11 +194,13 @@ def run_hip_inference_test(model_path):
         # Verify HIP backend is active
         ok = True
 
-        if "HIP" not in backends.upper():
-            print(f"\n⚠ Expected 'HIP' in backends, got: '{backends}'", file=sys.stderr)
+        backends_upper = backends.upper()
+        if "HIP" not in backends_upper and "ROCM" not in backends_upper:
+            print(f"\n⚠ Expected 'HIP' or 'ROCm' in backends, got: '{backends}'", file=sys.stderr)
             ok = False
         else:
-            print("\n✓ HIP backend is active")
+            print(f"\n✓ ROCm/HIP backend is active ({backends})")
+
 
         if n_gpu_layers == 0:
             print("⚠ n_gpu_layers is 0 — model not offloaded to GPU", file=sys.stderr)
