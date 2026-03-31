@@ -20,8 +20,6 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15  # [linux]
     - cmake
     - make
   host:

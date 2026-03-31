@@ -7,7 +7,6 @@ c_compiler_version:
 cxx_compiler_version:
     - 20
 
-# Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
 fortran_compiler_version:
     - 15
 libstdcxx:
