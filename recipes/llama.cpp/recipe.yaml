@@ -334,7 +334,7 @@ tests:
               - check_file "$PREFIX/lib/libggml-hip${SHLIB_EXT}" "libggml-hip${SHLIB_EXT}"
 
         # Packaged everywhere but for CUDA builds and on linux_aarch64
-          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None")
+          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None" or hip_compiler_version == "None")
             then:
               - check_file "$PREFIX/lib/libggml-blas${SHLIB_EXT}" "libggml-blas${SHLIB_EXT}"
 
