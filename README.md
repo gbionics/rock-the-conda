@@ -59,31 +59,16 @@ The recipe to build are configured in `recipes` folder and build in order the fo
 And the following downstream packages that uses `rocm`:
 - `llama.cpp`
 
-Built packages will be placed in the `output/` subdirectory of the folder. For simplify the debugging, some built packages are available in https://prefix.dev/channels/rock-the-conda . A simple example of using `rocm`-powered llama.cpp (to verify if GPU is actually used) is available in `examples/llama.cpp`:
+Built packages will be placed in the `output/` subdirectory of the folder. For simplify the debugging, some built packages are available in the following channels:
+
+|    Channel                                            |  Supported architectures    |  Description |  Status     |
+|:----------------------------------------------------:|:---------------------------:|:--------------:|:-------------:| 
+| https://prefix.dev/channels/rock-the-conda-strix     | `gfx1150;gfx1151`           | Channel that contains packages that target Strix Halo and Strix Point systems. | Packages are currently uploaded here. | 
+| https://prefix.dev/channels/rock-the-conda     | `gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201`  | Channel that contains packages that target all ROCm-supported architectures. | Work on this channel is currently on hold. | 
+
+A simple example of using `rocm`-powered llama.cpp targeting Strix Halo|Point systems (to verify if GPU is actually used) is available in `examples/llama.cpp`:
 
 ~~~
 cd examples/llama.cpp
 pixi run benchmark
 ~~~
-
-
-### TheRock Dependency Analysis
-
-One functionality of this repo is some tooling to extract dependencies information of rocm packages from [`TheRock`](https://github.com/ROCm/TheRock):
-
-~~~bash
-pixi run download-therock
-pixi run extract-deps
-~~~
-
-This generates a `the_rock_deps.png` file showing the dependency graph, see https://github.com/conda-forge/conda-forge.github.io/issues/1923#issuecomment-3074199892 for an example of such image.
-
-### Build TheRock with conda-forge compilers
-
-[`TheRock`](https://github.com/ROCm/TheRock) is a cmake-based superbuild/virtual monorepo infrastructure to build all the ROCm packages, including their dependencies. To compile it with conda-forge dependencies, run:
-
-~~~
-pixi run download-therock-all
-pixi run build-therock
-~~~
-
