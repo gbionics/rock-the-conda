@@ -17,8 +17,7 @@ from pathlib import Path
 
 # Tiny stories model from ggml-org/tiny-llamas (~27MB, Q8_0 quantized)
 # Pinned to a specific commit for reproducibility
-TINY_LLAMAS_COMMIT = "6e091d820cbe8f22eeb604d136403eca290b8c1e"
-MODEL_URL = f"https://huggingface.co/ggml-org/tiny-llamas/resolve/{TINY_LLAMAS_COMMIT}/stories15M-q8_0.gguf"
+MODEL_URL = f"https://huggingface.co/ggml-org/tiny-llamas/resolve/6e091d820cbe8f22eeb604d136403eca290b8c1e/stories15M-q8_0.gguf"
 MODEL_FILENAME = "stories15M-q8_0.gguf"
 
 
@@ -99,6 +98,9 @@ def run_hip_inference_test(model_path):
     """
     Run actual HIP inference with llama.cpp on the downloaded model using llama-bench.
 
+    Uses JSON output (-o json) to parse structured results and verify
+    that the HIP backend is actually being used for inference.
+
     This ensures that:
     1. The HIP backend is properly linked
     2. GPU code is actually executed (not CPU fallback)
@@ -111,9 +113,24 @@ def run_hip_inference_test(model_path):
         bool: True if inference successful, False otherwise
     """
     try:
-        # Run llama-bench to benchmark the model on GPU
-        # This is a better test than simple inference as it provides structured output
-        print("Running HIP inference benchmark with llama-bench...\n")
+        import json
+
+        # Print available devices for debugging
+        print("Querying llama-bench --list-devices ...\n")
+        try:
+            dev_result = subprocess.run(
+                ["llama-bench", "--list-devices"],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            print(dev_result.stdout)
+            if dev_result.stderr:
+                print(dev_result.stderr)
+        except Exception as e:
+            print(f"⚠ Could not list devices: {e}")
+
+        print("Running HIP inference benchmark with llama-bench (JSON output)...\n")
 
         cmd = [
             "llama-bench",
@@ -121,6 +138,7 @@ def run_hip_inference_test(model_path):
             "-t", "1",     # Use 1 thread for consistency
             "-ngl", "99",  # Offload 99 layers to GPU (all of them)
             "-n", "20",    # Generate only 20 tokens for speed
+            "-o", "json",  # Structured JSON output
         ]
 
         result = subprocess.run(
@@ -134,24 +152,74 @@ def run_hip_inference_test(model_path):
             print(f"⚠ llama-bench inference failed:\n{result.stderr}", file=sys.stderr)
             return False
 
-        output = result.stdout
-        print("llama-bench output:")
-        print("-" * 70)
-        print(output)
-        print("-" * 70)
-
-        # Check that benchmark actually produced output with timing information
-        if not output or ("ms" not in output.lower() and "time" not in output.lower()):
-            print("⚠ Benchmark did not produce expected output", file=sys.stderr)
+        raw_output = result.stdout
+        if not raw_output.strip():
+            print("⚠ llama-bench produced no output", file=sys.stderr)
             return False
 
-        print("\n✓ HIP inference benchmark completed successfully")
+        # Parse JSON output
+        try:
+            bench_results = json.loads(raw_output)
+        except json.JSONDecodeError as e:
+            print(f"⚠ Failed to parse llama-bench JSON output: {e}", file=sys.stderr)
+            print("Raw output:")
+            print(raw_output)
+            return False
 
-        # Try to detect if GPU was actually used by checking for GPU-related messages
-        if "gpu" in output.lower() or "hip" in output.lower() or "rocm" in output.lower():
-            print("✓ GPU acceleration appears to be active")
+        # Dump the full JSON for CI logs
+        print("llama-bench JSON output:")
+        print("-" * 70)
+        print(json.dumps(bench_results, indent=2))
+        print("-" * 70)
 
-        return True
+        if not bench_results:
+            print("⚠ llama-bench returned empty results array", file=sys.stderr)
+            return False
+
+        # Validate backend information from the first result entry
+        entry = bench_results[0]
+
+        backends = entry.get("backends", "")
+        gpu_info = entry.get("gpu_info", "")
+        n_gpu_layers = entry.get("n_gpu_layers", 0)
+
+        print(f"\n  backends:     {backends}")
+        print(f"  gpu_info:     {gpu_info}")
+        print(f"  n_gpu_layers: {n_gpu_layers}")
+
+        # Verify HIP backend is active
+        ok = True
+
+        if "HIP" not in backends.upper():
+            print(f"\n⚠ Expected 'HIP' in backends, got: '{backends}'", file=sys.stderr)
+            ok = False
+        else:
+            print("\n✓ HIP backend is active")
+
+        if n_gpu_layers == 0:
+            print("⚠ n_gpu_layers is 0 — model not offloaded to GPU", file=sys.stderr)
+            ok = False
+        else:
+            print(f"✓ {n_gpu_layers} layer(s) offloaded to GPU")
+
+        if gpu_info:
+            print(f"✓ GPU detected: {gpu_info}")
+        else:
+            print("⚠ gpu_info is empty — no GPU reported", file=sys.stderr)
+            ok = False
+
+        # Check that timing data is present (avg_ts = tokens/second)
+        avg_ts = entry.get("avg_ts", 0)
+        if avg_ts > 0:
+            print(f"✓ Inference speed: {avg_ts:.2f} tokens/s")
+        else:
+            print("⚠ avg_ts is 0 — benchmark may not have run", file=sys.stderr)
+            ok = False
+
+        if ok:
+            print("\n✓ HIP inference benchmark completed successfully")
+
+        return ok
 
     except FileNotFoundError:
         print("⚠ llama-bench command not found", file=sys.stderr)
