@@ -210,10 +210,7 @@ requirements:
       then:
         - blas-devel * *_${{ blas_impl }}
         - mkl-devel ${{ mkl }}.*
-    # See https://conda-forge.org/docs/maintainer/knowledge_base/#openmp
-    - if: linux
-      then:
-        - libgomp
+
     - if: osx
       then:
         - llvm-openmp
@@ -225,6 +222,9 @@ requirements:
         - rocblas
         - hipblas
         - hipblas-common
+        # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
+        # set by compiler('hip')
+        - llvm-openmp
   run:
     - if: cuda_compiler_version != "None"
       then:
