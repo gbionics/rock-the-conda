@@ -1,22 +1,20 @@
 [workspace]
 authors = ["Silvio Traversaro <silvio@traversaro.it>"]
-channels = ["https://prefix.dev/rock-the-conda", "https://prefix.dev/conda-forge"]
+channels = ["https://prefix.dev/rock-the-conda-strix", "https://prefix.dev/conda-forge"]
 name = "llama.cpp"
 platforms = ["linux-64"]
 
-[dependencies]
+# Run:
+# pixi run benchmark to run llama-bench on a simple llm model with rocm, and
+# pixi run -e vulkan benchmark to run the same benchmark with vulkan
 
-# Workaround for missing run_exports, will be fixed in next rebuild
-"llama.cpp" = { version = "6904.*", build = "*rocm*" }
-hipblas = "*"
-rocblas = "*"
-roctracer = "*"
-rocsolver = "*"
-rocm-core = "7.0.2.*"
+[dependencies]
+"llama.cpp" = { version = "*", build = "*rocm*" }
 curl = "*"
 
-[feature.cpu.dependencies]
-"llama.cpp" = { version = "6904.*", build = "*cpu*" }
+# The cpu build of llama.cpp actually has vulkan support
+[feature.vulkan.dependencies]
+"llama.cpp" = { version = "*", build = "*cpu*" }
 curl = "*"
 
 [feature.tasks.tasks]
@@ -28,4 +26,4 @@ benchmark = {cmd="llama-bench -m ./gemma-3-1b-it-Q4_K_M.gguf", depends-on="downl
 
 [environments]
 default = { features = ["tasks"] }
-cpu = { features = ["cpu", "tasks"], no-default-feature = true }
+vulkan = { features = ["vulkan", "tasks"], no-default-feature = true }

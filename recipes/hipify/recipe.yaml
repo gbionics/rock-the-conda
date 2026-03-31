@@ -20,6 +20,9 @@ build:
 requirements:
   build:
     - ${{ compiler('cxx') }}
+    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+    - libstdcxx-devel_linux-64 >=15
+    - libgcc-devel_linux-64 >=15.2.0
     - cmake
     - ninja
   host:
@@ -28,7 +31,7 @@ requirements:
     - clangdev
   run:
     - perl
-    - llvm
+    - llvm 20.*
 
 tests:
   - script:

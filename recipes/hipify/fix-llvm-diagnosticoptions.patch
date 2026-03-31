@@ -9,9 +9,9 @@ index 1234567..abcdefg 100644
 -  IntrusiveRefCntPtr<clang::DiagnosticOptions> diagOpts(new clang::DiagnosticOptions());
 -  clang::TextDiagnosticPrinter diagClient(llvm::errs(), &*diagOpts);
 -  clang::DiagnosticsEngine Diagnostics(IntrusiveRefCntPtr<clang::DiagnosticIDs>(new clang::DiagnosticIDs()), &*diagOpts, &diagClient, false);
-+  std::shared_ptr<clang::DiagnosticOptions> diagOpts = std::make_shared<clang::DiagnosticOptions>();
-+  clang::TextDiagnosticPrinter diagClient(llvm::errs(), *diagOpts);
-+  clang::DiagnosticsEngine Diagnostics(IntrusiveRefCntPtr<clang::DiagnosticIDs>(new clang::DiagnosticIDs()), *diagOpts, &diagClient, false);
++  IntrusiveRefCntPtr<clang::DiagnosticOptions> diagOpts(new clang::DiagnosticOptions());
++  clang::TextDiagnosticPrinter diagClient(llvm::errs(), diagOpts.get());
++  clang::DiagnosticsEngine Diagnostics(IntrusiveRefCntPtr<clang::DiagnosticIDs>(new clang::DiagnosticIDs()), diagOpts, &diagClient, false);
    std::unique_ptr<clang::driver::Driver> driver(new clang::driver::Driver("", "nvptx64-nvidia-cuda", Diagnostics));
    std::vector<const char*> Args(argv, argv + argc);
    cleanupHipifyOptions(Args);

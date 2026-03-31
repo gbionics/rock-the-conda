@@ -6,7 +6,8 @@ cd build
 
 # Configure CMake
 cmake -GNinja \
-    ${CMAKE_ARGS:-} \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
+    ${CMAKE_ARGS} \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH="${PREFIX}" \
     -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
@@ -16,6 +17,8 @@ cmake -GNinja \
     -DENABLE_CLANG_CPP_CHECKS=OFF \
     ..
 
-# Limit to 4 parallel jobs to avoid OOM issues
-cmake --build . -- -j4
+# Depending on the specific machine you are running this in, you may need to
+# change the number of threads to avoid out of memory issues, it is possible to do that with "--parallel 4",
+# where 4  is the number of threads
+cmake --build .  --parallel 6
 cmake --install .

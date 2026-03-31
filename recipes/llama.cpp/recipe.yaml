@@ -1,7 +1,9 @@
 context:
   name: llama.cpp
-  version: "6904"
+  version: "8224"
   build: 0
+  # ensure arm_variant_type gets detected as a used variable
+  touch_arm_variant_type: ${{ arm_variant_type if (linux and aarch64) else "None" }}
 
 package:
   name: ${{ name|lower }}
@@ -9,11 +11,13 @@ package:
 
 source:
   url: https://github.com/ggml-org/${{ name }}/archive/b${{ version | split(".") | list | last }}.tar.gz
-  sha256: b0a32d8dd439fdda590527fa14e61361048cf14e9826c78843baf41bcdc9955b
+  sha256: 38f83231bfea5dbc041226e47962a707f04759cd854aaba901e9177f34b2e5a1
 
 
 build:
-  number: ${{ build }}
+  # See https://conda-forge.org/docs/user/tipsandtricks/#installing-cuda-enabled-packages-like-tensorflow-and-pytorch
+  # Similar to https://github.com/conda-forge/jaxlib-feedstock/blob/4471f8d7b0096942f228a9c5a4324bfa75139e22/recipe/recipe.yaml#L22
+  number: ${{ build if cuda_compiler_version == "None" else build + 200 }}
   string: '{%- if cuda_compiler_version != "None" -%}cuda${{ cuda_compiler_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif hip_compiler_version != "None" -%}rocm${{ rocm_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif (osx and x86_64) or cuda_compiler_version == "None" -%}cpu_${{ blas_impl }}_h${{ hash }}_${{ build }}{%- elif osx and arm64 -%}mps_h${{ hash }}_${{ build }}{%- endif -%}'
   # Only build rocm variant (rock-the conda specific change, remove if the changes are upstreamed)
   skip: hip_compiler_version == "None"
@@ -21,6 +25,26 @@ build:
   script:
     - if: unix
       then: |
+        # This is a hotfix for https://github.com/NVIDIA/cccl/issues/4967, backporting
+        # https://github.com/NVIDIA/cccl/pull/4972 on the fly for the installed headers
+        # The fix is not necessary anymore for cccl >= 3.0.0 and CUDA >= 13.0
+        {%- if match(cuda_compiler_version, "12.*") and linux and x86_64 %}
+        CCCL_PREPROCESSOR_H_TO_PATCH="$PREFIX/targets/x86_64-linux/include/cuda/std/__cccl/preprocessor.h"
+        {%- endif %}
+
+        {%- if match(cuda_compiler_version, "12.*") and linux and aarch64 and arm_variant_type == "sbsa" %}
+        CCCL_PREPROCESSOR_H_TO_PATCH="$PREFIX/targets/sbsa-linux/include/cuda/std/__cccl/preprocessor.h"
+        {%- endif %}
+
+        {%- if match(cuda_compiler_version, "12.*") and linux and aarch64 and arm_variant_type == "tegra" %}
+        CCCL_PREPROCESSOR_H_TO_PATCH="$PREFIX/targets/aarch64-linux/include/cuda/std/__cccl/preprocessor.h"
+        {%- endif %}
+
+        {%- if match(cuda_compiler_version, "12.*") and linux %}
+        ROOT_DIR="$(dirname "${CCCL_PREPROCESSOR_H_TO_PATCH}")/../../../.."
+        patch -p1 -d "${ROOT_DIR}" -i "${RECIPE_DIR}/cuda12_cccl_arch_all.patch"
+        {%- endif %}
+
         echo hello
         LLAMA_ARGS="-DLLAMA_BUILD_TESTS=OFF"
 
@@ -54,9 +78,26 @@ build:
         ${{ ggml_args("ACCELERATE=ON") }}
         {%- endif %}
 
-        {%- if cuda_compiler_version != "None" %}
+        # Vulkan is only useful on Linux, as on macOS
+        # metal is used
+        {%- if linux %}
+        ${{ ggml_args("VULKAN=ON") }}
+        {%- endif %}
+
+        {%- if build_platform != target_platform %}
+        # Vulkan support requires host compilers to be set in cross-compilation, see
+        # https://github.com/ggml-org/llama.cpp/blob/b8354/ggml/src/ggml-vulkan/CMakeLists.txt#L16-L26
+        ${{ cmake_args("HOST_C_COMPILER=$CC_FOR_BUILD") }}
+        ${{ cmake_args("HOST_CXX_COMPILER=$CXX_FOR_BUILD") }}
+        {%- endif %}
+
+        {%- if cuda_compiler_version | default("None") != "None" %}
         ${{ ggml_args("CUDA=ON") }}
-        ${{ cmake_args("CMAKE_CUDA_ARCHITECTURES=all") }}
+        # As depending on CUDA 12, 13 or tegra the architecture that make sense are different
+        # we used them as set cuda cuda-nvcc with $CUDAARCHS, instead of hardcoding it to all
+        # Technically CUDAARCHS is automatically used by CMake for initializing the CMAKE_CUDA_ARCHITECTURES
+        # variable, but we set it explicitly for clarity
+        ${{ cmake_args("CMAKE_CUDA_ARCHITECTURES=$CUDAARCHS") }}
         {%- endif %}
 
         {%- if hip_compiler_version != "None" %}
@@ -101,12 +142,11 @@ build:
 
         ${{ ggml_args("NATIVE=OFF") }}
 
-        {%- if cuda_compiler_version != "None" %}
-        ${{ ggml_args("CUDA=ON") }}
+        ${{ ggml_args("VULKAN=ON") }}
 
-        :: NOTE: is it necessary to set `CMAKE_CUDA_ARCHITECTURES=all`
-        :: on Windows, or is it a nice-to-have?
-        :: ${{ cmake_args("CMAKE_CUDA_ARCHITECTURES=all") }}
+        {%- if cuda_compiler_version | default("None") != "None" %}
+        ${{ ggml_args("CUDA=ON") }}
+        ${{ cmake_args("CMAKE_CUDA_ARCHITECTURES=%CUDAARCHS%") }}
 
         {%- else %}
 
@@ -136,9 +176,15 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
+    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+    - libstdcxx-devel_linux-64 >=15
+    - libgcc-devel_linux-64 >=15.2.0
     - if: cuda_compiler_version != "None"
       then:
         - ${{ compiler('cuda') }}
+    - if: cuda_compiler_version != "None" and linux and aarch64
+      then:
+        - arm-variant * ${{ arm_variant_type }}
     - if: hip_compiler_version != "None"
       then:
         - ${{ compiler('hip') }}
@@ -148,20 +194,26 @@ requirements:
     - pkgconfig
   host:
     - libcurl
+    - if: linux or win
+      then:
+        - libvulkan-headers
+        - libvulkan-loader
+        - shaderc
     - if: cuda_compiler_version != "None"
       then:
         # NOTE: Without cuda-version, we are installing cuda-toolkit 11.8 instead of 11.2!
         - cuda-version ${{ cuda_compiler_version }}.*
-        - if: match(cuda_compiler_version, "12.*")
-          then:
-            - cuda-cudart-dev ${{ cuda_compiler_version }}.*
-            - libcublas-dev ${{ cuda_compiler_version }}.*
+        - cuda-cudart-dev ${{ cuda_compiler_version }}.*
+        - libcublas-dev ${{ cuda_compiler_version }}.*
 
-    - if: (not osx) and (cuda_compiler_version == "None" and hip_compiler_version == "None") and (blas_impl == "mkl")
+    - if: (not osx) and (cuda_compiler_version == "None") and (blas_impl == "mkl")
       then:
         - blas-devel * *_${{ blas_impl }}
         - mkl-devel ${{ mkl }}.*
 
+    - if: osx
+      then:
+        - llvm-openmp
     - if: hip_compiler_version != "None"
       then:
         # Mutex package to specify rocm version
@@ -170,14 +222,15 @@ requirements:
         - rocblas
         - hipblas
         - hipblas-common
+        # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
+        # set by compiler('hip')
+        - llvm-openmp
   run:
     - if: cuda_compiler_version != "None"
       then:
         - cuda-version ${{ cuda_compiler_version }}.*
         - __cuda
-        - if: match(cuda_compiler_version, "12.*")
-          then:
-            - cuda-nvcc-tools
+        - cuda-nvcc-tools
   run_constraints:
     # whisper.cpp also vendors ggml
     - whisper.cpp <0.0.0a0
@@ -230,7 +283,6 @@ tests:
           - check_file "$PREFIX/bin/llama-perplexity" "llama-perplexity"
           - check_file "$PREFIX/bin/llama-quantize" "llama-quantize"
           - check_file "$PREFIX/bin/llama-retrieval" "llama-retrieval"
-          - check_file "$PREFIX/bin/llama-run" "llama-run"
           - check_file "$PREFIX/bin/llama-save-load-state" "llama-save-load-state"
           - check_file "$PREFIX/bin/llama-server" "llama-server"
           - check_file "$PREFIX/bin/llama-simple" "llama-simple"
@@ -259,8 +311,6 @@ tests:
           - check_file "$PREFIX/include/gguf.h" "gguf.h"
           - check_file "$PREFIX/include/llama-cpp.h" "llama-cpp.h"
           - check_file "$PREFIX/include/llama.h" "llama.h"
-          - check_file "$PREFIX/include/mtmd-helper.h" "mtmd-helper.h"
-          - check_file "$PREFIX/include/mtmd.h" "mtmd.h"
 
         # Check CMake configuration files
           - echo "Checking CMake configuration files..."
@@ -287,8 +337,8 @@ tests:
             then:
               - check_file "$PREFIX/lib/libggml-hip${SHLIB_EXT}" "libggml-hip${SHLIB_EXT}"
 
-        # Packaged everywhere but for CUDA/ROCM builds and on linux_aarch64
-          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None") and (hip_compiler_version == "None")
+        # Packaged everywhere but for CUDA builds and on linux_aarch64
+          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None" and hip_compiler_version == "None")
             then:
               - check_file "$PREFIX/lib/libggml-blas${SHLIB_EXT}" "libggml-blas${SHLIB_EXT}"
 
@@ -296,21 +346,29 @@ tests:
           - echo "Checking pkg-config file..."
           - check_file "$PREFIX/lib/pkgconfig/llama.pc" "llama.pc"
 
-  - if: (build_platform == target_platform) and (cuda_compiler_version == "None")
+  - if: (build_platform == target_platform) and (cuda_compiler_version == "None") and (hip_compiler_version == "None")
     then:
       - script:
           - llama-cli --help
           - llama-server --help
-          - if: not win
-            then:
-              # Test downloading a smol model (using libcurl) and running it.
-              # TODO: Understand why this fails on Windows.
-              - llama-run smollm:135m
         requirements:
           run:
             - if: cuda_compiler_version != "None"
               then:
                 - cuda-version ${{ cuda_compiler_version }}
+
+  - if: (build_platform == target_platform) and (hip_compiler_version != "None")
+    then:
+      - script:
+          - python test_rocm_minimal.py
+        files:
+          recipe:
+            - test_rocm_minimal.py
+        requirements:
+          run:
+            - python
+            - rocm-core ${{ rocm_version }}.*
+            - rocminfo
 
 about:
   homepage: https://github.com/ggml-org/llama.cpp

@@ -7,6 +7,14 @@ c_compiler_version:
 cxx_compiler_version:
     - 20
 
+# Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+fortran_compiler_version:
+    - 15
+libstdcxx:
+    - 15
+libstdcxx_devel_linux_64:
+    - 15
+
 hip_compiler:
     - hip-clang
 hip_compiler_version:
@@ -15,6 +23,11 @@ hip_compiler_version:
 rocm_version:
     - None
     - '7.0'
+
+llmvdev:
+    - 20
+clangdev:
+    - 20
 
 zip_keys:
   -

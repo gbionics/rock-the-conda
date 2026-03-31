@@ -21,6 +21,9 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
+    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
+    - libstdcxx-devel_linux-64 >=15
+    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - ninja
@@ -37,7 +40,7 @@ tests:
         - ck/library/reference_tensor_operation/gpu/reference_gemm.hpp
         - ck/library/tensor_operation_instance/gpu/grouped_gemm.hpp
       lib:
-        - libdevice_conv_operations.a
+        - device_conv_operations
 
 about:
   repository: https://github.com/ROCm/composable_kernel
