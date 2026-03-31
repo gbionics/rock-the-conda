@@ -1,0 +1,93 @@
+diff --git a/amd/device-libs/ockl/src/cluster.cl b/amd/device-libs/ockl/src/cluster.cl
+deleted file mode 100644
+index c214f3f401213..0000000000000
+--- a/amd/device-libs/ockl/src/cluster.cl
++++ /dev/null
+@@ -1,45 +0,0 @@
+-/*===--------------------------------------------------------------------------
+- *                   ROCm Device Libraries
+- *
+- * This file is distributed under the University of Illinois Open Source
+- * License. See LICENSE.TXT for details.
+- *===------------------------------------------------------------------------*/
+-
+-#include "oclc.h"
+-#include "ockl.h"
+-
+-__attribute__((target("cumode,gfx1250-insts"), const)) uint
+-__ockl_cluster_num_workgroups(int dim)
+-{
+-    switch (dim) {
+-    case 0:
+-        return __builtin_amdgcn_cluster_workgroup_max_id_x() + 1;
+-    case 1:
+-        return __builtin_amdgcn_cluster_workgroup_max_id_y() + 1;
+-    case 2:
+-        return __builtin_amdgcn_cluster_workgroup_max_id_z() + 1;
+-    default:
+-        return 1;
+-    }
+-}
+-
+-__attribute__((target("cumode,gfx1250-insts"), const)) uint
+-__ockl_cluster_workgroup_id(int dim)
+-{
+-    switch (dim) {
+-    case 0:
+-        return __builtin_amdgcn_cluster_workgroup_id_x();
+-    case 1:
+-        return __builtin_amdgcn_cluster_workgroup_id_y();
+-    case 2:
+-        return __builtin_amdgcn_cluster_workgroup_id_z();
+-    default:
+-        return 0;
+-    }
+-}
+-
+-__attribute__((target("cumode,gfx1250-insts"), const)) uint
+-__ockl_cluster_flat_num_workgroups(void)
+-{
+-    return __builtin_amdgcn_cluster_workgroup_max_flat_id() + 1;
+-}
+
+diff --git a/amd/device-libs/ockl/src/dots.cl b/amd/device-libs/ockl/src/dots.cl
+index f7838764e695e..480941b5bbaad 100644
+--- a/amd/device-libs/ockl/src/dots.cl
++++ b/amd/device-libs/ockl/src/dots.cl
+@@ -68 +68 @@ __attribute__((target("dot8-insts"), const)) static uint amdgcn_sudot8(bool as,
+-#define SWDOT __oclc_ISA_version < 9006 || __oclc_ISA_version == 9009 || __oclc_ISA_version == 10100 || __oclc_ISA_version == 12500 || __oclc_ISA_version == 12501
++#define SWDOT __oclc_ISA_version < 9006 || __oclc_ISA_version == 9009 || __oclc_ISA_version == 10100
+
+diff --git a/amd/device-libs/oclc/src/isa_version_1250.cl b/amd/device-libs/oclc/src/isa_version_1250.cl
+deleted file mode 100644
+index fdd13d634c833..0000000000000
+--- a/amd/device-libs/oclc/src/isa_version_1250.cl
++++ /dev/null
+@@ -1,10 +0,0 @@
+-/*===--------------------------------------------------------------------------
+- *                   ROCm Device Libraries
+- *
+- * This file is distributed under the University of Illinois Open Source
+- * License. See LICENSE.TXT for details.
+- *===------------------------------------------------------------------------*/
+-
+-#include "oclc.h"
+-
+-const __constant int __oclc_ISA_version = 12500;
+
+diff --git a/amd/device-libs/oclc/src/isa_version_1251.cl b/amd/device-libs/oclc/src/isa_version_1251.cl
+deleted file mode 100644
+index 1c79b6b14ca1d..0000000000000
+--- a/amd/device-libs/oclc/src/isa_version_1251.cl
++++ /dev/null
+@@ -1,10 +0,0 @@
+-/*===--------------------------------------------------------------------------
+- *                   ROCm Device Libraries
+- *
+- * This file is distributed under the University of Illinois Open Source
+- * License. See LICENSE.TXT for details.
+- *===------------------------------------------------------------------------*/
+-
+-#include "oclc.h"
+-
+-const __constant int __oclc_ISA_version = 12501;
