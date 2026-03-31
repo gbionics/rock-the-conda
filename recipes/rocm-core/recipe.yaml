@@ -43,7 +43,7 @@ about:
   homepage: https://github.com/ROCm/rocm-core
   license: MIT
   license_family: MIT
-  license_file: copyright
+  license_file: LICENSE.md
   summary: "ROCm core package"
 
 extra:
