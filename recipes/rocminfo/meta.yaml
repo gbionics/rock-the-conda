@@ -37,10 +37,9 @@ requirements:
 
 test:
   commands:
-    # Can't run this command without an AMD GPU
     - test -f $PREFIX/bin/rocminfo
     - test -f $PREFIX/bin/rocm_agent_enumerator
-    - msg=$($PREFIX/bin/rocminfo 2>&1; test $? -eq 1) && test "$msg" = "$(echo -e '\033[31mROCk module is NOT loaded, possibly no GPU devices\033[0m')"   # [CI]
+    # GPU functional tests are in run_test.sh
 
 about:
   home: https://github.com/ROCm/rocminfo
