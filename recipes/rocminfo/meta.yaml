@@ -25,7 +25,6 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
-    - {{ cdt('pciutils-devel') }}
     - cmake
     - make
   host:
