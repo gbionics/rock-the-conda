@@ -31,6 +31,7 @@ requirements:
     - cmake
     - ninja
     - git
+    - pkg-config
   host:
     - rocprofiler-register
     - aqlprofile
@@ -41,6 +42,7 @@ requirements:
     - elfio
     - tbb-devel
     - pybind11
+    - elfutils
 
 about:
   repository: https://github.com/ROCm/rocprofiler-sdk
