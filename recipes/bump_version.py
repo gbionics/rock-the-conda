@@ -80,7 +80,7 @@ def update_hashes(lines: List[str], new_version: str, cache: Dict[str, str]) -> 
             continue
         if not any(pattern in url_value for pattern in TARGET_PATTERNS):
             continue
-        rewritten_url = url_value.replace("{{ version }}", new_version).replace("${{ version }}", new_version)
+        rewritten_url = url_value.replace("${{ version }}", new_version).replace("{{ version }}", new_version)
         if rewritten_url not in cache:
             cache[rewritten_url] = compute_sha256(rewritten_url)
         sha_idx = None

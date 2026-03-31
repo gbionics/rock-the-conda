@@ -1,6 +1,6 @@
 context:
   name: rccl
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rccl/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 3e4363163f5de772707c8deea349a00744200733693c76a07ac842e55b6ad19e
+  sha256: a373bcfe03cf2243a97536860a81940998c36a0b324d9e10830e3cd2c3f8b523
 
 build:
   number: 0

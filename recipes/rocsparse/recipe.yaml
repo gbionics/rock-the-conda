@@ -1,14 +1,14 @@
 context:
   name: rocsparse
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/rocSPARSE/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 26dd7df3c470f877d0f9ab15dccdac1915a3939e2ab9e00a83342c6edf289c8a
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocsparse.tar.gz
+  sha256: ef168ca552cae6d4394d0a9a9b8a6e0dd866623d768bba897c31e1d4b5207d13
 
 build:
   number: 0

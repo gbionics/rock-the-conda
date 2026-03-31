@@ -1,14 +1,14 @@
 context:
   name: rocfft
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/rocFFT/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: 05ccbdcb9d2860c72ff9665670aac44286aaaeabd4fb4e9530e7f4f1b5b01c71
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocfft.tar.gz"
+    sha256: 87b84b656f1ebdccb3dcbdceb2173bccecd073bb8cd6d6f61111611528a2b0a0
 
 build:
   number: 0

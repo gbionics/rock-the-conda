@@ -1,14 +1,14 @@
 context:
   name: hiprand
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/hipRAND/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 0c7d18e55fd61070f3bd05b09217caf32c0cb502234b7d732562325b09c9483b
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hiprand.tar.gz
+  sha256: a9991655563c354511cb60594c884d12a22496fc05093f18373277224d951735
 
 build:
   number: 0

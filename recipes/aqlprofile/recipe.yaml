@@ -1,13 +1,13 @@
 context:
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: aqlprofile
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/aqlprofile/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 1c56781bf40e7195b1dd670b8f05ecc0b2007c57c0a0b80fea97dfaa9999e8e3
+  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/aqlprofile.tar.gz
+  sha256: 1e3801517826b92a9c114edece6a1e098a14902c0b87298c0f18c03de90aac73
 
 build:
   number: 0

@@ -1,6 +1,6 @@
 context:
   name: hipify
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/HIPIFY/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: d6e78b025c2cb36f9470d1ec572adc8abc7f2c79bb9a5e21cf46fabd305c4b9c
+  sha256: 1d5504a69024491c582e224445df4c917b0b5ee3b0830c0909119eca97b70e9f
   patches:
     - fix-llvm-diagnosticoptions.patch
 

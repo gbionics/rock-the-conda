@@ -1,14 +1,14 @@
 context:
   name: rocrand
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/rocRAND/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: ee0fee0ee7d3b59aafba8f9935c28c528363f941b42eea05045023c27e61938d
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocrand.tar.gz
+  sha256: c93a345c5b935fb16f947823dcbdcfaea57efcc98427d7f3bee57aa472c2cea8
 
 build:
   number: 0
