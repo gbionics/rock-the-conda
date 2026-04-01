@@ -55,8 +55,8 @@ requirements:
     - rocm-smi
     # Needed for rocroller
     - spdlog
-    - llvmdev 20.*
-    - lld 20.*
+    - llvmdev 22.*
+    - lld 22.*
     - zlib
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}

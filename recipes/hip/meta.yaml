@@ -6,7 +6,7 @@
 {% set minor_version = version.split('.')[1] %}
 {% set major_minor_version = ".".join(version.split(".")[:2]) %}
 {% set patch_version = version.split('.')[2] %}
-{% set llvm_major_version = "20" %}
+{% set llvm_major_version = "22" %}
 
 package:
   name: {{ name|lower }}

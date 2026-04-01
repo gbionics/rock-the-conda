@@ -2,7 +2,7 @@
 {% set version = "7.2.1" %}
 
 
-{% set llvm_major_version = "20" %}
+{% set llvm_major_version = "22" %}
 
 package:
   name: {{ name|lower }}
@@ -13,7 +13,7 @@ source:
   sha256: 4e238ceca7515d5640ad307c04130692508f366a55ea6023576f27d057815eb4
   patches:
     - patches/0001-fix-install-path.patch
-    - patches/0002-fix-cluster-builtins-upstream-llvm.patch
+    - patches/rocm-device-libs-7.2.0-llvm-22-compat.patch
 
 build:
   number: 0

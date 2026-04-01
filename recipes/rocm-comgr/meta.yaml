@@ -11,8 +11,7 @@ source:
   url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
   sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
   patches:
-    - patches/revert-fcc50fb-rocm-comgr-gfx1250.patch
-    - patches/fix-build-upstream-llvm-20.patch
+    - patches/rocm-comgr-7.2.0-llvm-22-compat.patch
 
 build:
   number: 0
@@ -26,8 +25,8 @@ requirements:
     - cmake
     - make
   host:
-    - clangdev 20.*
-    - llvmdev 20.*
+    - clangdev 22.*
+    - llvmdev 22.*
     - llvm
     - lld
     - zlib
