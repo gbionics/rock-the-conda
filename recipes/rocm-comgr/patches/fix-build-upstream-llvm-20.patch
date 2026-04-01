@@ -1,6 +1,3 @@
-
-diff --git a/amd/comgr/src/comgr-cache.cpp b/amd/comgr/src/comgr-cache.cpp
-index 3fdc71a74e790..4aa5cb93e4cb5 100644
 --- a/amd/comgr/src/comgr-cache.cpp
 +++ b/amd/comgr/src/comgr-cache.cpp
 @@ -130,7 +130,9 @@ void saveCommandOutput(CachedCommandAdaptor &C, AddStreamFn &AddStream,
@@ -14,56 +11,109 @@ index 3fdc71a74e790..4aa5cb93e4cb5 100644
  }
  
  bool readEntryFromCache(CachedCommandAdaptor &C, MemoryBuffer &CachedBuffer,
-
-diff --git a/amd/comgr/src/comgr-cache-bundler-command.cpp b/amd/comgr/src/comgr-cache-bundler-command.cpp
-index 5142627254d64..186205aca68ef 100644
---- a/amd/comgr/src/comgr-cache-bundler-command.cpp
-+++ b/amd/comgr/src/comgr-cache-bundler-command.cpp
-@@ -152,10 +152,46 @@ void UnbundleCommand::addOptionsIdentifier(HashAlgorithm &H) const {
-   }
+--- a/amd/comgr/src/comgr-unbundle-command.cpp
++++ b/amd/comgr/src/comgr-unbundle-command.cpp
+@@ -141,17 +141,27 @@
+ 
+   MemoryBuffer &InputBuffer = **MaybeInputBuffer;
+ 
+-  using Header = CompressedOffloadBundle::CompressedBundleHeader;
+-  Expected<Header> MaybeHeader = Header::tryParse(InputBuffer.getBuffer());
+-  if (!MaybeHeader)
+-    return MaybeHeader.takeError();
+-
+-  // The hash represents the contents of the bundle. Extracting the same
+-  // contents should give the same result, regardless of the compression
+-  // algorithm or header version. Since the hash used by the offload bundler is
+-  // not a cryptographic hash, we also add the uncompressed file size.
+-  addUInt(H, MaybeHeader->Hash);
+-  addUInt(H, MaybeHeader->UncompressedFileSize);
++  // CompressedOffloadBundle::CompressedBundleHeader is not available in
++  // stock clang 20 (it was added in ROCm-specific patches).
++  // Parse the hash from the binary header manually.
++  // Layout (V2): magic(4)+version(2)+filesize(4)+method(2)+uncompressed(4)+hash(8)
++  // Layout (V3): magic(4)+version(2)+filesize(8)+method(2)+uncompressed(8)+hash(8)
++  StringRef Data = InputBuffer.getBuffer();
++  constexpr size_t V2HashOffset = 4 + 2 + 4 + 2 + 4;
++  constexpr size_t V3HashOffset = 4 + 2 + 8 + 2 + 8;
++  constexpr size_t HashSize = 8;
++  if (Data.size() < 4 + 2)
++    return createStringError(std::errc::invalid_argument,
++                             "Compressed bundle too small");
++  uint16_t Version;
++  memcpy(&Version, Data.data() + 4, sizeof(Version));
++  size_t HashOffset = (Version >= 3) ? V3HashOffset : V2HashOffset;
++  if (Data.size() < HashOffset + HashSize)
++    return createStringError(std::errc::invalid_argument,
++                             "Compressed bundle header truncated");
++  uint64_t Hash;
++  memcpy(&Hash, Data.data() + HashOffset, sizeof(Hash));
++  addUInt(H, Hash);
+   return Error::success();
  }
  
-+// V3HeaderSize is not public in stock clang 20, and CompressedOffloadBundle::getHeaderSize 
-+// is not constexpr, so we reimplement it here by copying the value from https://github.com/llvm/llvm-project/blob/llvmorg-20.1.8/clang/include/clang/Driver/OffloadBundler.h#L132
-+class CompressedOffloadBundleLocalCopyLLVM20 {
-+public:
-+  static inline const size_t MagicSize = 4;
-+  static inline const size_t VersionFieldSize = sizeof(uint16_t);
-+  static inline const size_t MethodFieldSize = sizeof(uint16_t);
-+  // Legacy size fields for V1/V2
-+  static inline const size_t FileSizeFieldSizeV2 = sizeof(uint32_t);
-+  static inline const size_t UncompressedSizeFieldSizeV2 = sizeof(uint32_t);
-+  // New size fields for V3
-+  static inline const size_t FileSizeFieldSizeV3 = sizeof(uint64_t);
-+  static inline const size_t UncompressedSizeFieldSizeV3 = sizeof(uint64_t);
-+  static inline const size_t HashFieldSize = sizeof(uint64_t);
-+
-+  // Keep V1 header size for backward compatibility
-+  static inline const size_t V1HeaderSize =
-+      MagicSize + VersionFieldSize + MethodFieldSize +
-+      UncompressedSizeFieldSizeV2 + HashFieldSize;
-+
-+  // Keep V2 header size for backward compatibility
-+  static inline const size_t V2HeaderSize =
-+      MagicSize + VersionFieldSize + FileSizeFieldSizeV2 + MethodFieldSize +
-+      UncompressedSizeFieldSizeV2 + HashFieldSize;
-+
-+  // Add V3 header size with 64-bit fields
-+  static inline const size_t V3HeaderSize =
-+      MagicSize + VersionFieldSize + FileSizeFieldSizeV3 + MethodFieldSize +
-+      UncompressedSizeFieldSizeV3 + HashFieldSize;
-+
-+  static inline const llvm::StringRef MagicNumber = "CCOB";
-+};
-+// Let's keep a static assert that we are indeed using llvm 20, otherwise the patch may fail silently
-+static_assert(LLVM_VERSION_MAJOR == 20, "This patch is meant to be used with llvm 20");
-+
-+
- Error UnbundleCommand::addInputIdentifier(HashAlgorithm &H) const {
-   StringRef InputFilename = Config.InputFileNames.front();
+--- a/amd/comgr/src/comgr.cpp
++++ b/amd/comgr/src/comgr.cpp
+@@ -30,6 +30,7 @@
+ #include "llvm/Object/ELFObjectFile.h"
+ #include "llvm/Object/ObjectFile.h"
+ #include "llvm/Support/TargetSelect.h"
++#include "llvm/Support/CommandLine.h"
+ #include <fstream>
+ #include <mutex>
+ #include <string>
+--- a/amd/comgr/src/comgr-compiler.cpp
++++ b/amd/comgr/src/comgr-compiler.cpp
+@@ -459,7 +459,8 @@
+       MAB.reset(TheTarget->createMCAsmBackend(*STI, *MRI, Options));
+     }
+     auto FOut = std::make_unique<formatted_raw_ostream>(*Out);
+-    Str.reset(TheTarget->createAsmStreamer(Ctx, std::move(FOut), std::move(InstructionPrinter),
++    Str.reset(TheTarget->createAsmStreamer(Ctx, std::move(FOut),
++                                           InstructionPrinter.release(),
+                                            std::move(MCE), std::move(MAB)));
+   } else if (Opts.OutputType == AssemblerInvocation::FT_Null) {
+     Str.reset(createNullStreamer(Ctx));
+@@ -640,9 +641,10 @@
+ amd_comgr_status_t executeCommand(const Command &Job, raw_ostream &LogS,
+                                   DiagnosticOptions &DiagOpts,
+                                   llvm::vfs::FileSystem &FS) {
+-  TextDiagnosticPrinter DiagClient(LogS, DiagOpts);
++  TextDiagnosticPrinter DiagClient(LogS, &DiagOpts);
+   IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs);
+-  DiagnosticsEngine Diags(DiagID, DiagOpts, &DiagClient, false);
++  IntrusiveRefCntPtr<DiagnosticOptions> DiagOptsRef(&DiagOpts);
++  DiagnosticsEngine Diags(DiagID, DiagOptsRef, &DiagClient, false);
  
--  constexpr size_t LargestHeaderSize = CompressedOffloadBundle::V3HeaderSize;
-+  constexpr size_t LargestHeaderSize = CompressedOffloadBundleLocalCopyLLVM20::V3HeaderSize;
+   auto Arguments = Job.getArguments();
+   SmallVector<const char *, 128> Argv;
+@@ -671,7 +673,7 @@
+     // Internally this call refers to the invocation created above, so at
+     // this point the DiagnosticsEngine should accurately reflect all user
+     // requested configuration from Argv.
+-    Clang->createDiagnostics(&DiagClient, /* ShouldOwnClient */ false);
++    Clang->createDiagnostics(FS, &DiagClient, /* ShouldOwnClient */ false);
+     if (!Clang->hasDiagnostics()) {
+       return AMD_COMGR_STATUS_ERROR;
+     }
+@@ -731,7 +733,7 @@
+   // here is mostly copy-and-pasted from driver.cpp/cc1_main.cpp/various Clang
+   // tests to try to approximate the same behavior as running the `clang`
+   // executable.
+-  std::unique_ptr<DiagnosticOptions> DiagOpts(new DiagnosticOptions);
++  IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts(new DiagnosticOptions);
+   unsigned MissingArgIndex, MissingArgCount;
+   InputArgList ArgList = getDriverOptTable().ParseArgs(
+       Args.slice(1), MissingArgIndex, MissingArgCount);
+@@ -740,9 +742,9 @@
+   // DiagnosticsEngine actually exists.
+   (void)ParseDiagnosticArgs(*DiagOpts, ArgList);
+   TextDiagnosticPrinter *DiagClient =
+-      new TextDiagnosticPrinter(LogS, *DiagOpts);
++      new TextDiagnosticPrinter(LogS, DiagOpts.get());
+   IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs);
+-  DiagnosticsEngine Diags(DiagID, *DiagOpts, DiagClient);
++  DiagnosticsEngine Diags(DiagID, DiagOpts, DiagClient);
  
-   ErrorOr<std::unique_ptr<MemoryBuffer>> MaybeInputBuffer =
-       MemoryBuffer::getFileSlice(InputFilename, LargestHeaderSize, 0);
+   ProcessWarningOptions(Diags, *DiagOpts, *OverlayFS, /*ReportDiags=*/false);
+ 

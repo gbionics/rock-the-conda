@@ -11,6 +11,7 @@ source:
   url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
   sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
   patches:
+    - patches/revert-fcc50fb-rocm-comgr-gfx1250.patch
     - patches/fix-build-upstream-llvm-20.patch
 
 build:
