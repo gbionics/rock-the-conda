@@ -22,6 +22,18 @@ rm -rf pyproject.toml
 export USE_NUMA=0
 export USE_ITT=0
 
+#################### ROCm-SPECIFIC SOURCE PATCHES #######################
+# Patch LoadHIP.cmake to not require specific HIP version
+# PyTorch expects version 1.0 but ROCm 7.0 reports 7.0.x
+if [ -f cmake/public/LoadHIP.cmake ]; then
+    sed -i 's/find_package(HIP 1.0)/find_package(HIP)/g' cmake/public/LoadHIP.cmake
+fi
+
+# Patch gloo types.h to include <cstdint> for uint16_t, uint32_t, etc.
+if [ -f third_party/gloo/gloo/types.h ]; then
+    sed -i '1i #include <cstdint>' third_party/gloo/gloo/types.h
+fi
+
 #################### ADJUST COMPILER AND LINKER FLAGS #####################
 # Pytorch's build system doesn't like us setting the c++ standard through CMAKE_CXX_FLAGS
 # and will issue a warning. We need to use at least C++17 to match the abseil ABI, see
@@ -59,6 +71,9 @@ export CMAKE_GENERATOR=Ninja
 export CMAKE_LIBRARY_PATH=$PREFIX/lib:$PREFIX/include:$CMAKE_LIBRARY_PATH
 export CMAKE_PREFIX_PATH=$PREFIX
 export CMAKE_BUILD_TYPE=Release
+
+# Allow old CMakeLists.txt files in third_party to work with newer CMake
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 for ARG in $CMAKE_ARGS; do
   if [[ "$ARG" == "-DCMAKE_"* ]]; then

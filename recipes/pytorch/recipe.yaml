@@ -134,11 +134,13 @@ outputs:
           source:
             - cmake_test/
         script:
+          # Core libraries
           - test -f $PREFIX/lib/libc10.so
           - test -f $PREFIX/lib/libshm.so
           - test -f $PREFIX/lib/libtorch.so
           - test -f $PREFIX/lib/libtorch_cpu.so
           - test -f $PREFIX/lib/libtorch_global_deps.so
+          # ROCm-specific libraries
           - test -f $PREFIX/lib/libc10_hip.so
           - test -f $PREFIX/lib/libtorch_hip.so
           # CMake files in share
