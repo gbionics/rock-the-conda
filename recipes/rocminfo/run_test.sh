@@ -11,7 +11,8 @@ else
 fi
 
 if [ "$AMDGPU_AVAILABLE" = "0" ]; then
-    if ! rocminfo | grep -q "ROCk module is NOT loaded, possibly no GPU devices"; then
+    rocminfo_output="$(rocminfo)"
+    if ! grep -q "ROCk module is NOT loaded, possibly no GPU devices" <<< "$rocminfo_output"; then
         echo "ERROR: rocminfo did not report that no GPU devices are found"
         exit 1
     fi
@@ -19,13 +20,15 @@ if [ "$AMDGPU_AVAILABLE" = "0" ]; then
 fi
 
 if [ "$AMDGPU_AVAILABLE" = "1" ]; then
-    if ! rocminfo | grep -q "Device Type:.*GPU"; then
+    rocminfo_output="$(rocminfo)"
+    if ! grep -q "Device Type:.*GPU" <<< "$rocminfo_output"; then
         echo "ERROR: rocminfo did not report any GPU agent"
         exit 1
     fi
     echo "OK: rocminfo detected at least one GPU agent"
 
-    if ! rocm_agent_enumerator | grep -q "gfx"; then
+    rocm_agent_enumerator_output="$(rocm_agent_enumerator)"
+    if ! grep -q "gfx" <<< "$rocm_agent_enumerator_output"; then
         echo "ERROR: rocm_agent_enumerator did not list any gfx ISA"
         exit 1
     fi
