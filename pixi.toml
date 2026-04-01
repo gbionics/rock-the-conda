@@ -33,7 +33,10 @@ extract-deps-with-external = "python extract_the_rock_deps.py TheRock --include-
 
 # Serialize dependency graph manually to avoid conda-build getting confused and permit to mix conda-build and rattler-build
 print-conda-build-args = { cmd = "echo 'CONDA_BUILD_ARGS: '$CONDA_BUILD_ARGS" }
-build-rocm-core = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-core", depends-on = ["print-conda-build-args"], outputs = ["output/linux-64/rocm-core-*.conda"] }
+# Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/pull/184
+# Build local clang 22 activation packages (clang_linux-64/clangxx_linux-64) until the feedstock is merged and published.
+build-clang22-activation = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/clang22", depends-on = ["print-conda-build-args"], outputs = ["output/linux-64/clang*_linux-64-22*.conda"] }
+build-rocm-core = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-core", depends-on = ["print-conda-build-args", "build-clang22-activation"], outputs = ["output/linux-64/rocm-core-*.conda"] }
 build-rocm-cmake = { cmd = "find output/linux-64 -name 'rocm-cmake-*.conda' | grep -q . && echo 'Skipping build-rocm-cmake: output already exists' || conda-build $CONDA_BUILD_ARGS ./recipes/rocm-cmake", depends-on = ["build-rocm-core", "print-conda-build-args"], outputs = ["output/linux-64/rocm-cmake-*.conda"] }
 build-rocm-devices-libs = { cmd = "find output/linux-64 -name 'rocm-device-libs-*.conda' | grep -q . && echo 'Skipping build-rocm-devices-libs: output already exists' || conda-build ./recipes/rocm-device-libs $CONDA_BUILD_ARGS", depends-on = ["build-rocm-core"], outputs = ["output/linux-64/rocm-device-libs-*.conda"] }
 build-rocm-comgr = { cmd = "find output/linux-64 -name 'rocm-comgr-*.conda' | grep -q . && echo 'Skipping build-rocm-comgr: output already exists' || conda-build ./recipes/rocm-comgr $CONDA_BUILD_ARGS", depends-on = ["build-rocm-core", "build-rocm-devices-libs"], outputs = ["output/linux-64/rocm-comgr-*.conda"] }
@@ -82,7 +85,7 @@ build-rccl-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-d
 build-rccl = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rccl", depends-on = ["build-hip", "build-rocm-core", "build-hipify"], outputs = ["output/linux-64/rccl-*.conda"] }
 build-miopen-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", outputs = ["output/linux-64/miopen-*.conda"] }
 build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-rocblas", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
-build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }
+build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-clang22-activation", "build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }
 bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
 clean = "rm -rf feedstocks conda-bld"
 # Upload all build packages to rock-the-conda channel, needs pixi auth login before
