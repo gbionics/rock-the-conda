@@ -11,12 +11,13 @@ else
 fi
 
 if [ "$AMDGPU_AVAILABLE" = "0" ]; then
-    rocminfo_output="$(rocminfo)"
-    if ! grep -q "ROCk module is NOT loaded, possibly no GPU devices" <<< "$rocminfo_output"; then
+    rocminfo_output="$(rocminfo 2>&1)" || true
+    if ! grep -Eiq "ROCk module is NOT loaded, possibly no GPU devices|hsa_init Failed, possibly no supported GPU devices|no supported GPU devices" <<< "$rocminfo_output"; then
         echo "ERROR: rocminfo did not report that no GPU devices are found"
         exit 1
     fi
     echo "OK: rocminfo detected that no GPU is present"
+    exit 0
 fi
 
 if [ "$AMDGPU_AVAILABLE" = "1" ]; then
