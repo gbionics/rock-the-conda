@@ -8,8 +8,8 @@ Fix error: '__builtin_amdgcn_lerp' needs target feature cube-insts.
 Copies files from:
 https://github.com/ROCm/llvm-project/blame/amd-staging/amd/device-libs/ockl/src/image.cl
 https://github.com/ROCm/llvm-project/blame/amd-staging/amd/device-libs/ockl/src/media.cl
---- a/ockl/src/image.cl
-+++ b/ockl/src/image.cl
+--- a/amd/device-libs/ockl/src/image.cl
++++ b/amd/device-libs/ockl/src/image.cl
 @@ -13,6 +13,7 @@
  #define EII() __oclc_ISA_version != 9010
  
@@ -178,8 +178,8 @@ https://github.com/ROCm/llvm-project/blame/amd-staging/amd/device-libs/ockl/src/
  {
      CUBE_PREP(c);
      c.z = SAMPLE_ARRAY_FACE(c.w, c.z);
---- a/ockl/src/media.cl
-+++ b/ockl/src/media.cl
+--- a/amd/device-libs/ockl/src/media.cl
++++ b/amd/device-libs/ockl/src/media.cl
 @@ -11,6 +11,9 @@
  #pragma OPENCL EXTENSION cl_khr_fp16 : enable
  
