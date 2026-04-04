@@ -5,8 +5,8 @@ Author: Sv. Lockal <lockalsash@gmail.com>
 
 LLVM-22 compatibility fixes.
 Partially backports https://github.com/ROCm/llvm-project/commit/0216fcfc5d2a4f3384873f6e9ac70198760d5a52
---- a/src/comgr-compiler.cpp
-+++ b/src/comgr-compiler.cpp
+--- a/amd/comgr/src/comgr-compiler.cpp
++++ b/amd/comgr/src/comgr-compiler.cpp
 @@ -659,7 +659,7 @@ amd_comgr_status_t executeCommand(const Command &Job, raw_ostream &LogS,
  
      std::unique_ptr<CompilerInstance> Clang(new CompilerInstance());
