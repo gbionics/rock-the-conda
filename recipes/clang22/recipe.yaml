@@ -88,8 +88,8 @@ outputs:
       version: ${{ clang_version }}
     build:
       # only for linux; osx builds are done on clang-compiler-activation-feedstock
-      skip: default_skip or win or s390x or cross_target_platform not in ("linux-64", "linux-aarch64", "linux-ppc64le")
-      script: install-clang_impl.sh
+      # native builds are skipped as they are done on clangdev-feedstock (see https://github.com/conda-forge/clangdev-feedstock/pull/405/changes)
+      skip: default_skip or win or s390x or cross_target_platform not in ("linux-64", "linux-aarch64", "linux-ppc64le") or target_platform == cross_target_platform      script: install-clang_impl.sh
     requirements:
       build:
         - if: not (aarch64 or ppc64le)
@@ -213,8 +213,8 @@ outputs:
       name: clangxx_impl_${{ cross_target_platform }}
       version: ${{ clang_version }}
     build:
-      # only for linux; osx builds are done on clang-compiler-activation-feedstock
-      skip: default_skip or win or s390x or cross_target_platform not in ("linux-64", "linux-aarch64", "linux-ppc64le")
+      # native builds are skipped as they are done on clangdev-feedstock (see https://github.com/conda-forge/clangdev-feedstock/pull/405/changes)
+      skip: default_skip or win or s390x or cross_target_platform not in ("linux-64", "linux-aarch64", "linux-ppc64le") or target_platform == cross_target_platform
       script: install-clangxx_impl.sh
     requirements:
       build:
