@@ -22,6 +22,8 @@ requirements:
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
     - ${{ compiler('hip') }}
+      # Test dependencies
+    - ${{ compiler('fortran') }}
     # Workaround for rocroller bug, remove in the future
     - cmake<4
     - pkg-config
@@ -55,8 +57,15 @@ requirements:
     - llvmdev 22.*
     - lld 22.*
     - zlib
+    # Test dependencies
+    - blis
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
+  ignore_run_exports:
+    # Ignoring as these are test-only dependencies
+    from_package:
+      - ${{ compiler('fortran') }}
+      - blis
 
 tests:
   # Temporary commented out, find_package(hipblaslt) needs
