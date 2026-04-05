@@ -37,7 +37,7 @@ about:
   repository: https://github.com/ROCm/HIPIFY
   homepage: https://rocm.docs.amd.com/projects/HIPIFY/en/latest/
   license: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "CUDA to HIP source translator (Perl and Clang implementations)"
   description: |
     HIPIFY provides tools to convert CUDA code to HIP code.
