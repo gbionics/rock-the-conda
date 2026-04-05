@@ -22,7 +22,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - ninja

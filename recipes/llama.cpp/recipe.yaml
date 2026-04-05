@@ -176,7 +176,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    - libgcc-devel_linux-64 >=15.2.0
     - if: cuda_compiler_version != "None"
       then:
         - ${{ compiler('cuda') }}
