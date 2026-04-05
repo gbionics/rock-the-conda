@@ -8,7 +8,7 @@ export HIP_CLANG_PATH=${PREFIX}/bin
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
-cmake ${CMAKE_ARGS} ..
+cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE ..
 make VERBOSE=1 -j${CPU_COUNT}
 make install
 popd
@@ -53,12 +53,12 @@ DIRS_TO_REMOVE="
 
 for FILE in $FILES_TO_REMOVE
 do
-  rm "$PREFIX/$FILE"
+  rm -f "$PREFIX/$FILE"
 done
 
 for DIR in $DIRS_TO_REMOVE
 do 
-  rmdir "$PREFIX/$DIR"
+  rmdir "$PREFIX/$DIR" || true
 done
 
 popd
