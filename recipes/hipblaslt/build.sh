@@ -44,7 +44,7 @@ env
 ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang++"
 ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang"
 
-cmake -GNinja ${CMAKE_ARGS} -DAMDGPU_TARGETS="${AMDGPU_TARGETS_EXPANDED}" -DPython_EXECUTABLE=$PYTHON -Bbuild -S.
+cmake -GNinja ${CMAKE_ARGS} -DGPU_TARGETS="${AMDGPU_TARGETS_EXPANDED}" -DPython_EXECUTABLE=$PYTHON -Bbuild -S.
 cmake --build ./build
 cmake --install ./build
 
