@@ -9,8 +9,6 @@ package:
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblaslt.tar.gz"
     sha256: d6364248679857c489244d49d5e3c606ca24bace77dd6ad7be70bccdfabf8e1b
-    patches:
-      - fix_latest_msgpack_cxx.patch
 
 build:
   number: 0
