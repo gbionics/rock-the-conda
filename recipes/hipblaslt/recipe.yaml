@@ -59,6 +59,7 @@ requirements:
     - zlib
     # Test dependencies
     - blis
+    - liblapack
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
   ignore_run_exports:
@@ -66,6 +67,7 @@ requirements:
     from_package:
       - ${{ compiler('fortran') }}
       - blis
+      - liblapack
 
 tests:
   # Temporary commented out, find_package(hipblaslt) needs
