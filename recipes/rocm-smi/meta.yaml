@@ -48,7 +48,7 @@ about:
     temperature management of your ROCm enabled system.
   license: NCSA
   license_family: OTHER
-  license_file: License.txt
+  license_file: LICENSE.md
   doc_url: https://github.com/RadeonOpenCompute/rocm_smi_lib
   dev_url: https://github.com/RadeonOpenCompute/rocm_smi_lib
 
