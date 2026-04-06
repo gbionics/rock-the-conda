@@ -39,8 +39,8 @@ echo "GPU_TARGETS option passed after adding xnack variants for gfx908 and gfx90
 
 # A lot of part of the build system hardcode amdclang++ as compiler and assume that is in $PREFIX, let's temporary
 # add a symlink with this name, see https://github.com/ROCm/rocm-libraries/issues/944
-ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang++"
-ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang"
+ln -sf -- "$HIPCXX" "$BUILD_PREFIX/bin/amdclang++"
+ln -sf -- "$HIPCXX" "$BUILD_PREFIX/bin/amdclang"
 
 # CMAKE_C_COMPILER AND CMAKE_CXX_COMPILER is passed as a Workaround for hack check that requires the compiler to have a specific name:
 # https://github.com/ROCm/Tensile/blob/e8a8999e0e7374aaae546a6d7cb703d9e06b0ebf/Tensile/Utilities/Toolchain.py#L147C58-L147C65
@@ -58,5 +58,5 @@ cmake --build ./build
 cmake --install ./build
 
 # Remove amdclang++ symlink to avoid to ship it
-rm -f -- "$PREFIX/bin/amdclang++"
-rm -f -- "$PREFIX/bin/amdclang"
+rm -f -- "$BUILD_PREFIX/bin/amdclang++"
+rm -f -- "$BUILD_PREFIX/bin/amdclang"
