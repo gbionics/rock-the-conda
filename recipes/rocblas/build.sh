@@ -34,7 +34,7 @@ ln -sf -- "$HIPCXX" "$BUILD_PREFIX/bin/amdclang"
 # CMAKE_C_COMPILER AND CMAKE_CXX_COMPILER is passed as a Workaround for hack check that requires the compiler to have a specific name:
 # https://github.com/ROCm/Tensile/blob/e8a8999e0e7374aaae546a6d7cb703d9e06b0ebf/Tensile/Utilities/Toolchain.py#L147C58-L147C65
 # and https://github.com/traversaro/rock-the-conda/issues/3#issuecomment-3315983823
-cmake -GNinja ${CMAKE_ARGS} -DGPU_TARGETS=${GPU_TARGETS_EXPANDED} -DAMDGPU_TARGETS=${GPU_TARGETS_EXPANDED} -DCMAKE_C_COMPILER="$BUILD_PREFIX/bin/amdclang" -DCMAKE_CXX_COMPILER="$BUILD_PREFIX/bin/amdclang++" -Bbuild -S.
+cmake -GNinja ${CMAKE_ARGS} -DGPU_TARGETS=${GPU_TARGETS_EXPANDED} -DAMDGPU_TARGETS=${GPU_TARGETS_EXPANDED} -DCMAKE_C_COMPILER="$BUILD_PREFIX/bin/amdclang" -DCMAKE_CXX_COMPILER="$BUILD_PREFIX/bin/amdclang++" -Bbuild -S projects/rocblas
 cmake --build ./build
 cmake --install ./build
 

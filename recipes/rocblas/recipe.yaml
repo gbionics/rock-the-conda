@@ -9,6 +9,11 @@ package:
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocblas.tar.gz"
     sha256: c55bc74e2a2c9f1b6cf23c586c391787a8198826a85d72e2e1358e6259299578
+    target_directory: projects/rocblas
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/tensile.tar.gz"
+    sha256: 61007dbacaf70b4f7c048e7e1435871028da83bcf63674909634c5ae6848d781
+    target_directory: shared/tensile
+
 
 build:
   number: 0
@@ -28,11 +33,7 @@ requirements:
     # Needed for tensilite
     - python ${{ python_min }}.*
     - pip
-    - setuptools
     - msgpack-python
-    - joblib
-    - pyyaml
-    - packaging
     # Needed to clone locally tensile and patch it
     - git
     - sed
@@ -76,7 +77,7 @@ about:
   homepage: https://rocm.docs.amd.com/projects/rocBLAS
   license: MIT
   license_family: MIT
-  license_file: LICENSE.md
+  license_file: projects/rocblas/LICENSE.md
   summary: "rocBLAS is the AMD library for BLAS in ROCm. Implemented using the HIP language and optimized for AMD GPUs."
 
 extra:
