@@ -27,6 +27,7 @@ cmake -LAH \
   -DCLR_BUILD_OCL=ON \
   -DHIPCC_BIN_DIR=$PREFIX/bin \
   -DHIP_COMMON_DIR=$SRC_DIR/hip \
+  -DPython_EXECUTABLE=$BUILD_PREFIX/bin/python \
   -DPython3_EXECUTABLE=$BUILD_PREFIX/bin/python \
   -DROCM_PATH=$PREFIX \
   -DAMD_OPENCL_INCLUDE_DIR=$SRC_DIR/clr/opencl/amdocl/ \
