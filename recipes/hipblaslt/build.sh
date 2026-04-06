@@ -44,7 +44,12 @@ env
 ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang++"
 ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang"
 
-cmake -GNinja ${CMAKE_ARGS} -DGPU_TARGETS="${GPU_TARGETS_EXPANDED}" -DPython_EXECUTABLE=$PYTHON -Bbuild -S.
+cmake -GNinja ${CMAKE_ARGS} \
+    -DGPU_TARGETS="${GPU_TARGETS_EXPANDED}" \
+    -DPython_EXECUTABLE=$PYTHON \
+    -DPython3_EXECUTABLE=$PYTHON \
+    -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=ALWAYS \
+    -Bbuild -S projects/hipblaslt
 cmake --build ./build
 cmake --install ./build
 

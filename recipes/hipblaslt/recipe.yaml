@@ -9,6 +9,18 @@ package:
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblaslt.tar.gz"
     sha256: d6364248679857c489244d49d5e3c606ca24bace77dd6ad7be70bccdfabf8e1b
+    target_directory: projects/hipblaslt
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/origami.tar.gz"
+    sha256: e51552b3f1a88b55a2baf6e9bef42b610d6a792dfeedb1c65e13cd27a1a5aa97
+    target_directory: shared/origami
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/mxdatagenerator.tar.gz"
+    sha256: 2e10bc34b1f7eeacd0ac78dc84c602701f29e52d5e3fe233b88ec622a259f1f3
+    target_directory: shared/mxdatagenerator
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocroller.tar.gz"
+    sha256: 5a1c6e35b7c52a3a1fd2e2333efcc049788cd703ba145c6c9f020782bf40bd0d
+    target_directory: shared/rocroller
+    patches:
+      - patches/rocroller-find-yaml-cpp.patch
 
 build:
   number: 0
@@ -52,14 +64,14 @@ requirements:
     - msgpack-cxx
     - libboost-devel
     - rocm-smi
-    # Needed for rocroller
+    # rocroller depedencies
+    - fmt
     - spdlog
-    - llvmdev 22.*
-    - lld 22.*
-    - zlib
+    - yaml-cpp
     # Test dependencies
     - blis
     - liblapack
+    - gtest
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
   ignore_run_exports:
@@ -68,6 +80,7 @@ requirements:
       - ${{ compiler('fortran') }}
       - blis
       - liblapack
+      - gtest
 
 tests:
   # Temporary commented out, find_package(hipblaslt) needs
