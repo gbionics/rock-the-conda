@@ -33,10 +33,11 @@ requirements:
     # Needed for tensilite
     - python ${{ python_min }}.*
     - pip
+    - setuptools
     - msgpack-python
-    # Needed to clone locally tensile and patch it
-    - git
-    - sed
+    - joblib
+    - pyyaml
+    - packaging
   host:
     - rocm-core ${{ version }}.*
     - rocm-cmake
