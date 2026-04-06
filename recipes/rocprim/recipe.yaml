@@ -50,7 +50,7 @@ about:
   homepage: https://rocm.docs.amd.com/projects/rocPRIM
   license: MIT
   license_family: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "rocPRIM is a header-only library that provides HIP parallel primitives."
 
 extra:
