@@ -81,6 +81,8 @@ requirements:
       - blis
       - liblapack
       - gtest
+      - spdlog
+      - libboost-devel
 
 tests:
   # Temporary commented out, find_package(hipblaslt) needs
