@@ -16,9 +16,9 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
 TRITON_FEEDSTOCK_COMMIT = "67a0a93f16a2a262668344d3da75a1c3998d633d"
 LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
-LIBMAGMA_FEEDSTOCK_COMMIT = "aac93c2ae69eedb489db0e92dca4f282f124873f"
+LIBMAGMA_FEEDSTOCK_COMMIT = "eb5dac78d4012b40a638ecf6ce1d502f905d7342"
 PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
-PYTORCH_CPU_FEEDSTOCK_COMMIT = "cdeaf5ae3973f89d8e758ff05a469441a29b1722"
+PYTORCH_CPU_FEEDSTOCK_COMMIT = "afbd1de85f4040ae9a8ac8cf9af12e0a43d88ea3"
 
 
 [feature.strix-archs.activation.env]
@@ -99,8 +99,8 @@ bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
 
 # External feedstocks for pytorch enablement.
 download-triton-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/triton-feedstock/.git || git clone $TRITON_FEEDSTOCK_REPO ./feedstocks/triton-feedstock) && git -C ./feedstocks/triton-feedstock fetch --all --tags && git -C ./feedstocks/triton-feedstock checkout $TRITON_FEEDSTOCK_COMMIT" }
-download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/pytorch-cpu-feedstock/.git || git clone $PYTORCH_CPU_FEEDSTOCK_REPO ./feedstocks/pytorch-cpu-feedstock) && git -C ./feedstocks/pytorch-cpu-feedstock fetch --all --tags && git -C ./feedstocks/pytorch-cpu-feedstock checkout $PYTORCH_CPU_FEEDSTOCK_COMMIT" }
 download-libmagma-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/libmagma-feedstock/.git || git clone $LIBMAGMA_FEEDSTOCK_REPO ./feedstocks/libmagma-feedstock) && git -C ./feedstocks/libmagma-feedstock fetch --all --tags && git -C ./feedstocks/libmagma-feedstock checkout $LIBMAGMA_FEEDSTOCK_COMMIT" }
+download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/pytorch-cpu-feedstock/.git || git clone $PYTORCH_CPU_FEEDSTOCK_REPO ./feedstocks/pytorch-cpu-feedstock) && git -C ./feedstocks/pytorch-cpu-feedstock fetch --all --tags && git -C ./feedstocks/pytorch-cpu-feedstock checkout $PYTORCH_CPU_FEEDSTOCK_COMMIT" }
 build-triton-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
 build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
 build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
