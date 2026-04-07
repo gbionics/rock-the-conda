@@ -70,7 +70,7 @@ build-hiprand = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./
 build-hipsparse-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipsparse", outputs = ["output/linux-64/hipsparse-*.conda"] }
 build-hipsparse = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipsparse", depends-on = ["build-hip", "build-rocm-core", "build-rocsparse"], outputs = ["output/linux-64/hipsparse-*.conda"] }
 build-hipsolver-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipsolver", outputs = ["output/linux-64/hipsolver-*.conda"] }
-build-hipsolver = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipsolver", depends-on = ["build-hip", "build-rocm-core", "build-rocsolver", "build-rocblas"], outputs = ["output/linux-64/hipsolver-*.conda"] }
+build-hipsolver = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipsolver", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/hipsolver-*.conda"] }
 build-hipify = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipify", outputs = ["output/linux-64/hipify-*.conda"] }
 build-rocprofiler-sdk-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprofiler-sdk", depends-on = ["build-rocprofiler-register-no-deps", "build-aqlprofile-no-deps"], outputs = ["output/linux-64/rocprofiler-sdk-*.conda"] }
 build-rocprofiler-sdk = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprofiler-sdk", depends-on = ["build-hip", "build-rocm-core", "build-rocprofiler-register", "build-aqlprofile"], outputs = ["output/linux-64/rocprofiler-sdk-*.conda"] }
@@ -81,13 +81,13 @@ build-aqlprofile = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir
 build-rccl-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rccl", outputs = ["output/linux-64/rccl-*.conda"] }
 build-rccl = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rccl", depends-on = ["build-hip", "build-rocm-core", "build-hipify"], outputs = ["output/linux-64/rccl-*.conda"] }
 build-miopen-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", outputs = ["output/linux-64/miopen-*.conda"] }
-build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-rocblas", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
+build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
 build-rocmlir-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocmlir", outputs = ["output/linux-64/rocmlir-*.conda"] }
 build-rocmlir = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocmlir", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocmlir-*.conda"] }
 build-migraphx-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", outputs = ["output/linux-64/migraphx-*.conda"] }
-build-migraphx = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocmlir", "build-miopen", "build-hipblaslt", "build-hipblas", "build-composable-kernel"], outputs = ["output/linux-64/migraphx-*.conda"] }
+build-migraphx = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocmlir", "build-miopen", "build-composable-kernel"], outputs = ["output/linux-64/migraphx-*.conda"] }
 build-onnxruntime-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", outputs = ["output/linux-64/onnxruntime-*.conda"] }
-build-onnxruntime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", depends-on = ["build-migraphx", "build-miopen", "build-hip", "build-rocm-core", "build-rocblas", "build-hipblas", "build-hipblaslt", "build-composable-kernel"], outputs = ["output/linux-64/onnxruntime-*.conda"] }
+build-onnxruntime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", depends-on = ["build-migraphx", "build-miopen", "build-hip", "build-rocm-core", "build-composable-kernel"], outputs = ["output/linux-64/onnxruntime-*.conda"] }
 build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }
 bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
 clean = "rm -rf feedstocks conda-bld"
