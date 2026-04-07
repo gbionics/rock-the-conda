@@ -64,7 +64,7 @@ tests:
 about:
   repository: https://github.com/ROCm/MIOpen
   license: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "AMD's Machine Intelligence Library for ROCm (HIP backend)"
   description: |
     MIOpen is AMD's library for high performance machine learning primitives.

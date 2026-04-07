@@ -102,6 +102,7 @@ build:
 
         {%- if hip_compiler_version != "None" %}
         ${{ ggml_args("HIP=ON") }}
+        ${{ ggml_args("HIP_ROCWMMA_FATTN=ON") }}
         ${{ cmake_args("CMAKE_HIP_ARCHITECTURES=$CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS") }}
         ${{ cmake_args("CMAKE_HIP_COMPILER=$HIPCXX") }}
 
@@ -219,6 +220,7 @@ requirements:
         - rocblas
         - hipblas
         - hipblas-common
+        - rocwmma
         # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
         # set by compiler('hip')
         - llvm-openmp

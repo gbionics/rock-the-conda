@@ -41,7 +41,7 @@ tests:
 about:
   repository: https://github.com/ROCm/rocRAND
   license: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "ROCm random number generation library"
   description: |
     rocRAND is a library for generating pseudo-random and quasi-random numbers

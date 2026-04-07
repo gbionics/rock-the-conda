@@ -1,0 +1,51 @@
+context:
+  name: rocwmma
+  version: "7.2.1"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocwmma.tar.gz
+  sha256: 4213858c459b9ee92a27a15fdf68ca401794b51f088813be45bdc521bcb018dd
+  patches:
+    - 0001-no-test-install.patch
+    - 0002-relax-fp8-check.patch
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - libgomp
+
+tests:
+  - package_contents:
+      include:
+        - rocwmma/rocwmma.hpp
+      files:
+        - lib/cmake/rocwmma/rocwmma-config.cmake
+
+about:
+  repository: https://github.com/ROCm/rocWMMA
+  homepage: https://rocm.docs.amd.com/projects/rocWMMA/en/latest/
+  license: MIT
+  license_file: LICENSE.md
+  summary: "AMD GPU C++ header-only library for GEMM primitives based on WMMA instructions"
+
+extra:
+  recipe-maintainers:
+    - traversaro

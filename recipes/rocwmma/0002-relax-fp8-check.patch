@@ -1,0 +1,13 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 6ad4f72..0e79f9a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -120,7 +120,7 @@ check_f8(F8_EXISTS)
+ if(F8_EXISTS)
+     message( STATUS "Performing Test `__hip_fp8_e5m2` and `__hip_fp8_e4m3` - Success" )
+ else()
+-    message(FATAL_ERROR "The detected ROCm does not support data type `__hip_fp8_e5m2` or `__hip_fp8_e4m3`.")
++    message(WARNING "The detected ROCm does not support data type `__hip_fp8_e5m2` or `__hip_fp8_e4m3`; continuing anyway.")
+ endif()
+ 
+ # Check if offload compression is supported

@@ -43,7 +43,7 @@ about:
   repository: https://github.com/ROCm/hipRAND
   homepage: https://rocm.docs.amd.com/projects/hipRAND/en/latest/
   license: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "ROCm RAND marshalling library"
   description: |
     hipRAND is a RAND marshalling library with multiple supported backends.
