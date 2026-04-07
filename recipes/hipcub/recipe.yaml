@@ -1,0 +1,50 @@
+context:
+  name: hipcub
+  version: "7.2.1"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipcub.tar.gz
+  sha256: 87e78242615cd1c773b7443bb51c8fc2307a7ef903cecfa34cf42a5944d6162d
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - rocprim ${{ version }}.*
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
+tests:
+  - package_contents:
+      include:
+        - hipcub/hipcub.hpp
+      files:
+        - lib/cmake/hipcub/hipcub-config.cmake
+
+about:
+  repository: https://github.com/ROCm/hipCUB
+  homepage: https://rocm.docs.amd.com/projects/hipCUB/en/latest/
+  license: MIT
+  license_file: LICENSE.txt
+  summary: "HIP CUB: thin layer on top of rocPRIM or CUB"
+
+extra:
+  recipe-maintainers:
+    - traversaro
