@@ -42,10 +42,10 @@ tests:
         - rocprofiler-register
 
 about:
-  repository: https://github.com/ROCm/rocprofiler-register
+  repository: https://github.com/ROCm/rocm-systems
   homepage: https://rocm.docs.amd.com/projects/rocprofiler-register/en/latest/
   license: MIT
-  license_file: LICENSE
+  license_file: LICENSE.md
   summary: "ROCm profiler SDK for GPU profiling and tracing"
   description: |
     rocprofiler-register is AMD's tooling infrastructure providing a hardware-specific
