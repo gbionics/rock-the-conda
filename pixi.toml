@@ -15,10 +15,11 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 # to simplify rebasing on latest versions of the feedstock
 TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
 TRITON_FEEDSTOCK_COMMIT = "67a0a93f16a2a262668344d3da75a1c3998d633d"
-PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
-PYTORCH_CPU_FEEDSTOCK_COMMIT = "CHANGE_ME_PYTORCH_CPU_COMMIT"
 LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
-LIBMAGMA_FEEDSTOCK_COMMIT = "CHANGE_ME_LIBMAGMA_COMMIT"
+LIBMAGMA_FEEDSTOCK_COMMIT = "aac93c2ae69eedb489db0e92dca4f282f124873f"
+PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
+PYTORCH_CPU_FEEDSTOCK_COMMIT = "cdeaf5ae3973f89d8e758ff05a469441a29b1722"
+
 
 [feature.strix-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
