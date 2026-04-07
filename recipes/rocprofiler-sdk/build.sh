@@ -2,6 +2,9 @@
 
 set -xeuo pipefail
 
+# Initialize git submodules
+git submodule update --init --recursive
+
 # Create symlink for hip headers
 ln -s $BUILD_PREFIX/include/hip $PREFIX/include/hip
 

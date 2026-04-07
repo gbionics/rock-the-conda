@@ -6,8 +6,9 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocprofiler-sdk.tar.gz
-  sha256: f18dbeadeedfab4adfe15dfec7a527f5e620dccccee9cc15c8a99459a25b4766
+  # No tarball is used as a workaround for all the submodules present in the repo 
+  git: https://github.com/ROCm/rocprofiler-sdk.git
+  tag: rocm-${{ version }}
   patches:
     - 0001-disable-yaml-cpp-and-json.patch
     - 0002-disable-cpackaging.patch
