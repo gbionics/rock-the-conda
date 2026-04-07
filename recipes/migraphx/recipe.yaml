@@ -49,6 +49,7 @@ requirements:
     - libprotobuf
     - python
     - pybind11
+    - libboost-devel
   run:
     - cpp-half
     - nlohmann_json
