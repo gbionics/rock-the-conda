@@ -14,7 +14,7 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 # The tritron and pytorch recipes are quite complex, so keep them as proper forks
 # to simplify rebasing on latest versions of the feedstock
 TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
-TRITON_FEEDSTOCK_COMMIT = "67a0a93f16a2a262668344d3da75a1c3998d633d"
+TRITON_FEEDSTOCK_COMMIT = "c113c861725b9b7e11ad5f302d96f5d98155b915"
 LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
 LIBMAGMA_FEEDSTOCK_COMMIT = "eb5dac78d4012b40a638ecf6ce1d502f905d7342"
 PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
