@@ -27,7 +27,7 @@ requirements:
 about:
   homepage: https://github.com/ROCm/aqlprofile
   license: MIT
-  license_file: LICENSE
+  license_file: LICENSE.md
   summary: AQLPROFILE library for AMD GPU profiling
   description: |
     AQLPROFILE provides AQL packet level profiling support for AMD GPUs.
