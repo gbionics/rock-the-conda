@@ -1,7 +1,7 @@
 context:
   name: miopen-hip
   version: "7.2.1"
-  llvm_major_version: "20"
+  llvm_major_version: "22"
 
 package:
   name: ${{ name|lower }}
