@@ -16,9 +16,9 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
 TRITON_FEEDSTOCK_COMMIT = "rocm"
 LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
-LIBMAGMA_FEEDSTOCK_COMMIT = "eb5dac78d4012b40a638ecf6ce1d502f905d7342"
+LIBMAGMA_FEEDSTOCK_COMMIT = "rocm"
 PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
-PYTORCH_CPU_FEEDSTOCK_COMMIT = "67327fe9b6a5cdc9da3816956d1610d5aa92edad"
+PYTORCH_CPU_FEEDSTOCK_COMMIT = "rocm"
 
 
 [feature.strix-archs.activation.env]
