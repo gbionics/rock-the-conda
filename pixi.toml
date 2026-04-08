@@ -109,7 +109,7 @@ download-libmagma-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedsto
 download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/pytorch-cpu-feedstock/.git || git clone $PYTORCH_CPU_FEEDSTOCK_REPO ./feedstocks/pytorch-cpu-feedstock) && git -C ./feedstocks/pytorch-cpu-feedstock fetch --all --tags && git -C ./feedstocks/pytorch-cpu-feedstock checkout $PYTORCH_CPU_FEEDSTOCK_COMMIT" }
 build-triton-feedstock = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
 build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
-build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
+build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
 
 
 clean = "rm -rf feedstocks conda-bld"
