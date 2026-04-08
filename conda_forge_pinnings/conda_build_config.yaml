@@ -179,8 +179,11 @@ liblapack:
   - 3.9.* *netlib
 liblapacke:
   - 3.9.* *netlib
+
+# To be aligned with pytorch
 blas_impl:
-  - openblas
+  - mkl
+  - generic
 
 ace:
   - 8.0.5
