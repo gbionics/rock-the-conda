@@ -77,6 +77,7 @@ requirements:
   ignore_run_exports:
     # Ignoring as these are test-only dependencies
     from_package:
+      - python
       - ${{ compiler('fortran') }}
       - blis
       - liblapack

@@ -57,6 +57,11 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    - name: Temporary cleanup of hipblaslt
+      shell: bash -l {0}
+      run: |
+        rm -rf ${{ matrix.folder_cache }}/hipblaslt-*
+
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
