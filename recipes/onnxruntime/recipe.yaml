@@ -65,7 +65,7 @@ requirements:
 tests:
   - package_contents:
       include:
-        - onnxruntiem/onnxruntime_c_api.h
+        - onnxruntime/onnxruntime_c_api.h
         - onnxruntime/onnxruntime_cxx_api.h
       lib:
         - libonnxruntime${{ dso_ext }}
