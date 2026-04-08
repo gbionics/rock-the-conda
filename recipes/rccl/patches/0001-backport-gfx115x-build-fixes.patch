@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: rock-the-conda <noreply@example.com>
+Date: Tue, 8 Apr 2026 00:00:00 +0000
+Subject: [PATCH] Backport gfx115x build fixes
+
+Backport the relevant gfx11.5 bits from ROCm/rocm-systems PR #3415 and
+extend them to cover gfx1150 as well:
+- Avoid unsupported HW register trace path on gfx1150/gfx1151.
+- Avoid HIP fp8 builtins path on gfx1150/gfx1151.
+
+diff --git a/src/device/common.h b/src/device/common.h
+index 3a0fadb..de793fa 100644
+--- a/src/device/common.h
++++ b/src/device/common.h
+@@ -26,7 +26,7 @@
+ #define STORE(DST, SRC) \
+   { __atomic_store_n((DST), (SRC), __ATOMIC_SEQ_CST); }
+ #endif
+-
+-#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1200__) || defined(__gfx1201__)
++
++#if defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1150__) || defined(__gfx1151__) || defined(__gfx1200__) || defined(__gfx1201__)
+ #define __trace_hwreg()
+ #else
+ #define __trace_hwreg() \
+diff --git a/src/include/rccl_float8.h b/src/include/rccl_float8.h
+index ff58f9a..8668c96 100644
+--- a/src/include/rccl_float8.h
++++ b/src/include/rccl_float8.h
+@@ -41,7 +41,7 @@ typedef struct
+ } rccl_bfloat8;
+ 
+ // __cplusplus < 201103L || (!defined(__HIP_PLATFORM_AMD__) && !defined(__HIPCC__))
+-#elif HIP_VERSION >= 60300000 && !(defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1030__))
++#elif HIP_VERSION >= 60300000 && !(defined(__gfx1100__) || defined(__gfx1101__) || defined(__gfx1102__) || defined(__gfx1150__) || defined(__gfx1151__) || defined(__gfx1030__))
+ 
+ #include <hip/hip_fp8.h>

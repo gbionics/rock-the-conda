@@ -9,6 +9,8 @@ package:
 source:
   url: https://github.com/ROCm/rccl/archive/refs/tags/rocm-${{ version }}.tar.gz
   sha256: a373bcfe03cf2243a97536860a81940998c36a0b324d9e10830e3cd2c3f8b523
+  patches:
+    - patches/0001-backport-gfx115x-build-fixes.patch
 
 build:
   number: 0
