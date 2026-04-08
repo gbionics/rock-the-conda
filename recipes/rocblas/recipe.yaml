@@ -58,7 +58,10 @@ requirements:
     - rocm-smi
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
-
+  ignore_run_exports:
+    # Ignoring as these are test-only dependencies
+    from_package:
+      - python
 
 tests:
   #- requirements:
