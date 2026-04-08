@@ -61,6 +61,7 @@ jobs:
       shell: bash -l {0}
       run: |
         rm -rf ${{ matrix.folder_cache }}/hipblaslt-*
+        rm -rf ${{ matrix.folder_cache }}/rocblas-*
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
