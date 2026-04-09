@@ -7,11 +7,18 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 33979c1d8f514d65f823f28b2cd2eb11338477403f295e6367244a3abb0abadd
-  patches:
-    - fix-msgpack-cmake.patch
-    - fix-rocmlir-find.patch
+  - url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
+    sha256: 33979c1d8f514d65f823f28b2cd2eb11338477403f295e6367244a3abb0abadd
+    target_directory: migraphx
+    patches:
+      - fix-msgpack-cmake.patch
+      - fix-rocmlir-find.patch
+  # CK JIT library (migraphx branch) static lib only used by MIGraphX.
+  - url: https://github.com/ROCm/composable_kernel/archive/b7775add2d28251674d81e220cd4a857b90b997a.tar.gz
+    sha256: afaf0c55623050909e77e7f0b2d054d9371eda8fd958342c1a5c1d4aa8038ddb
+    target_directory: ck-jit
+    patches:
+      - add-jit-library-component.patch
 
 build:
   number: 0
