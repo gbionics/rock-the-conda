@@ -12,7 +12,7 @@ env:
   # If true, upload the packages to the matrix-specified target channel
   ROCK_THE_CONDA_UPLOAD_PACKAGES: "false"
 
-jobs:  
+jobs:
   build-packages:
     name: '[pixi:build-packages:${{ matrix.job_name }}]'
     runs-on: ${{ matrix.runs_on }}
@@ -50,6 +50,11 @@ jobs:
         # allow a later run to pick up a cache that has an extra suffix
         restore-keys: |
           ${{ matrix.job_name }}-conda-pkgs-cache
+
+    - name: See packages restored by cache
+      shell: bash -l {0}
+      run: |
+        ls ${{ matrix.folder_cache }} || true
 
     - name: Optional force full rebuild
       if: ${{ env.IGNORE_CACHE_AND_DO_FULL_REBUILD == 'true' }}
