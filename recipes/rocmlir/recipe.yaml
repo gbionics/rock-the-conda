@@ -1,0 +1,59 @@
+context:
+  name: rocmlir
+  version: "7.0.2"
+  llvm_version: "20"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - git: https://github.com/ROCm/rocMLIR.git
+    tag: rocm-${{ version }}
+    patches:
+      - 0001-fix-mlir-execution-engine-cmake.patch
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+    - git
+  host:
+    - rocm-core ${{ version }}.*
+
+tests:
+  - package_contents:
+      files:
+        - bin/rocmlir-opt
+        - bin/rocmlir-gen
+      include:
+        - mlir-c/Dialect/Rock.h
+        - mlir-c/Dialect/RockEnums.h
+        - mlir-c/Dialect/MIGraphX.h
+      lib:
+        - MLIRCAPIMIGraphX
+
+about:
+  homepage: https://github.com/ROCm/rocMLIR
+  repository: https://github.com/ROCm/rocMLIR
+  license: Apache-2.0 WITH LLVM-exception
+  license_file: LICENSE.TXT
+  summary: ROCm MLIR-based convolution and GEMM kernel generator
+  description: |
+    rocMLIR is an MLIR-based convolution and GEMM kernel generator for ROCm.
+    It provides high-performance compute kernels for machine learning workloads.
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core

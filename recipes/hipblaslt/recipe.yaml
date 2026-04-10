@@ -13,8 +13,8 @@ source:
       - fix_latest_msgpack_cxx.patch
 
 build:
-  number: 0
-  skip: 
+  number: 1
+  skip:
     - not linux
     - hip_compiler_version in (None, "None")
 
@@ -62,6 +62,16 @@ requirements:
     - zlib
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
+  ignore_run_exports:
+    # Ignoring as these are test-only dependencies
+    from_package:
+      - python
+      - ${{ compiler('fortran') }}
+      - blis
+      - liblapack
+      - gtest
+      - spdlog
+      - libboost-devel
 
 tests:
   # Temporary commented out, find_package(hipblaslt) needs
