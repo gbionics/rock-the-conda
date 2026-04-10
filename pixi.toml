@@ -19,6 +19,7 @@ LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
 LIBMAGMA_FEEDSTOCK_COMMIT = "rocm"
 PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
 PYTORCH_CPU_FEEDSTOCK_COMMIT = "rocm"
+CONDA_BLD_PATH = "$PIXI_PROJECT_ROOT/output"
 
 
 [feature.strix-archs.activation.env]
@@ -110,7 +111,7 @@ download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feed
 build-triton-feedstock = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
 build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
 build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
-
+build-pytorch-no-deps = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe"}
 
 clean = "rm -rf feedstocks conda-bld"
 # Upload all build packages to rock-the-conda channel, needs pixi auth login before
