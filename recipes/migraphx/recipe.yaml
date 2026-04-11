@@ -9,8 +9,7 @@ package:
 source:
   url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
   sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
-  patches:
-    - fix-rocmlir-find.patch
+
 
 build:
   number: 0
