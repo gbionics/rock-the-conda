@@ -1,6 +1,6 @@
 --- a/src/targets/gpu/CMakeLists.txt
 +++ b/src/targets/gpu/CMakeLists.txt
-@@ -247,12 +247,28 @@ rocm_clang_tidy_check(migraphx_gpu)
+@@ -252,15 +252,31 @@ rocm_clang_tidy_check(migraphx_gpu)
  
  set(MIGRAPHX_ENABLE_MLIR ON CACHE BOOL "")
  
@@ -10,16 +10,19 @@
 -    message(STATUS "Build with rocMLIR::rockCompiler ${rocMLIR_VERSION}")
 -    target_compile_definitions(migraphx_gpu PRIVATE "-DMIGRAPHX_MLIR")
 -    # Make this private to avoid multiple inclusions of LLVM symbols.
--    # TODO: Fix rocMLIR's library to hide LLVM internals.
 -    target_link_libraries(migraphx_gpu PRIVATE rocMLIR::rockCompiler)
-+    # Find rocMLIR libraries directly without CMake config
+-    # Hide LLVM internals that come from rocMLIR.
+-    if(NOT WIN32 AND NOT APPLE AND BUILD_SHARED_LIBS)
+-        target_link_options(migraphx_gpu PRIVATE "LINKER:--exclude-libs,ALL")
+-    endif()
++    # Find rocMLIR libraries directly without CMake config.
 +    find_library(ROCMLIR_LIBRARY
 +        NAMES rockCompiler librockCompiler
 +        PATHS ${CMAKE_PREFIX_PATH}
 +        PATH_SUFFIXES lib lib64
 +        NO_DEFAULT_PATH
 +    )
-+    
++
 +    if(ROCMLIR_LIBRARY)
 +        message(STATUS "Found rocMLIR library: ${ROCMLIR_LIBRARY}")
 +        add_library(rocMLIR::rockCompiler SHARED IMPORTED)
@@ -28,12 +31,14 @@
 +        )
 +        target_compile_definitions(migraphx_gpu PRIVATE "-DMIGRAPHX_MLIR")
 +        # Make this private to avoid multiple inclusions of LLVM symbols.
-+        # TODO: Fix rocMLIR's library to hide LLVM internals.
 +        target_link_libraries(migraphx_gpu PRIVATE rocMLIR::rockCompiler)
 +        message(STATUS "Build with rocMLIR support enabled")
++        # Hide LLVM internals that come from rocMLIR.
++        if(NOT WIN32 AND NOT APPLE AND BUILD_SHARED_LIBS)
++            target_link_options(migraphx_gpu PRIVATE "LINKER:--exclude-libs,ALL")
++        endif()
 +    else()
-+        message(WARNING "rocMLIR library not found, building without MLIR support")
-+        set(MIGRAPHX_ENABLE_MLIR OFF CACHE BOOL "" FORCE)
++        message(FATAL_ERROR "MIGRAPHX_ENABLE_MLIR is enabled, but rocMLIR::rockCompiler could not be found in CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}")
 +    endif()
  endif()
- 
+
