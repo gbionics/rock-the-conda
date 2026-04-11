@@ -1,0 +1,17 @@
+diff --git a/external/llvm-project/mlir/lib/ExecutionEngine/CMakeLists.txt b/external/llvm-project/mlir/lib/ExecutionEngine/CMakeLists.txt
+index 1111111..2222222 100644
+--- a/external/llvm-project/mlir/lib/ExecutionEngine/CMakeLists.txt
++++ b/external/llvm-project/mlir/lib/ExecutionEngine/CMakeLists.txt
+@@ -327,8 +327,10 @@ if(MLIR_ENABLE_ROCM_RUNNER)
+       if (NOT AGENT_ENUMERATOR_RESULT EQUAL 0)
+         message(SEND_ERROR "Could not run rocm_agent_enumerator and ROCM_TEST_CHIPSET is not defined")
+         set(AGENTS_STRING "")
++      else()
++        string(STRIP "${AGENTS_STRING}" AGENTS_STRING)
++        string(REPLACE "\n" ";" AGENTS_LIST "${AGENTS_STRING}")
+       endif()
+-      string(STRIP AGENTS_STRING ${AGENTS_STRING})
+-      string(REPLACE "\n" ";" AGENTS_LIST ${AGENTS_STRING})
+       list(FILTER AGENTS_LIST EXCLUDE REGEX "gfx000")
+       if (AGENTS_LIST STREQUAL "")
+         message(SEND_ERROR "No non-CPU ROCm agents found on the system, and ROCM_TEST_CHIPSET is not defined")
