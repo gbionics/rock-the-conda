@@ -1,6 +1,6 @@
 context:
   name: migraphx
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 33979c1d8f514d65f823f28b2cd2eb11338477403f295e6367244a3abb0abadd
+  sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
   patches:
     - fix-msgpack-cmake.patch
     - fix-rocmlir-find.patch

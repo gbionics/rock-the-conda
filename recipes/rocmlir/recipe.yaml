@@ -1,6 +1,6 @@
 context:
   name: rocmlir
-  version: "7.0.2"
+  version: "7.2.1"
   llvm_version: "20"
 
 package:

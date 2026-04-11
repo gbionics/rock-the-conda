@@ -73,6 +73,7 @@ build-hipfft = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./r
 # This task is used to build all the packages in the packages list that are buildable on a public GitHub Action node (so excluding hipblaslt and all the packages that depend on it)
 build-packages-lightweight = { cmd = "echo 'Lightweight packages build'", depends-on = ["build-hipfft", "build-rocprim"] }
 build-rocblas-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocblas", outputs = ["output/linux-64/rocblas-*.conda"] }
+build-rocblas = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocblas", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocblas-*.conda"] }
 build-rocsolver-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocsolver", outputs = ["output/linux-64/rocsolver-*.conda"] }
 build-hipblas-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblas", outputs = ["output/linux-64/hipblas-*.conda"] }
 build-hipblaslt-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblaslt", outputs = ["output/linux-64/hipblaslt-*.conda"] }
