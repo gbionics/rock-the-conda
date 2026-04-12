@@ -64,6 +64,12 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    - name: Remote triton and libmagma
+      shell: bash -l {0}
+      run: |
+        rm -rf ${{ matrix.folder_cache }}/triton-*
+        rm -rf ${{ matrix.folder_cache }}/libmagma*
+  
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
