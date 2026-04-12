@@ -148,3 +148,4 @@ hipFFT:
   github_repo: ROCm/rocm-libraries
   debian_package: hipfft
   conda_forge_feedstock: MISSING
+
