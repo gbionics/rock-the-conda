@@ -11,6 +11,8 @@ env:
   SCCACHE_GHA_ENABLED: "on"
   # If true, upload the packages to the matrix-specified target channel
   ROCK_THE_CONDA_UPLOAD_PACKAGES: "false"
+  # If true, upload the conda packages folder as a GitHub Actions artifact
+  ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS: "true"
 
 jobs:
   build-packages:
@@ -75,6 +77,15 @@ jobs:
         path: |
           ${{ matrix.folder_cache }}
         key: ${{ matrix.job_name }}-conda-pkgs-cache-${{ github.run_id }}-${{ github.run_attempt }}
+
+    - name: Upload conda packages folder artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS == 'true' }}
+      with:
+        name: conda-pkgs-${{ matrix.job_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: ${{ matrix.folder_cache }}
+        if-no-files-found: warn
+        retention-days: 14
 
     - name: Upload packages
       if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
