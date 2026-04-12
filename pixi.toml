@@ -173,4 +173,3 @@ python-magic = ">=0.4.27"
 [environments]
 default = ["strix-archs"]
 all-archs = ["all-archs"]
-
