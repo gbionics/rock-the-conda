@@ -14,7 +14,7 @@ source:
       - 0001-fix-mlir-execution-engine-cmake.patch
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -36,12 +36,18 @@ tests:
       files:
         - bin/rocmlir-opt
         - bin/rocmlir-gen
+        - lib/cmake/rocmlir/rocmlir-config.cmake
+        - lib/cmake/rocmlir/rocmlir-config-version.cmake
       include:
+        - mlir-c/IR.h
+        - mlir-c/Support.h
         - mlir-c/Dialect/Rock.h
         - mlir-c/Dialect/RockEnums.h
         - mlir-c/Dialect/MIGraphX.h
       lib:
         - MLIRCAPIMIGraphX
+        - MLIRCAPIRock
+        - MLIRCAPIRegisterRocMLIR
 
 about:
   homepage: https://github.com/ROCm/rocMLIR
