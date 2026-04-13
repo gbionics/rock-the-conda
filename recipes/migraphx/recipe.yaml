@@ -10,8 +10,7 @@ source:
   - url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
     sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
     target_directory: migraphx
-    patches:
-      - fix-msgpack-cmake.patch
+
   # CK JIT library (migraphx branch) static lib only used by MIGraphX.
   # See https://github.com/ROCm/AMDMIGraphX/blob/rocm-7.2.1/requirements.txt#L31 for the exact checkout
   - url: https://github.com/ROCm/composable_kernel/archive/b7775add2d28251674d81e220cd4a857b90b997a.tar.gz
