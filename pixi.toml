@@ -16,14 +16,14 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
 ROCK_THE_CONDA_ROCM_GPU_TARGETS = "gfx1150;gfx1151"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge -c local --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
+RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental"
 
 [feature.all-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
 # If you modify this list, remember to also modify the parallel list in recipes/hip/activate/hip-clang_activate.sh
 ROCK_THE_CONDA_ROCM_GPU_TARGETS ="gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge -c local  --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id"
+RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental"
 
 [tasks]
 download-therock-base = "git clone https://github.com/ROCm/TheRock"
@@ -84,8 +84,8 @@ build-miopen-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe
 build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
 build-rocmlir-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocmlir", outputs = ["output/linux-64/rocmlir-*.conda"] }
 build-rocmlir = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocmlir", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocmlir-*.conda"] }
-build-migraphx-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --experimental --recipe-dir ./recipes/migraphx", outputs = ["output/linux-64/migraphx-*.conda"] }
-build-migraphx = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --experimental --recipe-dir ./recipes/migraphx", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocmlir", "build-miopen", "build-composable-kernel", "build-rocblas-no-deps", "build-hipblaslt-no-deps"], outputs = ["output/linux-64/migraphx-*.conda"] }
+build-migraphx-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", outputs = ["output/linux-64/migraphx-*.conda"] }
+build-migraphx = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocmlir", "build-miopen", "build-composable-kernel", "build-rocblas-no-deps", "build-hipblaslt-no-deps"], outputs = ["output/linux-64/migraphx-*.conda"] }
 build-onnxruntime-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", outputs = ["output/linux-64/onnxruntime-*.conda"] }
 build-onnxruntime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", depends-on = ["build-migraphx", "build-miopen", "build-hip", "build-rocm-core", "build-composable-kernel"], outputs = ["output/linux-64/onnxruntime-*.conda"] }
 build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }

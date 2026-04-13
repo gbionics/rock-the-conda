@@ -39,7 +39,7 @@ tests:
       include:
         - rocsparse/rocsparse.h
       lib:
-        - librocsparse${{ dso_ext }}
+        - librocsparse
 
 about:
   repository: https://github.com/ROCm/rocSPARSE
