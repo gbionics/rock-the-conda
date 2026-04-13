@@ -7,9 +7,18 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
-
+  - url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
+    sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
+    target_directory: migraphx
+    patches:
+      - fix-msgpack-cmake.patch
+  # CK JIT library (migraphx branch) static lib only used by MIGraphX.
+  # See https://github.com/ROCm/AMDMIGraphX/blob/rocm-7.2.1/requirements.txt#L31 for the exact checkout
+  - url: https://github.com/ROCm/composable_kernel/archive/b7775add2d28251674d81e220cd4a857b90b997a.tar.gz
+    sha256: afaf0c55623050909e77e7f0b2d054d9371eda8fd958342c1a5c1d4aa8038ddb
+    target_directory: ck-jit
+    patches:
+      - add-jit-library-component.patch
 
 build:
   number: 0
@@ -69,7 +78,7 @@ tests:
 about:
   repository: https://github.com/ROCm/AMDMIGraphX
   license: MIT
-  license_file: LICENSE
+  license_file: migraphx/LICENSE
   summary: "AMD's graph optimization engine for machine learning inference"
   description: |
     MIGraphX is AMD's graph inference engine that accelerates machine learning
