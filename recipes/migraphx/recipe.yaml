@@ -20,7 +20,7 @@ source:
       - add-jit-library-component.patch
 
 build:
-  number: 1
+  number: 2
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
