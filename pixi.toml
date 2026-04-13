@@ -76,7 +76,8 @@ build-rocblas-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recip
 build-rocblas = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocblas", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocblas-*.conda"] }
 build-rocsolver-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocsolver", outputs = ["output/linux-64/rocsolver-*.conda"] }
 build-hipblas-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblas", outputs = ["output/linux-64/hipblas-*.conda"] }
-build-hipblaslt-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblaslt", outputs = ["output/linux-64/hipblaslt-*.conda"] }
+build-hipblas-common = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblas-common", depends-on = ["build-rocm-core", "build-rocm-cmake"], outputs = ["output/linux-64/hipblas-common-*.conda"] }
+build-hipblaslt-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipblaslt", depends-on = ["build-hipblas-common"], outputs = ["output/linux-64/hipblaslt-*.conda"] }
 build-llama-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/llama.cpp", outputs = ["output/linux-64/llama-cpp-*.conda"] }
 build-gotcha = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/gotcha", outputs = ["output/linux-64/gotcha-*.conda"] }
 build-composable-kernel-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/composable-kernel", outputs = ["output/linux-64/composable-kernel-*.conda"] }
