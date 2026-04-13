@@ -25,16 +25,16 @@ cp ${CK_JIT_PREFIX}/lib/cmake/composable_kernel/composable_kernelConfig.cmake \
 find ${CK_JIT_PREFIX}/lib -maxdepth 1 -name '*.a' -exec cp {} ${PREFIX}/lib/ \;
 cp -rn ${CK_JIT_PREFIX}/include/* ${PREFIX}/include/
 
-# Step 2: Build MIGraphX
+# Step 2: Build MIGraphX (C++ only, no Python bindings)
 # cpp-half installs to half_float/half.hpp but MIOpen expects half/half.hpp
 mkdir -p ${PREFIX}/include/half
-ln -sf ${PREFIX}/include/half_float/half.hpp ${PREFIX}/include/half/half.hpp
+ln -sf ../half_float/half.hpp ${PREFIX}/include/half/half.hpp
 
 cmake -GNinja -S migraphx -B migraphx/build \
     ${CMAKE_ARGS} \
     -DGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
     -DBUILD_TESTING=OFF \
-    -DMIGRAPHX_ENABLE_PYTHON=ON \
+    -DMIGRAPHX_ENABLE_PYTHON=OFF \
     -DMIGRAPHX_USE_MIOPEN=ON \
     -DMIGRAPHX_USE_ROCBLAS=ON \
     -DMIGRAPHX_USE_HIPBLASLT=ON \

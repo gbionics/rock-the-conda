@@ -62,7 +62,7 @@ tests:
         - miopen/miopen.h
         - miopen/config.h
       lib:
-        - libMIOpen${{ dso_ext }}
+        - libMIOpen
 
 about:
   repository: https://github.com/ROCm/MIOpen
