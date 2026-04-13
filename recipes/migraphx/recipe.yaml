@@ -135,7 +135,7 @@ outputs:
     requirements:
       run:
         - ${{ pin_subpackage('lib' ~ name, exact=True) }}
-        - ${{ pin_subpackage(name ~ '-python', exact=True) }}
+        - ${{ pin_subpackage(name ~ '-python', upper_bound="x.x.x") }}
 
 about:
   repository: https://github.com/ROCm/AMDMIGraphX
