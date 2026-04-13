@@ -1,0 +1,93 @@
+context:
+  name: jax-rocm7-plugin
+  version: "0.7.1"
+  rocm_version: "7.0.2"
+  build: 0
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/rocm-jax/archive/refs/tags/rocm-jax-v${{ version }}.tar.gz
+  sha256: 8f71d9459140e95d5e67cec89a3d8681136b534e3bab46a1ba5aa63a614bad54
+
+build:
+  number: ${{ build }}
+  string: rocm${{ rocm_version | replace('.', '') }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build }}
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    # Workaround for conda-forge/ctng-compiler-activation-feedstock#182
+    - libstdcxx-devel_linux-64 >=15.2
+    # Prevent conda clang config from injecting BUILD_PREFIX/include into
+    # Bazel actions, see jaxlib-feedstock for details
+    - clang-no-conda-cfg
+    # Keep bazel listed twice to help migrators track dependencies
+    - bazel
+    - bazel 7.*
+    - unzip
+    - sed
+    - patchelf
+  host:
+    - python >=3.11
+    - pip
+    - numpy
+    - setuptools
+    - wheel
+    - rocm-core ${{ rocm_version }}.*
+    - rocblas
+    - hipblas
+    - hipblas-common
+    - rocsolver
+    - hipsolver
+    - rocfft
+    - hipfft
+    - miopen-hip ${{ rocm_version }}.*
+    - rocrand
+    - hiprand
+    - roctracer
+    - rocsparse
+    - hipsparse
+    - rocprofiler-sdk
+    - rccl
+    - hipblaslt
+    - rocprim
+    - hipcub
+    - numactl
+  run:
+    - python >=3.11
+    - jax >=${{ version }}
+    - jaxlib >=${{ version }}
+    - rocprofiler-sdk
+
+tests:
+  - python:
+      imports:
+        - jax
+        - jax_plugins.xla_rocm7
+  - script:
+      - python -c "import jax; print(jax.devices())"
+
+about:
+  repository: https://github.com/ROCm/rocm-jax
+  homepage: https://github.com/ROCm/rocm-jax
+  license: Apache-2.0
+  license_file: jax_rocm_plugin/LICENSE
+  summary: "ROCm backend plugin for JAX"
+  description: |
+    The ROCm JAX plugin provides GPU support for JAX on AMD GPUs.
+    It includes the PJRT runtime plugin for the ROCm platform, enabling
+    JAX computations on AMD GPUs using the ROCm software stack.
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
