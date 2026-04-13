@@ -32,3 +32,34 @@ zip_keys:
   -
     - hip_compiler_version
     - rocm_version
+
+# absl_grpc_proto_26Q1 migration
+libabseil:
+- 20260107
+libgrpc:
+- "1.78"
+libprotobuf:
+- 6.33.5
+
+# https://github.com/gbionics/rock-the-conda/pull/26#issuecomment-4164155322 
+c_stdlib_version:
+  - 2.28
+
+# For alignment with pytorch
+blas_impl:
+  - mkl
+  - generic
+
+# fmt121_spdlog117
+fmt:
+- '12.1'
+spdlog:
+- '1.17'
+
+# pybind11_abi11
+pybind11_abi:
+- '11'
+
+# icu78
+icu:
+- '78'
