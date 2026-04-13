@@ -64,13 +64,6 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
-    - name: Rebuild outdated packages
-      shell: bash -l {0}
-      run: |
-        rm -rf ${{ matrix.folder_cache }}/libmagma*
-        rm -rf ${{ matrix.folder_cache }}/rocmlir*
-        rm -rf ${{ matrix.folder_cache }}/hipblas*
-
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
