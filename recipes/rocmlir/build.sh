@@ -21,10 +21,22 @@ cmake --build build -j${CPU_COUNT}
 cmake --install build
 
 # rocMLIR only installs headers in BUILD_FAT_LIBROCKCOMPILER mode,
-# but downstream packages like MIGraphX need the C API headers
-cp -r mlir/include/mlir-c "${PREFIX}/include/"
+# but downstream packages like MIGraphX need the C API headers.
+# First, install the base MLIR C API headers from the bundled LLVM.
+cp -r external/llvm-project/mlir/include/mlir-c "${PREFIX}/include/"
+
+# Then overlay the rocMLIR-specific dialect headers on top.
+cp -rn mlir/include/mlir-c "${PREFIX}/include/" 2>/dev/null || true
 
 # Also install build-generated headers
 if [ -d build/mlir/include/mlir-c ]; then
     cp -rn build/mlir/include/mlir-c "${PREFIX}/include/" 2>/dev/null || true
 fi
+
+# Install a lightweight CMake config so that downstream packages can
+# find_package(rocMLIR CONFIG) and get the rocMLIR::rockCompiler target
+# backed by the C-API shared libraries, without needing the full fat
+# static archive (BUILD_FAT_LIBROCKCOMPILER).
+mkdir -p "${PREFIX}/lib/cmake/rocmlir"
+cp "${RECIPE_DIR}/rocmlir-config.cmake" "${PREFIX}/lib/cmake/rocmlir/"
+cp "${RECIPE_DIR}/rocmlir-config-version.cmake" "${PREFIX}/lib/cmake/rocmlir/"
