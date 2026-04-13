@@ -10,7 +10,7 @@ env:
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
   # If true, upload the packages to the matrix-specified target channel
-  ROCK_THE_CONDA_UPLOAD_PACKAGES: "false"
+  ROCK_THE_CONDA_UPLOAD_PACKAGES: "true"
 
 jobs:
   build-packages:
