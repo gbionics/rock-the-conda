@@ -105,6 +105,9 @@ build:
         ${{ ggml_args("HIP_ROCWMMA_FATTN=ON") }}
         ${{ cmake_args("CMAKE_HIP_ARCHITECTURES=$CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS") }}
         ${{ cmake_args("CMAKE_HIP_COMPILER=$HIPCXX") }}
+        # CMake HIP builds do not automatically inherit CXXFLAGS include paths.
+        # Ensure host ROCm headers (e.g. hipblas/hipblas.h) are visible.
+        ${{ cmake_args("CMAKE_HIP_FLAGS=-I$PREFIX/include") }}
 
         {%- endif %}
 
