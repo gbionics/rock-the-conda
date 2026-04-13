@@ -1,0 +1,48 @@
+context:
+  name: hipcub
+  version: "7.0.2"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - url: "https://github.com/ROCm/hipCUB/archive/refs/tags/rocm-${{ version }}.tar.gz"
+    sha256: ed7ce02bbbd1ed49dfeb2ec86cae01825dc7081c98875f046a9950ac4c9c8caa
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - libstdcxx-devel_linux-64 >=15
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - rocprim
+
+tests:
+  - package_contents:
+      include:
+        - ${{ name }}/${{ name }}_version.hpp
+
+about:
+  homepage: https://rocm.docs.amd.com/projects/hipCUB
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE.txt
+  summary: "hipCUB is a thin header-only wrapper library on top of rocPRIM."
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
