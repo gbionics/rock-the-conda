@@ -1,0 +1,49 @@
+context:
+  name: rocthrust
+  version: "7.0.2"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  - url: "https://github.com/ROCm/rocThrust/archive/refs/tags/rocm-${{ version }}.tar.gz"
+    sha256: 931b7db032e1a9d4bc571be03a8c0f1880957851527a53a71ca38e7d6a2fc695
+
+build:
+  number: 0
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - libstdcxx-devel_linux-64 >=15
+    - libgcc-devel_linux-64 >=15.2.0
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - rocprim
+
+tests:
+  - package_contents:
+      include:
+        - thrust/rocthrust_version.hpp
+
+about:
+  homepage: https://rocm.docs.amd.com/projects/rocThrust
+  license: Apache-2.0
+  license_family: Apache
+  license_file: LICENSE
+  summary: "ROCm parallel algorithm library, HIP back-end for Thrust."
+
+extra:
+  recipe-maintainers:
+    - flferretti
+    - conda-forge/rocm-core
