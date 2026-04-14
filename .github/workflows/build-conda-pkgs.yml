@@ -81,6 +81,8 @@ jobs:
         rm -f ${{ matrix.folder_cache }}/jax-rocm7-plugin-*.conda
         rm -f ${{ matrix.folder_cache }}/rocprofiler-sdk-*.conda
         rm -f ${{ matrix.folder_cache }}/aqlprofile-*.conda
+        rm -f ${{ matrix.folder_cache }}/miopen-hip-*.conda
+        rm -f ${{ matrix.folder_cache }}/composable-kernel-*.conda
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
