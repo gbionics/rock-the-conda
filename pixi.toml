@@ -88,6 +88,8 @@ build-migraphx-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --reci
 build-migraphx = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/migraphx", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocmlir", "build-miopen", "build-composable-kernel", "build-rocblas-no-deps", "build-hipblaslt-no-deps"], outputs = ["output/linux-64/migraphx-*.conda"] }
 build-onnxruntime-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", outputs = ["output/linux-64/onnxruntime-*.conda"] }
 build-onnxruntime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/onnxruntime", depends-on = ["build-migraphx", "build-miopen", "build-hip", "build-rocm-core", "build-composable-kernel"], outputs = ["output/linux-64/onnxruntime-*.conda"] }
+build-warp-lang-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/warp-lang", outputs = ["output/linux-64/warp-lang-*.conda"] }
+build-warp-lang = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/warp-lang", depends-on = ["build-hip", "build-rocm-core", "build-composable-kernel"], outputs = ["output/linux-64/warp-lang-*.conda"] }
 build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries"] }
 bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
 clean = "rm -rf feedstocks conda-bld"
