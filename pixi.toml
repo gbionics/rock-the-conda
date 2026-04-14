@@ -138,7 +138,9 @@ redshift_connector = "*"
 
 # Deps for building packages
 conda-build = "*"
-rattler-build = ">=0.58.2"
+# rattler-build 0.62.0 broke the usage of ROCK_THE_CONDA_ROCM_GPU_TARGETS env vars to set archs,
+# we need to devise a better mechanism but for now let's just use rattler-build<0.62.0
+rattler-build = ">=0.58.2,<0.62.0"
 conda-forge-pinning = "*"
 
 [target.unix.dependencies]
