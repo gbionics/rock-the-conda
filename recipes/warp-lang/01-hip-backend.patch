@@ -1,0 +1,1192 @@
+diff --git a/build_lib.py b/build_lib.py
+index 4e9c2520..20eedef8 100644
+--- a/build_lib.py
++++ b/build_lib.py
+@@ -361,6 +361,12 @@ def main(argv: list[str] | None = None) -> int:
+         default=False,
+         help="Fast build mode: compile for minimal GPU architectures (PTX-only for sm_75), disable CUDA forward compatibility",
+     )
++    group_build.add_argument(
++        "--hip",
++        action=argparse.BooleanOptionalAction,
++        default=False,
++        help="Build with AMD HIP/ROCm support instead of CUDA (mutually exclusive with --cuda)",
++    )
+ 
+     # Clang/LLVM options
+     group_clang_llvm = parser.add_argument_group(
+@@ -405,8 +411,13 @@ def main(argv: list[str] | None = None) -> int:
+         print("  Use --build-llvm to build LLVM from source")
+         return 1
+ 
++    # Validate --hip conflicts
++    if args.hip and args.cuda:
++        print("Error: --hip and --cuda are mutually exclusive. Use --no-cuda --hip for HIP builds.")
++        return 1
++
+     # Validate --no-cuda conflicts
+-    if not args.cuda:
++    if not args.cuda and not args.hip:
+         if args.cuda_path:
+             print("Error: --no-cuda and --cuda-path are mutually exclusive.")
+             return 1
+@@ -445,8 +456,14 @@ def main(argv: list[str] | None = None) -> int:
+             print(f"Warp build error: {e}")
+             return 1
+ 
+-    # setup CUDA Toolkit path
+-    if platform.system() == "Darwin" or not args.cuda:
++    # setup CUDA/HIP Toolkit path
++    if args.hip:
++        print("Building with HIP/ROCm support")
++        args.cuda_path = None
++        args.libmathdx_path = None
++        if not hasattr(args, "rocm_path") or not args.rocm_path:
++            args.rocm_path = os.environ.get("ROCM_PATH", "/opt/rocm")
++    elif platform.system() == "Darwin" or not args.cuda:
+         if not args.cuda:
+             print("CUDA support disabled (--no-cuda)")
+         args.cuda_path = None
+@@ -524,9 +541,11 @@ def main(argv: list[str] | None = None) -> int:
+             "native/coloring.cpp",
+             "native/fastcall.cpp",
+         ]
++        if args.hip:
++            cpp_sources.append("native/hip_util.cpp")
+         warp_cpp_paths = [os.path.join(build_path, cpp) for cpp in cpp_sources]
+ 
+-        if args.cuda_path is None:
++        if args.cuda_path is None and not args.hip:
+             if args.cuda:
+                 print("Warning: CUDA toolchain not found, building without CUDA support")
+             warp_cu_paths = None
+diff --git a/warp/_src/build_dll.py b/warp/_src/build_dll.py
+index 6db20fc5..396058f2 100644
+--- a/warp/_src/build_dll.py
++++ b/warp/_src/build_dll.py
+@@ -518,7 +518,7 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+ 
+     native_dir = os.path.join(warp_home, "native")
+ 
+-    if cu_paths:
++    if cu_paths and not getattr(args, 'hip', False):
+         # check CUDA Toolkit version
+         ctk_version = get_cuda_toolkit_version(cuda_home)
+         if ctk_version < MIN_CTK_VERSION:
+@@ -566,8 +566,14 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+         # Get nvcc executable (checks PATH first, then CUDA_HOME)
+         nvcc_cmd = find_nvcc_executable(cuda_home)
+ 
+-    # is the library being built with CUDA enabled?
+-    cuda_enabled = "WP_ENABLE_CUDA=1" if (cu_paths is not None) else "WP_ENABLE_CUDA=0"
++    # is the library being built with CUDA or HIP enabled?
++    hip_enabled = getattr(args, 'hip', False) and cu_paths is not None
++    if hip_enabled:
++        cuda_enabled = "WP_ENABLE_CUDA=0"
++        hip_define = "WP_ENABLE_HIP=1"
++    else:
++        cuda_enabled = "WP_ENABLE_CUDA=1" if (cu_paths is not None) else "WP_ENABLE_CUDA=0"
++        hip_define = "WP_ENABLE_HIP=0"
+ 
+     if args.libmathdx_path:
+         libmathdx_includes = f' -I"{args.libmathdx_path}/include"'
+@@ -598,7 +604,7 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+             iter_dbg = "_ITERATOR_DEBUG_LEVEL=2"
+             debug = "_DEBUG"
+ 
+-        cpp_flags = f'/nologo /std:c++17 /GR- /EHsc {runtime} /D "{debug}" /D "{cuda_enabled}" /D "{mathdx_enabled}" /D "{cuda_compat_enabled}" /D "{iter_dbg}" /I"{native_dir}" {includes} '
++        cpp_flags = f'/nologo /std:c++17 /GR- /EHsc {runtime} /D "{debug}" /D "{cuda_enabled}" /D "{hip_define}" /D "{mathdx_enabled}" /D "{cuda_compat_enabled}" /D "{iter_dbg}" /I"{native_dir}" {includes} '
+ 
+         if args.mode == "debug":
+             cpp_flags += "/FS /Zi /Od /D WP_ENABLE_DEBUG=1"
+@@ -710,7 +716,7 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+             else:
+                 version = ""
+ 
+-        cpp_flags = f'-Werror -Wuninitialized {version} --std=c++17 -fno-rtti -D{cuda_enabled} -D{mathdx_enabled} -D{cuda_compat_enabled} -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -D_GLIBCXX_USE_CXX11_ABI=0 -I"{native_dir}" {includes} '
++        cpp_flags = f'-Werror -Wuninitialized {version} --std=c++17 -fno-rtti -D{cuda_enabled} -D{hip_define} -D{mathdx_enabled} -D{cuda_compat_enabled} -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -D_GLIBCXX_USE_CXX11_ABI=0 -I"{native_dir}" {includes} '
+ 
+         if mode == "debug":
+             cpp_flags += "-O0 -g -D_DEBUG -DWP_ENABLE_DEBUG=1 -fkeep-inline-functions"
+@@ -747,7 +753,21 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+                 futures = [executor.submit(run_cmd, cmd=cpp_cmd) for cpp_cmd in cpp_cmds]
+ 
+             cuda_cmds = []
+-            if cu_paths:
++            if cu_paths and hip_enabled:
++                rocm_path = getattr(args, 'rocm_path', '/opt/rocm')
++                hipcc_cmd = os.path.join(rocm_path, 'bin', 'hipcc')
++                for cu_path in cu_paths:
++                    cu_out = cu_path + _obj_tag + ".o"
++                    if mode == "debug":
++                        cuda_cmd = f'{hipcc_cmd} --std=c++17 -g -O0 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -D_DEBUG -DWP_ENABLE_HIP=1 -DWP_ENABLE_CUDA=0 -I"{native_dir}" -D{mathdx_enabled} -o "{cu_out}" -c "{cu_path}"'
++                    elif mode == "release":
++                        cuda_cmd = f'{hipcc_cmd} --std=c++17 -O3 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -DNDEBUG -DWP_ENABLE_HIP=1 -DWP_ENABLE_CUDA=0 -I"{native_dir}" -D{mathdx_enabled} -o "{cu_out}" -c "{cu_path}"'
++                    cuda_cmds.append(cuda_cmd)
++                    ld_inputs.append(quote(cu_out))
++                ld_inputs.append(
++                    f'-L"{rocm_path}/lib" -lamdhip64 -lhiprtc -lpthread -ldl -lrt'
++                )
++            elif cu_paths:
+                 for cu_path in cu_paths:
+                     cu_out = cu_path + _obj_tag + ".o"
+ 
+@@ -761,7 +781,6 @@ def build_dll_for_arch(args, dll_path, cpp_paths, cu_paths, arch, libs: list[str
+                         elif mode == "release":
+                             cuda_cmd = f'{nvcc_cmd} --std=c++17 -O3 --compiler-options -fPIC,-fvisibility=hidden,-fvisibility-inlines-hidden {" ".join(_nvcc_opts)} -DNDEBUG -DWP_ENABLE_CUDA=1 -I"{native_dir}" -D{mathdx_enabled} {libmathdx_includes} -o "{cu_out}" -c "{cu_path}"'
+                     else:
+-                        # Use Clang compiler
+                         if mode == "debug":
+                             cuda_cmd = f'clang++ -Werror -Wuninitialized -Wno-unknown-cuda-version -Wno-openmp-target {" ".join(clang_opts)} -g -O0 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -D_DEBUG -D_ITERATOR_DEBUG_LEVEL=0 -DWP_ENABLE_CUDA=1 -I"{native_dir}" -D{mathdx_enabled} {libmathdx_includes} -o "{cu_out}" -c "{cu_path}"'
+                         elif mode == "release":
+diff --git a/warp/_src/codegen.py b/warp/_src/codegen.py
+index 7d628662..45bca6c0 100644
+--- a/warp/_src/codegen.py
++++ b/warp/_src/codegen.py
+@@ -4137,7 +4137,7 @@ cuda_module_header = """
+ #include "builtin.h"
+ 
+ // Map wp.breakpoint() to a device brkpt at the call site so cuda-gdb attributes the stop to the generated .cu line
+-#if defined(__CUDACC__) && !defined(_MSC_VER)
++#if (defined(__CUDACC__) || defined(__HIPCC__)) && !defined(_MSC_VER)
+ #define __debugbreak() __brkpt()
+ #endif
+ 
+diff --git a/warp/native/builtin.h b/warp/native/builtin.h
+index 10d1c080..9fa83da6 100644
+--- a/warp/native/builtin.h
++++ b/warp/native/builtin.h
+@@ -13,9 +13,12 @@
+ #define __restrict__ __restrict
+ #endif
+ 
+-#if !defined(__CUDACC__)
++#if !defined(__CUDACC__) && !defined(__HIPCC__)
+ #define CUDA_CALLABLE
+ #define CUDA_CALLABLE_DEVICE
++#elif defined(__HIPCC__)
++#define CUDA_CALLABLE __host__ __device__
++#define CUDA_CALLABLE_DEVICE __device__
+ #else
+ #define CUDA_CALLABLE __host__ __device__
+ #define CUDA_CALLABLE_DEVICE __device__
+@@ -63,7 +66,9 @@
+ __device__ inline void __debugbreak() { __brkpt(); }
+ #endif
+ 
+-#if defined(__clang__) && defined(__CUDA__) && !defined(WP_NO_CRT)
++#if defined(__HIPCC__) && !defined(WP_NO_CRT)
++#include <hip/hip_fp16.h>
++#elif defined(__clang__) && defined(__CUDA__) && !defined(WP_NO_CRT)
+ // clang compiling CUDA code, host and device (NOTE: Used when building core library with Clang).
+ // Excluded for JIT-compiled kernels (WP_NO_CRT) where cuda_crt.h provides __half.
+ #include <cuda_fp16.h>
+@@ -170,7 +175,7 @@ static_assert(sizeof(half) == 2, "Size of half / float16 type must be 2-bytes");
+ typedef half float16;
+ 
+ // Approximate division/reciprocal intrinsics
+-#if defined(__CUDA_ARCH__)
++#if defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+ 
+ inline __device__ float approx_rcp(float a)
+ {
+@@ -209,6 +214,15 @@ inline __device__ float16 approx_div(float16 a, float16 b)
+     return float16(approx_div(float(a), float(b)));  // No approx PTX for f16; use fp32 approx div
+ }
+ 
++#elif defined(__HIP_DEVICE_COMPILE__)
++
++inline __device__ float approx_rcp(float a) { return __frcp_rn(a); }
++inline __device__ double approx_rcp(double a) { return __drcp_rn(a); }
++inline __device__ float16 approx_rcp(float16 a) { return float16(approx_rcp(float(a))); }
++inline __device__ float approx_div(float a, float b) { return __fdiv_rn(a, b); }
++inline __device__ double approx_div(double a, double b) { return __ddiv_rn(a, b); }
++inline __device__ float16 approx_div(float16 a, float16 b) { return float16(approx_div(float(a), float(b))); }
++
+ #else
+ 
+ // CPU fallbacks: exact division
+@@ -221,7 +235,7 @@ inline CUDA_CALLABLE float16 approx_div(float16 a, float16 b) { return float16(f
+ 
+ #endif
+ 
+-#if defined(__CUDA_ARCH__)
++#if defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+ 
+ CUDA_CALLABLE inline half float_to_half(float x)
+ {
+@@ -237,7 +251,7 @@ CUDA_CALLABLE inline float half_to_float(half x)
+     return val;
+ }
+ 
+-#elif defined(__clang__)
++#elif defined(__HIP_DEVICE_COMPILE__) || defined(__clang__)
+ 
+ // _Float16 is Clang's native half-precision floating-point type
+ CUDA_CALLABLE inline half float_to_half(float x)
+@@ -1499,10 +1513,13 @@ template <> inline CUDA_CALLABLE int64 atomic_add(int64* buf, int64 value)
+ 
+ template <> inline CUDA_CALLABLE float16 atomic_add(float16* buf, float16 value)
+ {
+-#if !defined(__CUDA_ARCH__)
++#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+     float16 old = buf[0];
+     buf[0] += value;
+     return old;
++#elif defined(__HIP_DEVICE_COMPILE__)
++    __half r = atomicAdd(reinterpret_cast<__half*>(buf), *reinterpret_cast<__half*>(&value));
++    return *reinterpret_cast<float16*>(&r);
+ #else  // CUDA compiled by NVRTC
+ #if __CUDA_ARCH__ >= 700
+ #if defined(__clang__)  // CUDA compiled by Clang
+@@ -1533,10 +1550,12 @@ template <> inline CUDA_CALLABLE float16 atomic_add(float16* buf, float16 value)
+ 
+ template <> inline CUDA_CALLABLE float64 atomic_add(float64* buf, float64 value)
+ {
+-#if !defined(__CUDA_ARCH__)
++#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
+     float64 old = buf[0];
+     buf[0] += value;
+     return old;
++#elif defined(__HIP_DEVICE_COMPILE__)
++    return atomicAdd(buf, value);
+ #elif defined(__clang__)  // CUDA compiled by Clang
+     return atomicAdd(buf, value);
+ #else  // CUDA compiled by NVRTC
+diff --git a/warp/native/cuda_util.h b/warp/native/cuda_util.h
+index 7f3a6fbe..fa2d29ea 100644
+--- a/warp/native/cuda_util.h
++++ b/warp/native/cuda_util.h
+@@ -5,19 +5,23 @@
+ 
+ #include "builtin.h"
+ 
+-#if WP_ENABLE_CUDA
++#if WP_ENABLE_CUDA || WP_ENABLE_HIP
+ 
+ #include <vector>
+ 
++#if WP_ENABLE_HIP
++#include "hip_runtime.h"
++#else
+ #include <cudaTypedefs.h>
+ #include <cuda_runtime_api.h>
++#endif
+ #include <stdio.h>
+ 
+ #define check_cuda(code) (check_cuda_result(code, __FUNCTION__, __FILE__, __LINE__))
+ #define check_cu(code) (check_cu_result(code, __FUNCTION__, __FILE__, __LINE__))
+ 
+ 
+-#if defined(__CUDACC__)
++#if defined(__CUDACC__) || defined(__HIPCC__)
+ #if _DEBUG
+ // helper for launching kernels (synchronize + error checking after each kernel)
+ #define wp_launch_device(context, kernel, dim, args) { \
+@@ -42,7 +46,7 @@
+         kernel<<<num_blocks, 256, 0, stream>>>args; \
+         end_cuda_range(WP_TIMING_KERNEL_BUILTIN, stream); }}
+ #endif  // _DEBUG
+-#endif  // defined(__CUDACC__)
++#endif  // defined(__CUDACC__) || defined(__HIPCC__)
+ 
+ 
+ CUresult cuDriverGetVersion_f(int* version);
+@@ -359,7 +363,7 @@ public:
+     }
+ };
+ 
+-#endif  // WP_ENABLE_CUDA
++#endif  // WP_ENABLE_CUDA || WP_ENABLE_HIP
+ 
+ // Pass this value to device functions as the `context` parameter to bypass unnecessary context management.
+ // This works in conjunction with ContextGuards, which do nothing if the given context is NULL.
+diff --git a/warp/native/hip_runtime.h b/warp/native/hip_runtime.h
+new file mode 100644
+index 00000000..bfb5ffec
+--- /dev/null
++++ b/warp/native/hip_runtime.h
+@@ -0,0 +1,226 @@
++// SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2026 Filippo Luca Ferretti.
++// SPDX-License-Identifier: Apache-2.0
++
++// GPU runtime abstraction: maps CUDA types/enums to HIP equivalents so that
++// cuda_util.h, cuda_util.cpp, and warp.cu can compile against either backend
++// with minimal source changes.
++
++#pragma once
++
++#if WP_ENABLE_HIP
++
++#include <hip/hip_runtime.h>
++#include <hip/hip_runtime_api.h>
++
++// In device code, set __CUDA_ARCH__ to 700 so that existing GPU code path
++// guards activate. Value 700 enables most features but stays below 800,
++// which avoids CUDA-specific PTX asm paths (cp.async, etc.) that have
++// regular load/store fallbacks.
++#if defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
++#define __CUDA_ARCH__ 700
++#endif
++
++typedef hipDevice_t     CUdevice;
++typedef hipCtx_t        CUcontext;
++typedef hipStream_t     CUstream;
++typedef hipEvent_t      CUevent;
++typedef hipModule_t     CUmodule;
++typedef hipFunction_t   CUfunction;
++typedef hipDeviceptr_t  CUdeviceptr;
++typedef hipError_t      CUresult;
++
++#define CUDA_SUCCESS                     hipSuccess
++#define CUDA_ERROR_NOT_READY             hipErrorNotReady
++#define CUDA_ERROR_DEINITIALIZED         hipErrorDeinitialized
++#define CUDA_ERROR_NOT_INITIALIZED       hipErrorNotInitialized
++#define CUDA_ERROR_INVALID_CONTEXT       hipErrorInvalidContext
++#define CUDA_ERROR_INVALID_VALUE         hipErrorInvalidValue
++#define CUDA_ERROR_OUT_OF_MEMORY         hipErrorOutOfMemory
++#define CUDA_ERROR_NOT_FOUND             hipErrorNotFound
++#define CUDA_ERROR_PEER_ACCESS_ALREADY_ENABLED hipErrorPeerAccessAlreadyEnabled
++
++typedef hipError_t      cudaError_t;
++#define cudaSuccess     hipSuccess
++
++typedef hipStream_t     cudaStream_t;
++typedef hipEvent_t      cudaEvent_t;
++
++typedef hipDeviceAttribute_t CUdevice_attribute;
++#define CU_DEVICE_ATTRIBUTE_PCI_DOMAIN_ID              hipDeviceAttributePciDomainID
++#define CU_DEVICE_ATTRIBUTE_PCI_BUS_ID                 hipDeviceAttributePciBusId
++#define CU_DEVICE_ATTRIBUTE_PCI_DEVICE_ID              hipDeviceAttributePciDeviceId
++#define CU_DEVICE_ATTRIBUTE_UNIFIED_ADDRESSING         hipDeviceAttributeUnifiedAddressing
++#define CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR   hipDeviceAttributeComputeCapabilityMajor
++#define CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR   hipDeviceAttributeComputeCapabilityMinor
++#define CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT       hipDeviceAttributeMultiprocessorCount
++#define CU_DEVICE_ATTRIBUTE_INTEGRATED                 hipDeviceAttributeIntegrated
++#define CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK hipDeviceAttributeMaxSharedMemoryPerBlock
++
++#define cudaMemcpyHostToHost     hipMemcpyHostToHost
++#define cudaMemcpyHostToDevice   hipMemcpyHostToDevice
++#define cudaMemcpyDeviceToHost   hipMemcpyDeviceToHost
++#define cudaMemcpyDeviceToDevice hipMemcpyDeviceToDevice
++#define cudaMemcpyDefault        hipMemcpyDefault
++
++typedef hipUUID CUuuid;
++
++typedef hipStreamCaptureStatus CUstreamCaptureStatus;
++#define CU_STREAM_CAPTURE_STATUS_NONE   hipStreamCaptureStatusNone
++#define CU_STREAM_CAPTURE_STATUS_ACTIVE hipStreamCaptureStatusActive
++
++typedef hipGraph_t          CUgraph;
++typedef hipGraphNode_t      CUgraphNode;
++typedef hipGraphExec_t      CUgraphExec;
++typedef hipGraphNodeType    CUgraphNodeType;
++
++typedef hipArray*               CUarray;
++typedef HIP_ARRAY_DESCRIPTOR    CUDA_ARRAY_DESCRIPTOR;
++typedef HIP_ARRAY3D_DESCRIPTOR  CUDA_ARRAY3D_DESCRIPTOR;
++typedef hipTextureObject_t      CUtexObject;
++typedef HIP_RESOURCE_DESC       CUDA_RESOURCE_DESC;
++typedef HIP_TEXTURE_DESC        CUDA_TEXTURE_DESC;
++typedef HIP_RESOURCE_VIEW_DESC  CUDA_RESOURCE_VIEW_DESC;
++
++typedef hipPointer_attribute CUpointer_attribute;
++#define CU_POINTER_ATTRIBUTE_CONTEXT hipPointerAttributeContext
++
++#define CU_EVENT_DEFAULT        hipEventDefault
++#define CU_EVENT_DISABLE_TIMING hipEventDisableTiming
++#define CU_EVENT_BLOCKING_SYNC  hipEventBlockingSync
++
++#define CU_STREAM_DEFAULT       hipStreamDefault
++#define CU_STREAM_NON_BLOCKING  hipStreamNonBlocking
++
++typedef hipIpcMemHandle_t   CUipcMemHandle;
++typedef hipIpcEventHandle_t CUipcEventHandle;
++
++#define CU_CTX_SCHED_AUTO 0
++
++#define cudaGetLastError              hipGetLastError
++#define cudaGetErrorString            hipGetErrorString
++#define cudaMalloc                    hipMalloc
++#define cudaMallocAsync               hipMallocAsync
++#define cudaFree                      hipFree
++#define cudaFreeAsync                 hipFreeAsync
++#define cudaMallocHost                hipHostMalloc
++#define cudaFreeHost                  hipHostFree
++#define cudaMemcpyAsync               hipMemcpyAsync
++#define cudaMemset                    hipMemset
++#define cudaMemsetAsync               hipMemsetAsync
++#define cudaDeviceSynchronize         hipDeviceSynchronize
++#define cudaDeviceCanAccessPeer       hipDeviceCanAccessPeer
++#define cudaEventElapsedTime          hipEventElapsedTime
++
++#define cudaDeviceGetDefaultMemPool   hipDeviceGetDefaultMemPool
++#define cudaMemPoolSetAttribute       hipMemPoolSetAttribute
++#define cudaMemPoolGetAttribute       hipMemPoolGetAttribute
++#define cudaMemPoolSetAccess          hipMemPoolSetAccess
++#define cudaMemPoolGetAccess          hipMemPoolGetAccess
++#define cudaDeviceGraphMemTrim        hipDeviceGraphMemTrim
++
++typedef hipMemPool_t                 cudaMemPool_t;
++typedef hipMemPoolProps               cudaMemPoolProps;
++typedef hipMemAccessDesc             cudaMemAccessDesc;
++typedef hipMemAccessFlags            cudaMemAccessFlags;
++typedef hipMemAllocationType         cudaMemAllocationType;
++typedef hipMemAllocationHandleType   cudaMemAllocationHandleType;
++typedef hipMemLocation               cudaMemLocation;
++typedef hipMemLocationType           cudaMemLocationType;
++typedef hipMemPoolAttr               cudaMemPoolAttr;
++
++#define cudaMemPoolAttrReleaseThreshold     hipMemPoolAttrReleaseThreshold
++#define cudaMemAccessFlagsProtReadWrite     hipMemAccessFlagsProtReadWrite
++#define cudaMemLocationTypeDevice           hipMemLocationTypeDevice
++#define cudaMemAllocationTypePinned         hipMemAllocationTypePinned
++#define cudaMemHandleTypeNone               hipMemHandleTypeNone
++
++#define cudaStreamBeginCapture        hipStreamBeginCapture
++#define cudaStreamBeginCaptureToGraph  hipStreamBeginCaptureToGraph
++#define cudaStreamEndCapture          hipStreamEndCapture
++#define cudaStreamIsCapturing         hipStreamIsCapturing
++#define cudaStreamCaptureModeGlobal   hipStreamCaptureModeGlobal
++
++typedef hipStreamCaptureMode cudaStreamCaptureMode;
++
++#define cudaStreamSetCaptureDependencies   0
++#define cudaStreamAddCaptureDependencies   1
++
++#define cudaGraphInstantiateWithFlags  hipGraphInstantiateWithFlags
++#define cudaGraphLaunch               hipGraphLaunch
++#define cudaGraphUpload               hipGraphUpload
++#define cudaGraphDestroy              hipGraphDestroy
++#define cudaGraphExecDestroy          hipGraphExecDestroy
++#define cudaGraphGetNodes             hipGraphGetNodes
++#define cudaGraphDebugDotPrint        hipGraphDebugDotPrint
++#define cudaGraphAddChildGraphNode    hipGraphAddChildGraphNode
++#define cudaGraphChildGraphNodeGetGraph hipGraphChildGraphNodeGetGraph
++#define cudaGraphAddMemcpyNode1D      hipGraphAddMemcpyNode1D
++#define cudaGraphExecMemcpyNodeSetParams1D hipGraphExecMemcpyNodeSetParams1D
++#define cudaGraphAddMemFreeNode       hipGraphAddMemFreeNode
++#define cudaGraphRetainUserObject     hipGraphRetainUserObject
++#define cudaUserObjectCreate          hipUserObjectCreate
++
++typedef hipGraphNode_t          cudaGraphNode_t;
++typedef hipGraph_t              cudaGraph_t;
++typedef hipGraphExec_t          cudaGraphExec_t;
++typedef hipKernelNodeParams     cudaKernelNodeParams;
++typedef hipMemcpy3DParms        cudaMemcpy3DParms;
++typedef hipUserObject_t         cudaUserObject_t;
++
++// Conditional graphs are not available in HIP yet
++inline hipError_t cudaGraphConditionalHandleCreate(void*, void*, unsigned int, unsigned int)
++{
++    return hipErrorNotSupported;
++}
++inline hipError_t cudaGraphSetConditional(void*, unsigned int)
++{
++    return hipErrorNotSupported;
++}
++
++typedef unsigned long long cuuint64_t;
++
++typedef int CUjit_option;
++#define CU_JIT_ERROR_LOG_BUFFER            0
++#define CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES 1
++#define CU_JIT_INPUT_PTX                   0
++
++typedef hipFuncAttribute CUfunction_attribute;
++#define CU_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES hipFuncAttributeMaxDynamicSharedMemorySize
++
++typedef hip_Memcpy2D     CUDA_MEMCPY2D;
++typedef HIP_MEMCPY3D     CUDA_MEMCPY3D;
++
++typedef hipGraphicsResource_t CUgraphicsResource;
++
++typedef size_t (*CUoccupancyB2DSize)(int);
++
++#define cudaErrorCallRequiresNewerDriver hipErrorNotSupported
++
++// NVRTC-to-hipRTC compatibility
++typedef hiprtcResult   nvrtcResult;
++typedef hiprtcProgram  nvrtcProgram;
++
++#define NVRTC_SUCCESS                  HIPRTC_SUCCESS
++#define nvrtcGetErrorString            hiprtcGetErrorString
++#define nvrtcVersion                   hiprtcVersion
++#define nvrtcCreateProgram             hiprtcCreateProgram
++#define nvrtcDestroyProgram            hiprtcDestroyProgram
++#define nvrtcCompileProgram            hiprtcCompileProgram
++#define nvrtcGetProgramLogSize         hiprtcGetProgramLogSize
++#define nvrtcGetProgramLog             hiprtcGetProgramLog
++#define nvrtcGetCodeSize               hiprtcGetCodeSize
++#define nvrtcGetCode                   hiprtcGetCode
++#define nvrtcGetBitcodeSize            hiprtcGetBitcodeSize
++#define nvrtcGetBitcode                hiprtcGetBitcode
++
++// hipRTC produces native code directly (no PTX/cubin distinction)
++#define nvrtcGetPTXSize                hiprtcGetCodeSize
++#define nvrtcGetPTX                    hiprtcGetCode
++#define nvrtcGetCUBINSize              hiprtcGetCodeSize
++#define nvrtcGetCUBIN                  hiprtcGetCode
++
++// Sentinel so that #if CUDA_VERSION >= XXXX guards evaluate to false
++#define CUDA_VERSION 0
++
++#endif // WP_ENABLE_HIP
+diff --git a/warp/native/hip_util.cpp b/warp/native/hip_util.cpp
+new file mode 100644
+index 00000000..5ce87364
+--- /dev/null
++++ b/warp/native/hip_util.cpp
+@@ -0,0 +1,465 @@
++// SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2026 Filippo Luca Ferretti.
++// SPDX-License-Identifier: Apache-2.0
++
++#if WP_ENABLE_HIP
++
++#include "cuda_util.h"
++#include "error.h"
++
++#include <set>
++#include <stack>
++
++static bool hip_driver_initialized = false;
++
++bool ContextGuard::always_restore = false;
++
++CudaTimingState* g_cuda_timing_state = NULL;
++
++bool init_cuda_driver()
++{
++    hipError_t result = hipInit(0);
++    if (result != hipSuccess)
++    {
++        fprintf(stderr,
++            "Warp HIP warning: Could not initialize HIP runtime. "
++            "GPU execution will not be available.\n");
++        return false;
++    }
++    hip_driver_initialized = true;
++    return true;
++}
++
++bool is_cuda_driver_initialized() { return hip_driver_initialized; }
++
++bool check_cuda_result(cudaError_t code, const char* func, const char* file, int line)
++{
++    if (code == hipSuccess)
++        return true;
++
++    wp::set_error_string(
++        "Warp HIP error %u: %s (in function %s, %s:%d)",
++        unsigned(code), hipGetErrorString(code), func, file, line);
++    return false;
++}
++
++bool check_cu_result(CUresult result, const char* func, const char* file, int line)
++{
++    if (result == hipSuccess)
++        return true;
++
++    const char* errString = hipGetErrorString(result);
++    if (errString)
++        wp::set_error_string(
++            "Warp HIP error %u: %s (in function %s, %s:%d)",
++            unsigned(result), errString, func, file, line);
++    else
++        wp::set_error_string(
++            "Warp HIP error %u (in function %s, %s:%d)",
++            unsigned(result), func, file, line);
++
++    return false;
++}
++
++bool get_capture_dependencies(CUstream stream, std::vector<CUgraphNode>& dependencies_ret)
++{
++    CUstreamCaptureStatus status;
++    size_t num_dependencies = 0;
++    const CUgraphNode* dependencies = NULL;
++    dependencies_ret.clear();
++    if (check_cu(cuStreamGetCaptureInfo_f(stream, &status, NULL, NULL, &dependencies, &num_dependencies)))
++    {
++        if (dependencies && num_dependencies > 0)
++            dependencies_ret.insert(dependencies_ret.begin(), dependencies, dependencies + num_dependencies);
++        return true;
++    }
++    return false;
++}
++
++bool get_graph_leaf_nodes(cudaGraph_t graph, std::vector<cudaGraphNode_t>& leaf_nodes_ret)
++{
++    if (!graph)
++        return false;
++
++    size_t node_count = 0;
++    if (!check_cuda(cudaGraphGetNodes(graph, NULL, &node_count)))
++        return false;
++
++    std::vector<cudaGraphNode_t> nodes(node_count);
++    if (!check_cuda(cudaGraphGetNodes(graph, nodes.data(), &node_count)))
++        return false;
++
++    leaf_nodes_ret.clear();
++    for (size_t i = 0; i < node_count; i++)
++    {
++        size_t num_dependents = 0;
++        if (check_cu(cuGraphNodeGetDependentNodes_f(nodes[i], NULL, &num_dependents)))
++        {
++            if (num_dependents == 0)
++                leaf_nodes_ret.push_back(nodes[i]);
++        }
++    }
++    return true;
++}
++
++CUresult cuDriverGetVersion_f(int* version)
++{
++    return hipDriverGetVersion(version);
++}
++
++CUresult cuGetErrorName_f(CUresult result, const char** pstr)
++{
++    *pstr = hipGetErrorName(result);
++    return hipSuccess;
++}
++
++CUresult cuGetErrorString_f(CUresult result, const char** pstr)
++{
++    *pstr = hipGetErrorString(result);
++    return hipSuccess;
++}
++
++CUresult cuInit_f(unsigned int flags) { return hipInit(flags); }
++
++CUresult cuDeviceGet_f(CUdevice* dev, int ordinal) { return hipDeviceGet(dev, ordinal); }
++
++CUresult cuDeviceGetCount_f(int* count)
++{
++    hipError_t r = hipGetDeviceCount(count);
++    if (r != hipSuccess && count)
++        *count = 0;
++    return hipSuccess;
++}
++
++CUresult cuDeviceGetName_f(char* name, int len, CUdevice dev)
++{
++    hipDeviceProp_t prop;
++    hipError_t r = hipGetDeviceProperties(&prop, dev);
++    if (r != hipSuccess)
++        return r;
++    strncpy(name, prop.name, len);
++    name[len - 1] = '\0';
++    return hipSuccess;
++}
++
++CUresult cuDeviceGetAttribute_f(int* value, CUdevice_attribute attrib, CUdevice dev)
++{
++    return hipDeviceGetAttribute(value, attrib, dev);
++}
++
++CUresult cuDeviceGetUuid_f(CUuuid* uuid, CUdevice dev)
++{
++    return hipDeviceGetUuid(uuid, dev);
++}
++
++CUresult cuDevicePrimaryCtxRetain_f(CUcontext* ctx, CUdevice dev)
++{
++    return hipDevicePrimaryCtxRetain(ctx, dev);
++}
++
++CUresult cuDevicePrimaryCtxRelease_f(CUdevice dev)
++{
++    return hipDevicePrimaryCtxRelease(dev);
++}
++
++CUresult cuDeviceCanAccessPeer_f(int* can_access, CUdevice dev, CUdevice peer_dev)
++{
++    return hipDeviceCanAccessPeer(can_access, dev, peer_dev);
++}
++
++CUresult cuMemGetInfo_f(size_t* free, size_t* total)
++{
++    return hipMemGetInfo(free, total);
++}
++
++CUresult cuCtxGetCurrent_f(CUcontext* ctx) { return hipCtxGetCurrent(ctx); }
++CUresult cuCtxSetCurrent_f(CUcontext ctx) { return hipCtxSetCurrent(ctx); }
++CUresult cuCtxPushCurrent_f(CUcontext ctx) { return hipCtxPushCurrent(ctx); }
++CUresult cuCtxPopCurrent_f(CUcontext* ctx) { return hipCtxPopCurrent(ctx); }
++CUresult cuCtxSynchronize_f() { return hipDeviceSynchronize(); }
++
++CUresult cuCtxGetDevice_f(CUdevice* dev)
++{
++    return hipCtxGetDevice(dev);
++}
++
++CUresult cuCtxCreate_f(CUcontext* ctx, unsigned int flags, CUdevice dev)
++{
++    return hipCtxCreate(ctx, flags, dev);
++}
++
++CUresult cuCtxDestroy_f(CUcontext ctx) { return hipCtxDestroy(ctx); }
++
++CUresult cuCtxEnablePeerAccess_f(CUcontext peer_ctx, unsigned int flags)
++{
++    return hipCtxEnablePeerAccess(peer_ctx, flags);
++}
++
++CUresult cuCtxDisablePeerAccess_f(CUcontext peer_ctx)
++{
++    return hipCtxDisablePeerAccess(peer_ctx);
++}
++
++CUresult cuStreamCreate_f(CUstream* stream, unsigned int flags)
++{
++    return hipStreamCreateWithFlags(stream, flags);
++}
++
++CUresult cuStreamDestroy_f(CUstream stream) { return hipStreamDestroy(stream); }
++CUresult cuStreamQuery_f(CUstream stream) { return hipStreamQuery(stream); }
++CUresult cuStreamSynchronize_f(CUstream stream) { return hipStreamSynchronize(stream); }
++
++CUresult cuStreamWaitEvent_f(CUstream stream, CUevent event, unsigned int flags)
++{
++    return hipStreamWaitEvent(stream, event, flags);
++}
++
++CUresult cuStreamGetCtx_f(CUstream stream, CUcontext* pctx)
++{
++    return hipStreamGetCtx(stream, pctx);
++}
++
++CUresult cuStreamGetCaptureInfo_f(
++    CUstream stream,
++    CUstreamCaptureStatus* captureStatus_out,
++    cuuint64_t* id_out,
++    CUgraph* graph_out,
++    const CUgraphNode** dependencies_out,
++    size_t* numDependencies_out)
++{
++    return hipStreamGetCaptureInfo_v2(
++        stream, captureStatus_out, id_out, graph_out, dependencies_out, numDependencies_out);
++}
++
++CUresult cuStreamUpdateCaptureDependencies_f(
++    CUstream stream, CUgraphNode* dependencies, size_t numDependencies, unsigned int flags)
++{
++    return hipStreamUpdateCaptureDependencies(stream, dependencies, numDependencies, flags);
++}
++
++CUresult cuStreamCreateWithPriority_f(CUstream* phStream, unsigned int flags, int priority)
++{
++    return hipStreamCreateWithPriority(phStream, flags, priority);
++}
++
++CUresult cuStreamGetPriority_f(CUstream hStream, int* priority)
++{
++    return hipStreamGetPriority(hStream, priority);
++}
++
++CUresult cuEventCreate_f(CUevent* event, unsigned int flags)
++{
++    return hipEventCreateWithFlags(event, flags);
++}
++
++CUresult cuEventDestroy_f(CUevent event) { return hipEventDestroy(event); }
++CUresult cuEventQuery_f(CUevent event) { return hipEventQuery(event); }
++
++CUresult cuEventRecord_f(CUevent event, CUstream stream)
++{
++    return hipEventRecord(event, stream);
++}
++
++CUresult cuEventRecordWithFlags_f(CUevent event, CUstream stream, unsigned int flags)
++{
++    (void)flags;
++    return hipEventRecord(event, stream);
++}
++
++CUresult cuEventSynchronize_f(CUevent event)
++{
++    return hipEventSynchronize(event);
++}
++
++CUresult cuGraphNodeGetDependentNodes_f(CUgraphNode hNode, CUgraphNode* dependentNodes, size_t* numDependentNodes)
++{
++    return hipGraphNodeGetDependentNodes(hNode, dependentNodes, numDependentNodes);
++}
++
++CUresult cuGraphNodeGetType_f(CUgraphNode hNode, CUgraphNodeType* type)
++{
++    return hipGraphNodeGetType(hNode, type);
++}
++
++CUresult cuModuleLoadDataEx_f(
++    CUmodule* module, const void* image, unsigned int numOptions,
++    CUjit_option* options, void** optionValues)
++{
++    (void)numOptions;
++    (void)options;
++    (void)optionValues;
++    return hipModuleLoadData(module, image);
++}
++
++CUresult cuModuleUnload_f(CUmodule hmod) { return hipModuleUnload(hmod); }
++
++CUresult cuModuleGetFunction_f(CUfunction* hfunc, CUmodule hmod, const char* name)
++{
++    return hipModuleGetFunction(hfunc, hmod, name);
++}
++
++CUresult cuLaunchKernel_f(
++    CUfunction f,
++    unsigned int gridDimX, unsigned int gridDimY, unsigned int gridDimZ,
++    unsigned int blockDimX, unsigned int blockDimY, unsigned int blockDimZ,
++    unsigned int sharedMemBytes,
++    CUstream hStream,
++    void** kernelParams,
++    void** extra)
++{
++    return hipModuleLaunchKernel(
++        f, gridDimX, gridDimY, gridDimZ,
++        blockDimX, blockDimY, blockDimZ,
++        sharedMemBytes, hStream, kernelParams, extra);
++}
++
++CUresult cuOccupancyMaxPotentialBlockSize_f(
++    int* minGridSize, int* blockSize, CUfunction func,
++    CUoccupancyB2DSize blockSizeToDynamicSMemSize,
++    size_t dynamicSMemSize, int blockSizeLimit)
++{
++    return hipModuleOccupancyMaxPotentialBlockSize(
++        minGridSize, blockSize, func, dynamicSMemSize, blockSizeLimit);
++}
++
++CUresult cuMemcpyPeerAsync_f(
++    CUdeviceptr dst_ptr, CUcontext dst_ctx, CUdeviceptr src_ptr,
++    CUcontext src_ctx, size_t n, CUstream stream)
++{
++    (void)dst_ctx;
++    (void)src_ctx;
++    return hipMemcpyAsync((void*)dst_ptr, (void*)src_ptr, n, hipMemcpyDeviceToDevice, stream);
++}
++
++CUresult cuPointerGetAttribute_f(void* data, CUpointer_attribute attribute, CUdeviceptr ptr)
++{
++    return hipPointerGetAttribute(data, attribute, ptr);
++}
++
++CUresult cuGraphicsMapResources_f(unsigned int count, CUgraphicsResource* resources, CUstream stream)
++{
++    return hipGraphicsMapResources(count, resources, stream);
++}
++
++CUresult cuGraphicsUnmapResources_f(unsigned int count, CUgraphicsResource* resources, CUstream hStream)
++{
++    return hipGraphicsUnmapResources(count, resources, hStream);
++}
++
++CUresult cuGraphicsResourceGetMappedPointer_f(CUdeviceptr* pDevPtr, size_t* pSize, CUgraphicsResource resource)
++{
++    return hipGraphicsResourceGetMappedPointer((void**)pDevPtr, pSize, resource);
++}
++
++CUresult cuGraphicsGLRegisterBuffer_f(CUgraphicsResource* pCudaResource, unsigned int buffer, unsigned int flags)
++{
++    return hipGraphicsGLRegisterBuffer(pCudaResource, buffer, flags);
++}
++
++CUresult cuGraphicsGLRegisterImage_f(
++    CUgraphicsResource* pCudaResource, unsigned int image, unsigned int target, unsigned int flags)
++{
++    return hipGraphicsGLRegisterImage(pCudaResource, image, target, flags);
++}
++
++CUresult cuGraphicsSubResourceGetMappedArray_f(
++    CUarray* pArray, CUgraphicsResource resource, unsigned int arrayIndex, unsigned int mipLevel)
++{
++    return hipGraphicsSubResourceGetMappedArray(pArray, resource, arrayIndex, mipLevel);
++}
++
++CUresult cuGraphicsUnregisterResource_f(CUgraphicsResource resource)
++{
++    return hipGraphicsUnregisterResource(resource);
++}
++
++CUresult cuModuleGetGlobal_f(CUdeviceptr* dptr, size_t* bytes, CUmodule hmod, const char* name)
++{
++    return hipModuleGetGlobal(dptr, bytes, hmod, name);
++}
++
++CUresult cuFuncSetAttribute_f(CUfunction hfunc, CUfunction_attribute attrib, int value)
++{
++    return hipFuncSetAttribute(hfunc, attrib, value);
++}
++
++CUresult cuIpcGetEventHandle_f(CUipcEventHandle* pHandle, CUevent event)
++{
++    return hipIpcGetEventHandle(pHandle, event);
++}
++
++CUresult cuIpcOpenEventHandle_f(CUevent* phEvent, CUipcEventHandle handle)
++{
++    return hipIpcOpenEventHandle(phEvent, handle);
++}
++
++CUresult cuIpcGetMemHandle_f(CUipcMemHandle* pHandle, CUdeviceptr dptr)
++{
++    return hipIpcGetMemHandle(pHandle, (void*)dptr);
++}
++
++CUresult cuIpcOpenMemHandle_f(CUdeviceptr* pdptr, CUipcMemHandle handle, unsigned int flags)
++{
++    return hipIpcOpenMemHandle((void**)pdptr, handle, flags);
++}
++
++CUresult cuIpcCloseMemHandle_f(CUdeviceptr dptr)
++{
++    return hipIpcCloseMemHandle((void*)dptr);
++}
++
++CUresult cuArrayCreate_f(CUarray* pHandle, const CUDA_ARRAY_DESCRIPTOR* pAllocateArray)
++{
++    return hipArrayCreate(pHandle, pAllocateArray);
++}
++
++CUresult cuArrayDestroy_f(CUarray hArray)
++{
++    return hipArrayDestroy(hArray);
++}
++
++CUresult cuArray3DCreate_f(CUarray* pHandle, const CUDA_ARRAY3D_DESCRIPTOR* pAllocateArray)
++{
++    return hipArray3DCreate(pHandle, pAllocateArray);
++}
++
++CUresult cuArray3DGetDescriptor_f(CUDA_ARRAY3D_DESCRIPTOR* pArrayDescriptor, CUarray hArray)
++{
++    return hipArray3DGetDescriptor(pArrayDescriptor, hArray);
++}
++
++CUresult cuMemcpy2D_f(const CUDA_MEMCPY2D* pCopy)
++{
++    return hipMemcpyParam2D(pCopy);
++}
++
++CUresult cuMemcpy2DAsync_f(const CUDA_MEMCPY2D* pCopy, CUstream hStream)
++{
++    return hipMemcpyParam2DAsync(pCopy, hStream);
++}
++
++CUresult cuMemcpy3D_f(const CUDA_MEMCPY3D* pCopy)
++{
++    return hipDrvMemcpy3D(pCopy);
++}
++
++CUresult cuMemcpy3DAsync_f(const CUDA_MEMCPY3D* pCopy, CUstream hStream)
++{
++    return hipDrvMemcpy3DAsync(pCopy, hStream);
++}
++
++CUresult cuTexObjectCreate_f(
++    CUtexObject* pTexObject,
++    const CUDA_RESOURCE_DESC* pResDesc,
++    const CUDA_TEXTURE_DESC* pTexDesc,
++    const CUDA_RESOURCE_VIEW_DESC* pResViewDesc)
++{
++    return hipTexObjectCreate(pTexObject, pResDesc, pTexDesc, pResViewDesc);
++}
++
++CUresult cuTexObjectDestroy_f(CUtexObject texObject)
++{
++    return hipTexObjectDestroy(texObject);
++}
++
++#endif // WP_ENABLE_HIP
+diff --git a/warp/native/tile.h b/warp/native/tile.h
+index c3dbd923..8f616bf5 100644
+--- a/warp/native/tile.h
++++ b/warp/native/tile.h
+@@ -31,14 +31,14 @@ struct alignas(16) float4 {
+ };
+ #endif
+ 
+-#if defined(__CUDA_ARCH__)
++#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+ #define WP_TILE_SYNC __syncthreads
+ #else
+ #define WP_TILE_SYNC void
+ #endif
+ 
+-#if defined(__CUDA_ARCH__) && !defined(__INTELLISENSE__)
+-#if defined(__CUDACC_RTC__) || (defined(__clang__) && defined(__CUDA__))
++#if (defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)) && !defined(__INTELLISENSE__)
++#if defined(__CUDACC_RTC__) || defined(__HIPCC__) || (defined(__clang__) && defined(__CUDA__))
+ #define WP_PRAGMA_UNROLL _Pragma("unroll")
+ #define WP_PRAGMA_NO_UNROLL _Pragma("unroll 1")
+ #else
+diff --git a/warp/native/warp.cu b/warp/native/warp.cu
+index 6f129aac..a85b4ab0 100644
+--- a/warp/native/warp.cu
++++ b/warp/native/warp.cu
+@@ -11,8 +11,13 @@
+ #include <cstdlib>
+ #include <fstream>
+ 
++#if WP_ENABLE_HIP
++#include <hip/hiprtc.h>
++#else
+ #include <nvPTXCompiler.h>
+ #include <nvrtc.h>
++#endif
++
+ #if WP_ENABLE_MATHDX
+ #include <libcublasdx.h>
+ #include <libcufftdx.h>
+@@ -82,10 +87,15 @@ bool check_nvrtc_result(nvrtcResult result, const char* file, int line)
+         return true;
+ 
+     const char* error_string = nvrtcGetErrorString(result);
++#if WP_ENABLE_HIP
++    fprintf(stderr, "Warp hipRTC compilation error %u: %s (%s:%d)\n", unsigned(result), error_string, file, line);
++#else
+     fprintf(stderr, "Warp NVRTC compilation error %u: %s (%s:%d)\n", unsigned(result), error_string, file, line);
++#endif
+     return false;
+ }
+ 
++#if !WP_ENABLE_HIP
+ bool check_nvptx_result(nvPTXCompileResult result, const char* file, int line)
+ {
+     if (result == NVPTXCOMPILE_SUCCESS)
+@@ -122,6 +132,7 @@ bool check_nvptx_result(nvPTXCompileResult result, const char* file, int line)
+     fprintf(stderr, "Warp PTX compilation error %u: %s (%s:%d)\n", unsigned(result), error_string, file, line);
+     return false;
+ }
++#endif // !WP_ENABLE_HIP
+ 
+ bool check_generic(int result, const char* file, int line)
+ {
+@@ -1887,18 +1898,38 @@ bool wp_cuda_driver_is_initialized() { return is_cuda_driver_initialized(); }
+ 
+ int wp_nvrtc_supported_arch_count()
+ {
++#if WP_ENABLE_HIP
++    int count = 0;
++    hipDeviceGetCount(&count);
++    return count;
++#else
+     int count;
+     if (check_nvrtc(nvrtcGetNumSupportedArchs(&count)))
+         return count;
+     else
+         return 0;
++#endif
+ }
+ 
+ void wp_nvrtc_supported_archs(int* archs)
+ {
++#if WP_ENABLE_HIP
++    if (archs)
++    {
++        int count = 0;
++        hipDeviceGetCount(&count);
++        for (int i = 0; i < count; i++)
++        {
++            hipDeviceProp_t prop;
++            hipGetDeviceProperties(&prop, i);
++            archs[i] = prop.gcnArch;
++        }
++    }
++#else
+     if (archs) {
+         check_nvrtc(nvrtcGetSupportedArchs(archs));
+     }
++#endif
+ }
+ 
+ int wp_cuda_device_get_count()
+@@ -3791,6 +3822,11 @@ size_t wp_cuda_compile_program(
+     char arch_opt[max_arch];
+     char arch_opt_lto[max_arch];
+ 
++#if WP_ENABLE_HIP
++    (void)arch_suffix;
++    snprintf(arch_opt, max_arch, "--gpu-architecture=gfx%d", arch);
++    arch_opt_lto[0] = '\0';
++#else
+     // arch_suffix is "" (no suffix), "a" (arch-specific), or "f" (family-specific)
+     const char* suffix = (arch_suffix != nullptr) ? arch_suffix : "";
+ 
+@@ -3801,6 +3837,7 @@ size_t wp_cuda_compile_program(
+         snprintf(arch_opt, max_arch, "--gpu-architecture=sm_%d%s", arch, suffix);
+         snprintf(arch_opt_lto, max_arch, "-arch=sm_%d%s", arch, suffix);
+     }
++#endif
+ 
+     std::vector<const char*> opts;
+     opts.push_back(arch_opt);
+@@ -3884,6 +3921,7 @@ size_t wp_cuda_compile_program(
+         opts.push_back(stored_options.back().c_str());
+     }
+ 
++#if !WP_ENABLE_HIP
+     opts.push_back("--device-as-default-execution-space");
+     opts.push_back("--extra-device-vectorization");
+     opts.push_back("--restrict");
+@@ -3904,6 +3942,9 @@ size_t wp_cuda_compile_program(
+         fprintf(stderr, "Warp warning: CUDA version is less than 12.8, compile_time_trace is not supported\n");
+ #endif
+     }
++#else
++    (void)compile_time_trace;
++#endif
+ 
+     nvrtcProgram prog;
+     nvrtcResult res;
+@@ -3951,6 +3992,11 @@ size_t wp_cuda_compile_program(
+     nvrtcResult (*get_output_size)(nvrtcProgram, size_t*);
+     nvrtcResult (*get_output_data)(nvrtcProgram, char*);
+     const char* output_mode;
++#if WP_ENABLE_HIP
++    get_output_size = hiprtcGetCodeSize;
++    get_output_data = hiprtcGetCode;
++    output_mode = "wb";
++#else
+     if (num_ltoirs > 0) {
+ #if WP_ENABLE_MATHDX
+         get_output_size = nvrtcGetLTOIRSize;
+@@ -3969,6 +4015,7 @@ size_t wp_cuda_compile_program(
+         get_output_data = nvrtcGetCUBIN;
+         output_mode = "wb";
+     }
++#endif // !WP_ENABLE_HIP
+ 
+     // save output
+     size_t output_size;
+@@ -4391,6 +4438,10 @@ void* wp_cuda_load_module(void* context, const char* path)
+     CUmodule module = NULL;
+ 
+     if (load_ptx) {
++#if WP_ENABLE_HIP
++        fprintf(stderr, "Warp error: PTX loading not supported on HIP\n");
++        return NULL;
++#else
+         if (check_cu(cuDriverGetVersion_f(&driver_cuda_version)) && driver_cuda_version >= CUDA_VERSION) {
+             // let the driver compile the PTX
+ 
+@@ -4453,10 +4504,11 @@ void* wp_cuda_load_module(void* context, const char* path)
+                 return NULL;
+             }
+         }
++#endif // !WP_ENABLE_HIP
+     } else {
+-        // load CUBIN
++        // load native binary
+         if (!check_cu(cuModuleLoadDataEx_f(&module, input.data(), 0, NULL, NULL))) {
+-            fprintf(stderr, "Warp CUDA error: Loading module failed\n");
++            fprintf(stderr, "Warp error: Loading module failed\n");
+             return NULL;
+         }
+     }

@@ -1,0 +1,72 @@
+context:
+  version: "1.13.0"
+
+package:
+  name: warp-lang
+  version: ${{ version }}
+
+source:
+  url: https://github.com/NVIDIA/warp/archive/refs/tags/v${{ version }}.zip
+  sha256: TO_BE_FILLED
+  patches:
+    - 01-hip-backend.patch
+
+build:
+  number: 0
+  string: hip${{ (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+  skip:
+    - not linux
+    - hip_compiler_version in (None, "None")
+  script:
+    - bash ${RECIPE_DIR}/build.sh
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ hip_compiler_version }}.*
+    - python
+    - pip
+    - setuptools
+    - gitpython
+    - numpy
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - warp
+  - script:
+      - pip check
+      - python -c "import warp; print(warp.config.version)"
+    requirements:
+      run:
+        - pip
+        - pytest
+        - python
+
+about:
+  homepage: https://github.com/NVIDIA/warp
+  summary: A Python framework for high-performance simulation and graphics (AMD GPU variant)
+  license: Apache-2.0 AND MIT AND CC0-1.0
+  license_file:
+    - LICENSE.md
+    - licenses/appdirs-LICENSE.txt
+    - licenses/fp16-LICENSE.txt
+    - licenses/Gaia-LICENSE.txt
+    - licenses/llvm-LICENSE.txt
+    - licenses/moller-LICENSE.txt
+    - licenses/nanovdb-LICENSE.txt
+    - licenses/svd-LICENSE.txt
+    - licenses/unittest_parallel-LICENSE.txt
+    - licenses/usd-LICENSE.txt
+
+extra:
+  recipe-maintainers:
+    - flferretti
