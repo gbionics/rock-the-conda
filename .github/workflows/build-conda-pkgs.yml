@@ -75,6 +75,11 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    - name: Remove stale jax-rocm7-plugin packages from cache
+      shell: bash -l {0}
+      run: |
+        rm -f ${{ matrix.folder_cache }}/jax-rocm7-plugin-*.conda
+
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
