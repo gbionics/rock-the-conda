@@ -36,6 +36,7 @@ requirements:
         - composable-kernel
         - hipcub
         - rocprim
+        - rocthrust
     - python
     - pip
     - setuptools
