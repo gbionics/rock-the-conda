@@ -1,5 +1,5 @@
 context:
-  version: "1.13.0"
+  version: "1.12.1"
 
 package:
   name: warp-lang
@@ -7,7 +7,7 @@ package:
 
 source:
   url: https://github.com/NVIDIA/warp/archive/refs/tags/v${{ version }}.zip
-  sha256: TO_BE_FILLED
+  sha256: 257cf99fe22bf46cde5c8bfa0307a669900af8f368753b257e62368f3fb75706
   patches:
     - 01-hip-backend.patch
 
@@ -17,8 +17,6 @@ build:
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
-  script:
-    - bash ${RECIPE_DIR}/build.sh
 
 requirements:
   build:
@@ -43,13 +41,12 @@ tests:
   - python:
       imports:
         - warp
+      pip_check: true
   - script:
-      - pip check
       - python -c "import warp; print(warp.config.version)"
+      - python -c "import warp; warp.init()"
     requirements:
       run:
-        - pip
-        - pytest
         - python
 
 about:
