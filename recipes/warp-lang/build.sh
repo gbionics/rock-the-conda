@@ -6,6 +6,7 @@ export ROCM_PATH="${PREFIX}"
 python build_lib.py \
     --no-cuda \
     --hip \
+    --ck \
     --no-standalone \
     --no-use-libmathdx \
     --mode release \

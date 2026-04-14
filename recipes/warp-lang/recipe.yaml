@@ -30,6 +30,7 @@ requirements:
     - ninja
   host:
     - rocm-core ${{ hip_compiler_version }}.*
+    - composable_kernel
     - python
     - pip
     - setuptools
