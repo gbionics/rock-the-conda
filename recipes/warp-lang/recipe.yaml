@@ -1,0 +1,78 @@
+context:
+  version: "1.13.0.dev0"
+
+package:
+  name: warp-lang
+  version: ${{ version }}
+
+source:
+  git: https://github.com/flferretti/warp-hip.git
+  branch: feat/hip-backend
+
+build:
+  number: 0
+  string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+  variant:
+    use_keys:
+      - hip_compiler_version
+    down_prioritize_variant: ${{ 1 if hip_compiler_version == "None" else 0 }}
+  skip:
+    - not linux
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - if: hip_compiler_version != "None"
+      then:
+        - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - if: hip_compiler_version != "None"
+      then:
+        - rocm-core ${{ hip_compiler_version }}.*
+        - composable-kernel
+        - hipcub
+        - rocprim
+        - rocthrust
+    - python
+    - pip
+    - setuptools
+    - gitpython
+    - numpy
+  run:
+    - python
+
+tests:
+  - python:
+      imports:
+        - warp
+      pip_check: true
+  - script:
+      - python -c "import warp; print(warp.config.version)"
+      - python -c "import warp; warp.init()"
+    requirements:
+      run:
+        - python
+
+about:
+  homepage: https://github.com/NVIDIA/warp
+  summary: A Python framework for high-performance simulation and graphics
+  license: Apache-2.0 AND MIT AND CC0-1.0
+  license_file:
+    - LICENSE.md
+    - licenses/appdirs-LICENSE.txt
+    - licenses/fp16-LICENSE.txt
+    - licenses/Gaia-LICENSE.txt
+    - licenses/llvm-LICENSE.txt
+    - licenses/moller-LICENSE.txt
+    - licenses/nanovdb-LICENSE.txt
+    - licenses/svd-LICENSE.txt
+    - licenses/unittest_parallel-LICENSE.txt
+    - licenses/usd-LICENSE.txt
+
+extra:
+  recipe-maintainers:
+    - flferretti

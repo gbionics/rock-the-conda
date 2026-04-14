@@ -115,10 +115,10 @@ build:
         {%- endif %}
 
         {%- endif %}
-
+        
         echo $LLAMA_ARGS
         cmake -S . -B build -G Ninja ${CMAKE_ARGS} ${LLAMA_ARGS}
-        cmake --build build
+        cmake --build build --verbose
         cmake --install build
     - if: win
       then: |
@@ -222,6 +222,7 @@ requirements:
         - rocblas
         - hipblas
         - hipblas-common
+        - rocwmma
         - fmt
         # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
         # set by compiler('hip')
