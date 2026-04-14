@@ -13,7 +13,7 @@ source:
 
 build:
   number: 0
-  string: hip${{ (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+  string: rocm${{ (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
