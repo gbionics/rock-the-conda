@@ -223,7 +223,7 @@ requirements:
         - rocblas
         - hipblas
         - hipblas-common
-        - rocwmma
+        - fmt
         # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
         # set by compiler('hip')
         - llvm-openmp

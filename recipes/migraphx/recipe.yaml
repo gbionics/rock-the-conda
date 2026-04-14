@@ -2,8 +2,8 @@ context:
   name: migraphx
   version: "7.2.1"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: ${{ name }}
   version: ${{ version }}
 
 source:
@@ -25,54 +25,117 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-    - python
-    - pip
-    - msgpack-cxx
-    - openmpi
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocblas
-    - openmpi
-    - miopen-hip
-    - hipblaslt
-    - hipblas
-    - hipblas-common
-    - composable-kernel
-    - cpp-half
-    - nlohmann_json
-    - msgpack-cxx
-    - sqlite
-    - rocmlir
-    - libprotobuf
-    - python
-    - pybind11
-    - libboost-devel
-  run:
-    - cpp-half
-    - nlohmann_json
-    - msgpack-cxx
-    - sqlite
-    - libprotobuf
-    - python
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  # Staging: build the full C++ library once and cache the work directory.
+  # The compiled objects are reused by both libmigraphx and migraphx-python.
+  - staging:
+      name: ${{ name }}-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        - msgpack-cxx
+        - openmpi
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocblas
+        - openmpi
+        - miopen-hip
+        - hipblaslt
+        - hipblas
+        - hipblas-common
+        - composable-kernel
+        - cpp-half
+        - nlohmann_json
+        - msgpack-cxx
+        - sqlite
+        - rocmlir
+        - libprotobuf
+        - libboost-devel
+    build:
+      script: build-lib.sh
 
-tests:
-  - package_contents:
-      include:
-        - migraphx/migraphx.h
-        - migraphx/migraphx.hpp
-      lib:
-        - libmigraphx_c${{ dso_ext }}
+  # C++ library: inherits all files from the staging build (no build script).
+  - package:
+      name: lib${{ name }}
+    inherit: ${{ name }}-build
+    requirements:
+      run:
+        - cpp-half
+        - nlohmann_json
+        - msgpack-cxx
+        - sqlite
+        - libprotobuf
+      run_exports:
+        - ${{ pin_subpackage('lib' ~ name, upper_bound="x.x") }}
+    tests:
+      - package_contents:
+          include:
+            - migraphx/migraphx.h
+            - migraphx/migraphx.hpp
+          lib:
+            - libmigraphx_c.so
+
+  # Python bindings: inherits the staging work directory and does an
+  # incremental cmake build with MIGRAPHX_ENABLE_PYTHON=ON.
+  - package:
+      name: ${{ name }}-python
+    inherit: ${{ name }}-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        - python
+        - msgpack-cxx
+        - openmpi
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocblas
+        - openmpi
+        - miopen-hip
+        - hipblaslt
+        - hipblas
+        - hipblas-common
+        - composable-kernel
+        - cpp-half
+        - nlohmann_json
+        - msgpack-cxx
+        - sqlite
+        - rocmlir
+        - libprotobuf
+        - libboost-devel
+        - python
+        - pybind11
+      run:
+        - python
+        - ${{ pin_subpackage('lib' ~ name, upper_bound="x.x") }}
+    build:
+      script: build-py.sh
+      files:
+        - lib/libmigraphx_py*
+        - lib/migraphx.cpython*
+    tests:
+      - package_contents:
+          lib:
+            - libmigraphx_py.so
+
+  # Metapackage pulling both C++ library and Python bindings.
+  - package:
+      name: ${{ name }}
+    requirements:
+      run:
+        - ${{ pin_subpackage('lib' ~ name, exact=True) }}
+        - ${{ pin_subpackage(name ~ '-python', upper_bound="x.x.x") }}
 
 about:
   repository: https://github.com/ROCm/AMDMIGraphX

@@ -2,20 +2,38 @@ name: Build conda packages
 
 on:
   workflow_dispatch:
+    inputs:
+      upload_packages:
+        description: 'Upload packages to the channel'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 env:
   # Change to 'true' to ignore cache and force a full rebuild, but please restore to 'false' before merging
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
-  # If true, upload the packages to the matrix-specified target channel
-  ROCK_THE_CONDA_UPLOAD_PACKAGES: "false"
   # If true, upload the conda packages folder as a GitHub Actions artifact
   ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS: "true"
+  # Upload packages when manually requested via workflow_dispatch input,
+  # or when the 'upload-packages' label is added to a PR.
+  ROCK_THE_CONDA_UPLOAD_PACKAGES: >-
+    ${{
+      (inputs.upload_packages == 'true'
+       || contains(github.event.pull_request.labels.*.name, 'upload-packages'))
+      && 'true' || 'false'
+    }}
 
 jobs:
   build-packages:
+    # Skip runs triggered by adding labels other than 'upload-packages'
+    if: github.event.action != 'labeled' || github.event.label.name == 'upload-packages'
     name: '[pixi:build-packages:${{ matrix.job_name }}]'
     runs-on: ${{ matrix.runs_on }}
     # The default value of this is 360, we keep it large as rocm builds can take a long time

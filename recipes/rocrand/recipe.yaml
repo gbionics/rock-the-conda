@@ -36,7 +36,7 @@ tests:
         - rocrand/rocrand.h
         - rocrand/rocrand_xorwow.h
       lib:
-        - librocrand${{ dso_ext }}
+        - librocrand
 
 about:
   repository: https://github.com/ROCm/rocRAND

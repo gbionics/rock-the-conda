@@ -68,7 +68,7 @@ tests:
         - onnxruntime/onnxruntime_c_api.h
         - onnxruntime/onnxruntime_cxx_api.h
       lib:
-        - libonnxruntime${{ dso_ext }}
+        - libonnxruntime
 
 about:
   homepage: https://github.com/microsoft/onnxruntime
