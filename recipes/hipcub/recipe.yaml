@@ -21,7 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    - libstdcxx-devel_linux-64 >=15
     - ${{ compiler('hip') }}
     - cmake
     - ninja
