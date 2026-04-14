@@ -35,6 +35,7 @@ requirements:
         - rocm-core ${{ hip_compiler_version }}.*
         - composable-kernel
         - hipcub
+        - rocprim
     - python
     - pip
     - setuptools
