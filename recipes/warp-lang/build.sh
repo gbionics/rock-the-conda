@@ -6,6 +6,7 @@ BUILD_ARGS="--no-cuda --no-standalone --no-use-libmathdx --mode release --verbos
 if [ "${hip_compiler_version:-None}" != "None" ]; then
     export ROCM_PATH="${BUILD_PREFIX}"
     export HIP_LIB_PATH="${PREFIX}/lib"
+    export HIP_INCLUDE_PATH="${PREFIX}/include"
     BUILD_ARGS="${BUILD_ARGS} --hip --ck"
 fi
 
