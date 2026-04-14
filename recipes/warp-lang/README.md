@@ -1,17 +1,22 @@
-# warp-lang (ROCm/HIP)
+# warp-lang (CPU + ROCm/HIP)
 
-AMD GPU build of [NVIDIA Warp](https://github.com/NVIDIA/warp) using HIP and CK (Composable Kernel) for MFMA-accelerated `tile_matmul`.
+AMD GPU build of [NVIDIA Warp](https://github.com/NVIDIA/warp) using
+HIP and CK (Composable Kernel) for MFMA-accelerated `tile_matmul`.
+A CPU-only variant is also available.
 
-## Patch maintenance
+## Source
 
-The patch `01-hip-backend.patch` is maintained in
-[flferretti/warp-hip](https://github.com/flferretti/warp-hip) on the `feat/hip-backend` branch.
+The source is pulled directly from
+[flferretti/warp-hip](https://github.com/flferretti/warp-hip),
+branch `feat/hip-backend`.
 
-To regenerate the patch after making changes:
+To update the fork after a new upstream release:
 
 ```bash
 cd /path/to/warp-hip
-git format-patch --stdout upstream/main..feat/hip-backend \
-  > /path/to/rock-the-conda/recipes/warp-lang/01-hip-backend.patch
+git fetch upstream
+git rebase upstream/main
+git push origin feat/hip-backend --force-with-lease
 ```
 
+Then update the `version` in `recipe.yaml` to match.

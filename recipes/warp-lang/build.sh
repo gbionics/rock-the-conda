@@ -1,15 +1,12 @@
 #!/bin/bash
 set -euxo pipefail
 
-export ROCM_PATH="${PREFIX}"
+BUILD_ARGS="--no-cuda --no-standalone --no-use-libmathdx --mode release --verbose"
 
-python build_lib.py \
-    --no-cuda \
-    --hip \
-    --ck \
-    --no-standalone \
-    --no-use-libmathdx \
-    --mode release \
-    --verbose
+if [ "${hip_compiler_version:-None}" != "None" ]; then
+    export ROCM_PATH="${PREFIX}"
+    BUILD_ARGS="${BUILD_ARGS} --hip --ck"
+fi
 
-python -m pip install . --no-deps --no-build-isolation -vv
+$PYTHON build_lib.py ${BUILD_ARGS}
+$PYTHON -m pip install . --no-deps --no-build-isolation -vv

@@ -1,34 +1,39 @@
 context:
-  version: "1.12.1"
+  version: "1.13.0.dev0"
 
 package:
   name: warp-lang
   version: ${{ version }}
 
 source:
-  url: https://github.com/NVIDIA/warp/archive/refs/tags/v${{ version }}.zip
-  sha256: 257cf99fe22bf46cde5c8bfa0307a669900af8f368753b257e62368f3fb75706
-  patches:
-    - 01-hip-backend.patch
+  git: https://github.com/flferretti/warp-hip.git
+  branch: feat/hip-backend
 
 build:
   number: 0
-  string: rocm${{ (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+  string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+  variant:
+    use_keys:
+      - hip_compiler_version
+    down_prioritize_variant: ${{ 1 if hip_compiler_version == "None" else 0 }}
   skip:
     - not linux
-    - hip_compiler_version in (None, "None")
 
 requirements:
   build:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
+    - if: hip_compiler_version != "None"
+      then:
+        - ${{ compiler('hip') }}
     - cmake
     - ninja
   host:
-    - rocm-core ${{ hip_compiler_version }}.*
-    - composable_kernel
+    - if: hip_compiler_version != "None"
+      then:
+        - rocm-core ${{ hip_compiler_version }}.*
+        - composable-kernel
     - python
     - pip
     - setuptools
@@ -51,7 +56,7 @@ tests:
 
 about:
   homepage: https://github.com/NVIDIA/warp
-  summary: A Python framework for high-performance simulation and graphics (AMD GPU variant)
+  summary: A Python framework for high-performance simulation and graphics
   license: Apache-2.0 AND MIT AND CC0-1.0
   license_file:
     - LICENSE.md
