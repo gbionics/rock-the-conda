@@ -31,7 +31,7 @@ source:
       - hipcc-path.diff
 
 build:
-  number: 1
+  number: 2
   skip: true  # [not linux]
 
 requirements:
@@ -142,7 +142,7 @@ outputs:
         - lld {{ llvm_major_version }}.*
         - clang-tools {{ llvm_major_version }}.*
         - compiler-rt {{ llvm_major_version }}.*
-  
+
     files:
       - bin/hipcc
       - bin/hipcc.bin
@@ -168,6 +168,8 @@ outputs:
       run:
         - {{ pin_subpackage("hipcc", exact=True) }}
     run_exports:
+      strong:
+        - rocm-core {{ major_minor_version }}.*
         - {{ pin_subpackage("hip-runtime-amd") }}
     files:
       - etc/conda/activate.d/hip-clang_activate.sh
