@@ -9,7 +9,9 @@ cmake -S . -B build -G Ninja \
     -DBUILD_TEST=OFF \
     -DBUILD_BENCHMARK=OFF \
     -DBUILD_EXAMPLE=OFF \
+    -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF \
     -DBUILD_HIPSTDPAR_TEST=OFF
 
 cmake --build build -j${CPU_COUNT}
+
 cmake --install build
