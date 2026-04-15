@@ -170,6 +170,7 @@ outputs:
     run_exports:
       strong:
         - {{ pin_subpackage("hip-runtime-amd") }}
+        - rocm-core {{ major_minor_version }}.*
     files:
       - etc/conda/activate.d/hip-clang_activate.sh
       - etc/conda/deactivate.d/hip-clang_deactivate.sh
