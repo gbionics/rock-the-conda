@@ -60,10 +60,6 @@ build-rocm-smi = { cmd = "find output/linux-64 -name 'rocm-smi-*.conda' | grep -
 build-all-rattler-build-libraries-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes" }
 build-rocwmma-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocwmma", outputs = ["output/linux-64/rocwmma-*.conda"] }
 build-rocwmma = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocwmma", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake"], outputs = ["output/linux-64/rocwmma-*.conda"] }
-build-hipcub-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipcub", outputs = ["output/linux-64/hipcub-*.conda"] }
-build-hipcub = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipcub", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocprim"], outputs = ["output/linux-64/hipcub-*.conda"] }
-build-rocthrust-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocthrust", outputs = ["output/linux-64/rocthrust-*.conda"] }
-build-rocthrust = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocthrust", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake", "build-rocprim"], outputs = ["output/linux-64/rocthrust-*.conda"] }
 build-all-rattler-build-libraries = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes", depends-on = ["build-rocm-core", "build-hip", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr", "build-rocmlir", "build-migraphx"] }
 build-rocprim-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprim", outputs = ["output/linux-64/rocprim-*.conda"] }
 build-rocprim = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprim", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocprim-*.conda"] }
