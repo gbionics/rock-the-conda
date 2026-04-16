@@ -10,7 +10,7 @@ source:
   branch: feat/hip-backend
 
 build:
-  number: 0
+  number: 1
   string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   variant:
     use_keys:
