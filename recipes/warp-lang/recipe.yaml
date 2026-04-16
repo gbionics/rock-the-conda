@@ -10,7 +10,7 @@ source:
   branch: feat/hip-backend
 
 build:
-  number: 1
+  number: 2
   string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   variant:
     use_keys:
@@ -44,6 +44,8 @@ requirements:
     - numpy
     - llvmdev 18.*
     - clangdev 18.*
+    - zlib
+    - zstd
   run:
     - python
     - libllvm18
