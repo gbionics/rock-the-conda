@@ -10,7 +10,7 @@ source:
   rev: 471f23181363e30767c7a2ced474a85914af6552
 
 build:
-  number: 12
+  number: 13
   string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   variant:
     use_keys:

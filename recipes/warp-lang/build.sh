@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euxo pipefail
 
+export WP_CXX11_ABI=1
+
 BUILD_ARGS="--no-cuda --no-use-libmathdx --mode release --verbose --llvm-path ${PREFIX}"
 
 if [ "${hip_compiler_version:-None}" != "None" ]; then
