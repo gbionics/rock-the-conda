@@ -41,6 +41,8 @@ build --linkopt=-fuse-ld=lld
 build --host_linkopt=-fuse-ld=lld
 build --linkopt=-L${PREFIX}/lib
 build --host_linkopt=-L${PREFIX}/lib
+common --experimental_repository_downloader_retries=5
+common --repository_cache=${HOME}/.cache/bazel-repos
 EOF
 sed -i '/Qunused-arguments/d' .bazelrc
 
