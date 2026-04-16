@@ -42,8 +42,12 @@ requirements:
     - setuptools
     - gitpython
     - numpy
+    - llvmdev
+    - clangdev
   run:
     - python
+    - libllvm
+    - libclang-cpp
 
 tests:
   - python:

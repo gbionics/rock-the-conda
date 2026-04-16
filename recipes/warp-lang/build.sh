@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-BUILD_ARGS="--no-cuda --no-standalone --no-use-libmathdx --mode release --verbose"
+BUILD_ARGS="--no-cuda --no-use-libmathdx --mode release --verbose --llvm-path ${PREFIX}"
 
 if [ "${hip_compiler_version:-None}" != "None" ]; then
     export ROCM_PATH="${BUILD_PREFIX}"
