@@ -5,6 +5,12 @@ set -xeuo pipefail
 export ROCM_LIBPATCH_VERSION=${PKG_VERSION//\./0}
 export HIP_CLANG_PATH=${PREFIX}/bin
 
+# Prevent CLR's CMake from finding the parent git repo and injecting its
+# commit hash into the library version string (e.g. libamdhip64.so.7.0.51831-b2c64ac).
+# The source is extracted from a tarball with no .git, but the conda-build work
+# directory sits inside the rock-the-conda git repo on CI.
+export GIT_CEILING_DIRECTORIES=$(dirname $SRC_DIR)
+
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
@@ -32,7 +38,6 @@ cmake -LAH \
   -DAMD_OPENCL_INCLUDE_DIR=$SRC_DIR/clr/opencl/amdocl/ \
   -DHIP_ENABLE_ROCPROFILER_REGISTER=OFF \
   -DHIP_CLANG_PATH=$PREFIX/bin \
-  -DROCM_PATCH_VERSION=${ROCM_LIBPATCH_VERSION} \
   ..
 
 make VERBOSE=1 -j${CPU_COUNT}

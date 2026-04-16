@@ -93,6 +93,8 @@ outputs:
       commands:
         - test -f $PREFIX/lib/.hipInfo
         - test -f $PREFIX/lib/libamdhip64.so
+        - ls -la $PREFIX/lib/libamdhip64.so* || true
+        - cat $PREFIX/lib/cmake/hip/hip-targets-release.cmake || true
 
   - name: hip-devel
     requirements:
@@ -180,6 +182,8 @@ outputs:
         # code, so we test both find_package(hip) and enable_language(HIP),
         # see https://rocm.docs.amd.com/en/docs-7.0.0/conceptual/cmake-packages.html
         - cmake-package-check hip --targets hip::host hip::device
+        - ls -la $PREFIX/lib/libamdhip64.so* || true
+        - cat $PREFIX/lib/cmake/hip/hip-targets-release.cmake || true
         - cmake -B./test/test_cmake_enable_hip_build -S./test/test_cmake_enable_hip -GNinja
         - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
         # Verify HIPCXX variable is correctly set
@@ -206,6 +210,7 @@ outputs:
         # hip-compiler is the package that provides the files necessary to compile HIP
         # code, so we test both find_package(hip) and enable_language(HIP),
         # see https://rocm.docs.amd.com/en/docs-7.0.0/conceptual/cmake-packages.html
+        - ls -la $PREFIX/lib/libamdhip64.so* || true
         - cmake-package-check hip --targets hip::host hip::device
         - cmake -B./test/test_cmake_enable_hip_build -S./test/test_cmake_enable_hip -GNinja
         - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
