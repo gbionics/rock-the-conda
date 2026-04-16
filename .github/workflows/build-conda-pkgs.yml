@@ -83,6 +83,8 @@ jobs:
         rm -f ${{ matrix.folder_cache }}/aqlprofile-*.conda
         rm -f ${{ matrix.folder_cache }}/miopen-hip-*.conda
         rm -f ${{ matrix.folder_cache }}/composable-kernel-*.conda
+        rm -f ${{ matrix.folder_cache }}/hip-*.conda
+        rm -f ${{ matrix.folder_cache }}/hipcc-*.conda
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
