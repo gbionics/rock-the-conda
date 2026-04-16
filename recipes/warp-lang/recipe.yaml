@@ -42,12 +42,12 @@ requirements:
     - setuptools
     - gitpython
     - numpy
-    - llvmdev
-    - clangdev
+    - llvmdev 18.*
+    - clangdev 18.*
   run:
     - python
-    - libllvm
-    - libclang-cpp
+    - libllvm18
+    - libclang-cpp18
 
 tests:
   - python:
