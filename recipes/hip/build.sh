@@ -20,6 +20,14 @@ make install
 popd
 
 pushd clr
+
+# Fix library VERSION = SOVERSION (major version only) to prevent mismatches
+# between library filenames and cmake export references. The full version string
+# (e.g. 7.0.51831[-hash]) causes issues when conda's text relocation modifies
+# cmake targets files during cross-build package installation.
+sed -i 's/VERSION ${HIP_LIB_VERSION_STRING}/VERSION ${HIP_LIB_VERSION_MAJOR}/g' \
+    hipamd/src/CMakeLists.txt
+
 mkdir build
 cd build
 
