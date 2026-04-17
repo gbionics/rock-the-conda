@@ -65,8 +65,8 @@ requirements:
     - numactl
   run:
     - python
-    - jax >=${{ version }}
-    - jaxlib >=${{ version }}
+    - jax ${{ version }}.*
+    - jaxlib ${{ version }}.*
 
 tests:
   - python:
