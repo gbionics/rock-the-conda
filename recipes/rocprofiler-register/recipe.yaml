@@ -14,7 +14,7 @@ source:
     - 0002-disable-cpackaging.patch
 
 build:
-  number: 2
+  number: 3
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -36,6 +36,8 @@ requirements:
     - rocr-runtime
     - glog
     - fmt
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
 
 tests:
   - package_contents:
