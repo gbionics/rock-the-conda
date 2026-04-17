@@ -75,17 +75,6 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
-    - name: Remove stale packages from cache for run_exports rebuild
-      shell: bash -l {0}
-      run: |
-        rm -f ${{ matrix.folder_cache }}/jax-rocm7-plugin-*.conda
-        rm -f ${{ matrix.folder_cache }}/rocprofiler-sdk-*.conda
-        rm -f ${{ matrix.folder_cache }}/aqlprofile-*.conda
-        rm -f ${{ matrix.folder_cache }}/miopen-hip-*.conda
-        rm -f ${{ matrix.folder_cache }}/composable-kernel-*.conda
-        rm -f ${{ matrix.folder_cache }}/hip-*.conda
-        rm -f ${{ matrix.folder_cache }}/hipcc-*.conda
-
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 

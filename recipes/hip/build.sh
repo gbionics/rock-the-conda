@@ -5,12 +5,6 @@ set -xeuo pipefail
 export ROCM_LIBPATCH_VERSION=${PKG_VERSION//\./0}
 export HIP_CLANG_PATH=${PREFIX}/bin
 
-# Prevent CLR's CMake from finding the parent git repo and injecting its
-# commit hash into the library version string (e.g. libamdhip64.so.7.0.51831-b2c64ac).
-# The source is extracted from a tarball with no .git, but the conda-build work
-# directory sits inside the rock-the-conda git repo on CI.
-export GIT_CEILING_DIRECTORIES=$(dirname $SRC_DIR)
-
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
@@ -20,14 +14,6 @@ make install
 popd
 
 pushd clr
-
-# Fix library VERSION = SOVERSION (major version only) to prevent mismatches
-# between library filenames and cmake export references. The full version string
-# (e.g. 7.0.51831[-hash]) causes issues when conda's text relocation modifies
-# cmake targets files during cross-build package installation.
-sed -i 's/VERSION ${HIP_LIB_VERSION_STRING}/VERSION ${HIP_LIB_VERSION_MAJOR}/g' \
-    hipamd/src/CMakeLists.txt
-
 mkdir build
 cd build
 
