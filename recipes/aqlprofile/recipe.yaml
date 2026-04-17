@@ -10,7 +10,7 @@ source:
   sha256: 1e3801517826b92a9c114edece6a1e098a14902c0b87298c0f18c03de90aac73
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
 
@@ -23,6 +23,8 @@ requirements:
   host:
     - rocm-core
     - rocr-runtime
+  run_exports:
+    - ${{ pin_subpackage("aqlprofile", upper_bound="x.x") }}
 
 about:
   homepage: https://github.com/ROCm/aqlprofile

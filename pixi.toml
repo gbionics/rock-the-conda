@@ -97,6 +97,8 @@ build-aqlprofile-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --re
 build-aqlprofile = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/aqlprofile", depends-on = ["build-hip", "build-rocm-core", "build-rocr-runtime"], outputs = ["output/linux-64/aqlprofile-*.conda"] }
 build-rccl-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rccl", outputs = ["output/linux-64/rccl-*.conda"] }
 build-rccl = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rccl", depends-on = ["build-hip", "build-rocm-core", "build-hipify"], outputs = ["output/linux-64/rccl-*.conda"] }
+build-roctracer-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/roctracer", outputs = ["output/linux-64/roctracer-*.conda"] }
+build-roctracer = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/roctracer", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/roctracer-*.conda"] }
 build-miopen-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", outputs = ["output/linux-64/miopen-*.conda"] }
 build-miopen = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/miopen-hip", depends-on = ["build-hip", "build-rocblas", "build-composable-kernel", "build-rocrand"], outputs = ["output/linux-64/miopen-*.conda"] }
 build-mlir-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocmlir", outputs = ["output/linux-64/rocmlir-*.conda"] }
@@ -111,6 +113,8 @@ build-hipcub-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe
 build-hipcub = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/hipcub", depends-on = ["build-hip", "build-rocm-core", "build-rocprim"], outputs = ["output/linux-64/hipcub-*.conda"] }
 build-rocthrust-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocthrust", outputs = ["output/linux-64/rocthrust-*.conda"] }
 build-rocthrust = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocthrust", depends-on = ["build-hip", "build-rocm-core", "build-rocprim"], outputs = ["output/linux-64/rocthrust-*.conda"] }
+build-rocm-jax-plugin-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-jax-plugin", outputs = ["output/linux-64/jax-rocm7-plugin-*.conda"] }
+build-rocm-jax-plugin = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-jax-plugin", depends-on = ["build-hip", "build-rocm-core", "build-rocblas-no-deps", "build-hipblas-no-deps", "build-hipblas-common", "build-rocsolver-no-deps", "build-hipsolver", "build-rocfft", "build-hipfft", "build-miopen", "build-rocrand", "build-hiprand", "build-roctracer", "build-rocsparse", "build-hipsparse", "build-rocprofiler-sdk", "build-rccl", "build-hipblaslt-no-deps", "build-rocprim", "build-hipcub"], outputs = ["output/linux-64/jax-rocm7-plugin-*.conda"] }
 build-packages = { cmd = "echo 'All packages build'", depends-on = ["build-clang22-activation", "build-rocm-core", "build-rocm-cmake", "build-rocm-devices-libs", "build-hip", "build-rocm-smi", "build-all-rattler-build-libraries", "build-pytorch"] }
 bump-version = { cmd = "python", args = ["recipes/bump_version.py"] }
 

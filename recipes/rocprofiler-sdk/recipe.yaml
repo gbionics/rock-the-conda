@@ -16,7 +16,7 @@ source:
     - 0004-add-missing-headers.patch
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -43,6 +43,8 @@ requirements:
     - zlib
     - elfutils
     - libdrm
+  run_exports:
+    - ${{ pin_subpackage("rocprofiler-sdk", upper_bound="x.x") }}
 
 about:
   repository: https://github.com/ROCm/rocm-systems

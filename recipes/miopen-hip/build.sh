@@ -2,6 +2,15 @@
 
 set -xeuo pipefail
 
+# Composable Kernel only provides XDL instances (for gfx9* / CDNA GPUs).
+# When building for RDNA-only targets (no gfx9*), CK's device_conv_operations
+# library is empty, causing undefined symbols at runtime. Disable CK in that case.
+USE_CK=ON
+if ! echo "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}" | grep -q 'gfx9'; then
+    echo "No gfx9* targets found — disabling Composable Kernel in MIOpen"
+    USE_CK=OFF
+fi
+
 # MIOpen needs a database directory at install prefix
 mkdir -p ${PREFIX}/share/miopen/db
 
@@ -20,7 +29,7 @@ cmake -GNinja \
     -DHALF_INCLUDE_DIR=${PREFIX}/include \
     -DMIOPEN_BACKEND=HIP \
     -DMIOPEN_USE_ROCBLAS=ON \
-    -DMIOPEN_USE_COMPOSABLEKERNEL=ON \
+    -DMIOPEN_USE_COMPOSABLEKERNEL=${USE_CK} \
     -DMIOPEN_USE_MIOPENGEMM=OFF \
     -DMIOPEN_USE_HIPBLASLT=ON \
     -DMIOPEN_USE_MLIR=OFF \
