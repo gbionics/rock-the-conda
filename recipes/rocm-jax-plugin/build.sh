@@ -5,6 +5,14 @@ cd jax_rocm_plugin
 
 $RECIPE_DIR/add_py_toolchain.sh
 
+# Patch XLA's rocm_configure.bzl to bake the actual ROCM_PATH into
+# TF_ROCM_TOOLKIT_PATH (instead of hardcoded /opt/rocm), so that
+# conda binary relocation fixes the path at install time.
+cp "$RECIPE_DIR/0001-use-actual-rocm-path-for-install-path.patch" \
+   third_party/xla_rocm_configure.patch
+sed -i 's|patch_file = \[\]|patch_file = ["//third_party:xla_rocm_configure.patch"]|' \
+   third_party/xla/workspace.bzl
+
 export JAXLIB_RELEASE=1
 
 export LDFLAGS="${LDFLAGS} -lrt -Wl,-z,noexecstack"
@@ -82,7 +90,11 @@ for DIST_INFO in "${HOST_SP_DIR}"/jax_rocm*_{plugin,pjrt}-*.dist-info; do
 done
 
 # Clean up build-only symlinks
-rm -rf "${PREFIX}/llvm"
+rm -f "${PREFIX}/llvm/bin/clang"
 rm -f "${PREFIX}/include/hip" "${PREFIX}/share/hip" "${PREFIX}/amdgcn"
 rm -f "${PREFIX}/bin/hipcc" "${PREFIX}/bin/hipcc.bin" "${PREFIX}/bin/hipconfig"
 rm -f "${PREFIX}/lib/.hipInfo"
+
+# XLA searches $ROCM_PATH/llvm/bin/ld.lld at runtime for GPU kernel linking
+mkdir -p "${PREFIX}/llvm/bin"
+ln -sf "${PREFIX}/bin/ld.lld" "${PREFIX}/llvm/bin/ld.lld"
