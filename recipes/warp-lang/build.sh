@@ -13,5 +13,6 @@ if [ "${hip_compiler_version:-None}" != "None" ]; then
     BUILD_ARGS="${BUILD_ARGS} --hip --ck"
 fi
 
+cd "${SRC_DIR}"
 $PYTHON build_lib.py ${BUILD_ARGS}
 $PYTHON -m pip install . --no-deps --no-build-isolation -vv
