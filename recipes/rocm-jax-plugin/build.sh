@@ -65,13 +65,13 @@ BUILD_ARGS=(
 
 # Build wheels separately: build.py's subprocess inherits the CWD, and
 # the first bazel run can invalidate it before the second starts.
-python build/build.py build --wheels=jax-rocm-plugin "${BUILD_ARGS[@]}"
-python build/build.py build --wheels=jax-rocm-pjrt "${BUILD_ARGS[@]}"
+$PYTHON build/build.py build --wheels=jax-rocm-plugin "${BUILD_ARGS[@]}"
+$PYTHON build/build.py build --wheels=jax-rocm-pjrt "${BUILD_ARGS[@]}"
 
 # Skip bazel clean to preserve cache across Python variant builds.
 # The output base lives in BUILD_PREFIX and is discarded after the final variant.
 
-pip install --no-deps --prefix="${PREFIX}" dist/*.whl
+$PYTHON -m pip install --no-deps --prefix="${PREFIX}" dist/*.whl
 
 # Fix INSTALLER/RECORD (https://github.com/conda-forge/jaxlib-feedstock#293)
 HOST_SP_DIR=$($PYTHON -c "import sysconfig; print(sysconfig.get_path('purelib'))")
