@@ -7,10 +7,10 @@ package:
 
 source:
   git: https://github.com/flferretti/warp-hip.git
-  rev: 0c9bed5f0cb88cb986716ccecfce352b22f69a71
+  rev: 6779ca6c5e43d5dff22bbc574f007b254b8c56b9
 
 build:
-  number: 19
+  number: 20
   string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   variant:
     use_keys:
@@ -48,10 +48,6 @@ requirements:
     - zstd
   run:
     - python
-    - libllvm18
-    - libclang-cpp18.1
-    - zstd
-    - zlib
     - if: hip_compiler_version != "None"
       then:
         - hip-runtime-amd
