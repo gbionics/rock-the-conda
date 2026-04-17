@@ -19,6 +19,7 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
     - match(python, "<3.11")
+    - linux
 
 requirements:
   build:
