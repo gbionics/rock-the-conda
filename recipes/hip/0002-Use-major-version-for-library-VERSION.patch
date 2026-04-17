@@ -1,0 +1,35 @@
+diff --git a/hipamd/src/CMakeLists.txt b/hipamd/src/CMakeLists.txt
+index 46ca172..ebed8ce 100644
+--- a/hipamd/src/CMakeLists.txt
++++ b/hipamd/src/CMakeLists.txt
+@@ -90,7 +90,7 @@ endif()
+ if(NOT WIN32)
+   if(BUILD_SHARED_LIBS)
+     set_target_properties(amdhip64 PROPERTIES
+-      VERSION ${HIP_LIB_VERSION_STRING}
++      VERSION ${HIP_LIB_VERSION_MAJOR}
+       SOVERSION ${HIP_LIB_VERSION_MAJOR})
+   endif()
+ endif()
+diff --git a/hipamd/src/hiprtc/CMakeLists.txt b/hipamd/src/hiprtc/CMakeLists.txt
+index 675d587..7e0b5f1 100644
+--- a/hipamd/src/hiprtc/CMakeLists.txt
++++ b/hipamd/src/hiprtc/CMakeLists.txt
+@@ -63,7 +63,7 @@ if(BUILD_SHARED_LIBS)
+       ARCHIVE_OUTPUT_NAME "hiprtc")
+   else()
+     set_target_properties(hiprtc PROPERTIES
+-      VERSION ${HIP_LIB_VERSION_STRING}
++      VERSION ${HIP_LIB_VERSION_MAJOR}
+       SOVERSION ${HIP_LIB_VERSION_MAJOR})
+   endif()
+ endif()
+@@ -208,7 +208,7 @@ set_target_properties(hiprtc-builtins PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
+   ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib
+   LINKER_LANGUAGE CXX
+-  VERSION ${HIP_LIB_VERSION_STRING})
++  VERSION ${HIP_LIB_VERSION_MAJOR})
+ 
+ # Windows and Linux have different naming conventions.
+ if(WIN32)

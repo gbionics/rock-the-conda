@@ -21,6 +21,7 @@ source:
     folder: clr
     patches:
       - 0001-Mark-raw-strings.patch
+      - 0002-Use-major-version-for-library-VERSION.patch
 
   - url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
     sha256: fd612fa750bebd0c3be0ea642b2cae8ff5c7e00a2280b22b9ea16ee86a11d763
@@ -31,7 +32,7 @@ source:
       - hipcc-path.diff
 
 build:
-  number: 2
+  number: 4
   skip: true  # [not linux]
 
 requirements:
@@ -93,6 +94,7 @@ outputs:
       commands:
         - test -f $PREFIX/lib/.hipInfo
         - test -f $PREFIX/lib/libamdhip64.so
+        - test -f $PREFIX/lib/libamdhip64.so.{{ major_version }}
 
   - name: hip-devel
     requirements:
