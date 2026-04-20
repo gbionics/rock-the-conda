@@ -7,7 +7,7 @@ package:
 
 source:
   git: https://github.com/flferretti/warp-hip.git
-  rev: d26860114aee6e6b21e4e72e5e2e42cf92a30df3
+  rev: d26860117bd1588b24ba2261a5e2bbbf55e883f0
 
 build:
   number: 21
