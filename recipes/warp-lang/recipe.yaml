@@ -7,10 +7,10 @@ package:
 
 source:
   git: https://github.com/flferretti/warp-hip.git
-  rev: 82be4e42fffbd7581bdd666f73f19a175c90fea6
+  rev: ade57bd4e0d1f54a5b94e1a7ffeca1dffc614558
 
 build:
-  number: 23
+  number: 24
   string: ${{ "cpu" if hip_compiler_version == "None" else "rocm" + (hip_compiler_version | replace('.', '')) }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
   variant:
     use_keys:
