@@ -82,12 +82,6 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
-    - name: Remove outdated packages
-      shell: bash -l {0}
-      run: |
-        rm -rf ${{ matrix.folder_cache }}/libtorch-*
-        rm -rf ${{ matrix.folder_cache }}/pytorch-*
-
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
