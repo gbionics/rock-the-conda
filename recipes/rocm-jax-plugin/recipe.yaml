@@ -2,7 +2,7 @@ context:
   name: jax-rocm7-plugin
   version: "0.7.1"
   rocm_version: "7.0.2"
-  build: 1
+  build: 2
 
 package:
   name: ${{ name }}
@@ -65,8 +65,9 @@ requirements:
     - numactl
   run:
     - python
-    - jax >=${{ version }}
-    - jaxlib >=${{ version }}
+    - jax ${{ version }}.*
+    - jaxlib ${{ version }}.*
+    - lld
 
 tests:
   - python:
