@@ -11,8 +11,6 @@ package:
 source:
   url: https://github.com/ROCm/rocm-jax/archive/refs/tags/rocm-jax-v${{ version }}.tar.gz
   sha256: 8f71d9459140e95d5e67cec89a3d8681136b534e3bab46a1ba5aa63a614bad54
-  patches:
-    - 0002-detect-conda-rocm-prefix.patch
 
 build:
   number: ${{ build }}
