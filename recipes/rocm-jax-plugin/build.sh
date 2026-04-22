@@ -95,6 +95,7 @@ rm -f "${PREFIX}/include/hip" "${PREFIX}/share/hip" "${PREFIX}/amdgcn"
 rm -f "${PREFIX}/bin/hipcc" "${PREFIX}/bin/hipcc.bin" "${PREFIX}/bin/hipconfig"
 rm -f "${PREFIX}/lib/.hipInfo"
 
-# XLA searches $ROCM_PATH/llvm/bin/ld.lld at runtime for GPU kernel linking
+# XLA searches $ROCM_PATH/llvm/bin/ld.lld at runtime for GPU kernel linking.
+# Use a relative symlink so it survives prefix relocation.
 mkdir -p "${PREFIX}/llvm/bin"
-ln -sf "${PREFIX}/bin/ld.lld" "${PREFIX}/llvm/bin/ld.lld"
+ln -sf "../../bin/ld.lld" "${PREFIX}/llvm/bin/ld.lld"
