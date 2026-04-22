@@ -1,0 +1,54 @@
+context:
+  name: rocm-virtual-packages
+  version: "0.1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  - path: src/
+
+build:
+  noarch: python
+  number: 0
+  script:
+    - python -m pip install . --no-deps --no-build-isolation -vv
+
+requirements:
+  host:
+    - python >=3.10
+    - pip
+    - hatchling
+  run:
+    - python >=3.10
+    - conda
+
+tests:
+  - python:
+      imports:
+        - rocm_virtual_packages
+        - rocm_virtual_packages.detect
+        - rocm_virtual_packages.plugin
+  - script:
+      - python -c "from rocm_virtual_packages.detect import _parse_gfx_target_version; assert _parse_gfx_target_version(110501) == '1151'"
+      - python -c "from rocm_virtual_packages.detect import _parse_gfx_target_version; assert _parse_gfx_target_version(90402) == '942'"
+      - python -c "from rocm_virtual_packages.detect import _parse_gfx_target_version; assert _parse_gfx_target_version(90010) == '90a'"
+
+about:
+  homepage: https://github.com/gbionics/rock-the-conda
+  license: BSD-3-Clause
+  summary: "Conda plugin providing __rocm and __rocm_arch virtual packages for AMD ROCm GPUs."
+  description: |
+    This plugin detects the AMD ROCm environment and exposes:
+    - __rocm_arch: The GPU architecture on the system, using the raw gfx identifier
+      (e.g., 1151 for gfx1151, 942 for gfx942). Its presence indicates an
+      amdgpu driver capable of running ROCm workloads.
+    - __rocm: The installed ROCm userspace version (e.g., 7.0.2).
+
+    Override detection with CONDA_OVERRIDE_ROCM_ARCH and CONDA_OVERRIDE_ROCM
+    environment variables.
+
+extra:
+  recipe-maintainers:
+    - traversaro

@@ -1,0 +1,15 @@
+[project]
+name = "rocm-virtual-packages"
+version = "0.1.0"
+description = "Conda plugin providing __rocm and __rocm_arch virtual packages for AMD ROCm."
+license = "BSD-3-Clause"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["conda"]
+
+[project.entry-points.conda]
+rocm-virtual-packages = "rocm_virtual_packages.plugin"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
