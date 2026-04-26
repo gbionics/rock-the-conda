@@ -82,6 +82,14 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    - name: Remove outdated cntg activation files
+      shell: bash -l {0}
+      run: |
+        rm -rf ${{ matrix.folder_cache }}/clang*
+        rm -rf ${{ matrix.folder_cache }}/gcc*
+        rm -rf ${{ matrix.folder_cache }}/gxx*
+        rm -rf ${{ matrix.folder_cache }}/gfortran*
+
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
 
