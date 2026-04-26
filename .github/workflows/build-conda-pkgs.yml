@@ -89,6 +89,7 @@ jobs:
         rm -rf ${{ matrix.folder_cache }}/gcc*
         rm -rf ${{ matrix.folder_cache }}/gxx*
         rm -rf ${{ matrix.folder_cache }}/gfortran*
+        rm -rf ${{ matrix.folder_cache }}/pytorch-tests-*
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
