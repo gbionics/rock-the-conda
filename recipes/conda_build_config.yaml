@@ -63,3 +63,8 @@ pybind11_abi:
 # icu78
 icu:
 - '78'
+
+libtorch:
+  - '2.10'
+pytorch:
+  - '2.10'
