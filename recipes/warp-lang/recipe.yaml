@@ -18,6 +18,7 @@ build:
     down_prioritize_variant: ${{ 1 if hip_compiler_version == "None" else 0 }}
   skip:
     - not linux
+    - linux
 
 requirements:
   build:

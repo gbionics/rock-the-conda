@@ -55,20 +55,6 @@ index b052ec51c..e0e007548 100644
  #include "lib/common/environment.hpp"
  #include "lib/common/filesystem.hpp"
  #include "lib/common/logging.hpp"
-diff --git a/external/elfio/elfio/elf_types.hpp b/external/elfio/elfio/elf_types.hpp
-index 1a2b3c4e..7f8b9e5f 100644
---- a/external/elfio/elfio/elf_types.hpp
-+++ b/external/elfio/elfio/elf_types.hpp
-@@ -22,6 +22,9 @@ THE SOFTWARE.
- #ifndef ELFTYPES_H
- #define ELFTYPES_H
- 
-+// Missing cstdint for uint16_t, uint32_t, uint64_t
-+#include <cstdint>
-+
- #ifdef __cplusplus
- namespace ELFIO {
- #endif
 diff --git a/source/lib/common/logging.cpp b/source/lib/common/logging.cpp
 index 1a2b3c4e..7f8b9e5f 100644
 --- a/source/lib/common/logging.cpp
@@ -195,3 +181,15 @@ index 1a2b3c4e..7f8b9e5f 100644
  
  #include "lib/rocprofiler-sdk/hsa/queue.hpp"
  #include "lib/common/scope_destructor.hpp"
+diff --git a/external/elfio/elfio/elf_types.hpp b/external/elfio/elfio/elf_types.hpp
+index 1234567..abcdefg 100644
+--- a/external/elfio/elfio/elf_types.hpp
++++ b/external/elfio/elfio/elf_types.hpp
+@@ -23,6 +23,7 @@
+ #ifndef ELFTYPES_H
+ #define ELFTYPES_H
+ 
++#include <cstdint>
+ #ifdef __cplusplus
+ namespace ELFIO {
+ #endif

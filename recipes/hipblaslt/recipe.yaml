@@ -1,16 +1,26 @@
 context:
   name: hipblaslt
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/hipBLASlt/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: 52d7c1c6852f501f5bd37fa962e6538592741792593a173d8b6963b8f7bd2c41
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblaslt.tar.gz"
+    sha256: d6364248679857c489244d49d5e3c606ca24bace77dd6ad7be70bccdfabf8e1b
+    target_directory: projects/hipblaslt
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/origami.tar.gz"
+    sha256: e51552b3f1a88b55a2baf6e9bef42b610d6a792dfeedb1c65e13cd27a1a5aa97
+    target_directory: shared/origami
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/mxdatagenerator.tar.gz"
+    sha256: 2e10bc34b1f7eeacd0ac78dc84c602701f29e52d5e3fe233b88ec622a259f1f3
+    target_directory: shared/mxdatagenerator
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocroller.tar.gz"
+    sha256: 5a1c6e35b7c52a3a1fd2e2333efcc049788cd703ba145c6c9f020782bf40bd0d
+    target_directory: shared/rocroller
     patches:
-      - fix_latest_msgpack_cxx.patch
+      - patches/rocroller-find-yaml-cpp.patch
 
 build:
   number: 1
@@ -23,10 +33,9 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
+      # Test dependencies
+    - ${{ compiler('fortran') }}
     # Workaround for rocroller bug, remove in the future
     - cmake<4
     - pkg-config
@@ -55,11 +64,14 @@ requirements:
     - msgpack-cxx
     - libboost-devel
     - rocm-smi
-    # Needed for rocroller
+    # rocroller depedencies
+    - fmt
     - spdlog
-    - llvmdev 20.*
-    - lld 20.*
-    - zlib
+    - yaml-cpp
+    # Test dependencies
+    - blis
+    - liblapack
+    - gtest
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
   ignore_run_exports:
@@ -95,7 +107,7 @@ about:
   repository: https://github.com/ROCm/rocm-libraries
   license: MIT
   license_family: MIT
-  license_file: LICENSE.md
+  license_file: projects/hipblaslt/LICENSE.md
   summary: "HIP library for GEMM operations with extended functionality"
 
 extra:

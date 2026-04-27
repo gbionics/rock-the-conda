@@ -1,17 +1,17 @@
 context:
   name: composable-kernel
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/composable_kernel/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: b7293e3451750f606ab845585b3dd4eb4e185d4dda4a22290d73e8874a45a26b
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/composablekernel.tar.gz
+  sha256: b5a699f1bce24727ed333aeed8afd10a8ac3c1ddcf86eb86ec9d638a22c24125
 
 build:
-  number: 1
+  number: 0
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -21,9 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - ninja

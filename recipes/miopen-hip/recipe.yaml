@@ -1,15 +1,15 @@
 context:
   name: miopen-hip
-  version: "7.0.2"
-  llvm_major_version: "20"
+  version: "7.2.1"
+  llvm_major_version: "22"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/MIOpen/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: f8e0fbc7e007d8b37b47a9369a9f849ab708d4fd8681a70c4f545d7ed1aa3ba0
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/miopen.tar.gz
+  sha256: 70a566bc6cee51698debd27fc7f4ae7ac189b70b1ebf0b754769dbcd5da88ec9
 
 build:
   number: 1
@@ -22,9 +22,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - ninja
@@ -67,7 +64,7 @@ tests:
 about:
   repository: https://github.com/ROCm/MIOpen
   license: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "AMD's Machine Intelligence Library for ROCm (HIP backend)"
   description: |
     MIOpen is AMD's library for high performance machine learning primitives.

@@ -1,14 +1,14 @@
 context:
   name: rocprim
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/rocPRIM/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: bde28c7d08b46ba46d9ab13496d0d63353e4eae0e7e884167c10bccc9ebcb933
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocprim.tar.gz"
+    sha256: a6d1a6a2bf829ea74741364a2d65409eed718249a4f54f1c1cf639785217d626
 
 build:
   number: 0
@@ -21,9 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - pkg-config
@@ -53,7 +50,7 @@ about:
   homepage: https://rocm.docs.amd.com/projects/rocPRIM
   license: MIT
   license_family: MIT
-  license_file: LICENSE.txt
+  license_file: LICENSE.md
   summary: "rocPRIM is a header-only library that provides HIP parallel primitives."
 
 extra:

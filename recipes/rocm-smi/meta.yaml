@@ -1,5 +1,6 @@
 {% set name = "rocm-smi" %}
-{% set version = "7.0.2" %}
+{% set version = "7.2.1" %}
+
 
 
 package:
@@ -7,8 +8,8 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/RadeonOpenCompute/rocm_smi_lib/archive/rocm-{{ version }}.tar.gz
-  sha256: cdd7951fb46b79f6791340da21fc47dc3e719f82795f2e1f5546bb7d35db954c
+  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/rocm-smi-lib.tar.gz
+  sha256: 5696259c01573e6e3961dfb781bbdb7a78a1ebab8614c66c18b6b71bdf6ee348
 
 build:
   number: 0
@@ -21,8 +22,6 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15  # [linux]
     - cmake
     - pkg-config
     - make
@@ -49,7 +48,7 @@ about:
     temperature management of your ROCm enabled system.
   license: NCSA
   license_family: OTHER
-  license_file: License.txt
+  license_file: LICENSE.md
   doc_url: https://github.com/RadeonOpenCompute/rocm_smi_lib
   dev_url: https://github.com/RadeonOpenCompute/rocm_smi_lib
 

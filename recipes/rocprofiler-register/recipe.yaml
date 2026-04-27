@@ -1,14 +1,14 @@
 context:
   name: rocprofiler-register
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/rocprofiler-register/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: c76ffb35c510f8751d6d2db3a6366952ea7a76499556e9d64fdf8102a7a3ca5b
+  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocprofiler-register.tar.gz
+  sha256: e437efc67fecf8dc689b50667f69d6da88c509c947df2002fedb88a7176efa1a
   patches:
     - 0001-fix-fmt-find-package-order.patch
     - 0002-disable-cpackaging.patch
@@ -24,9 +24,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - ninja
@@ -47,10 +44,10 @@ tests:
         - rocprofiler-register
 
 about:
-  repository: https://github.com/ROCm/rocprofiler-register
+  repository: https://github.com/ROCm/rocm-systems
   homepage: https://rocm.docs.amd.com/projects/rocprofiler-register/en/latest/
   license: MIT
-  license_file: LICENSE
+  license_file: LICENSE.md
   summary: "ROCm profiler SDK for GPU profiling and tracing"
   description: |
     rocprofiler-register is AMD's tooling infrastructure providing a hardware-specific

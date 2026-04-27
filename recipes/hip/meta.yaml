@@ -1,33 +1,33 @@
 {% set name = "hip" %}
-{% set version = "7.0.2" %}
+{% set version = "7.2.1" %}
+
 
 {% set major_version = version.split('.')[0] %}
 {% set minor_version = version.split('.')[1] %}
 {% set major_minor_version = ".".join(version.split(".")[:2]) %}
 {% set patch_version = version.split('.')[2] %}
-{% set llvm_major_version = "20" %}
+{% set llvm_major_version = "22" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  - url: https://github.com/ROCm/HIP/archive/refs/tags/rocm-{{ version }}.tar.gz
-    sha256: 80486998b115e5f61b72913887ccc0507ac332eda4068879bdfb7e3c8611f666
+  - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/hip.tar.gz
+    sha256: f0ac1915e476a152492ad77a3a7b66509087fb7810f1332c2fdfab63bc19c8d9
     folder: hip
 
-  - url: https://github.com/ROCm/clr/archive/refs/tags/rocm-{{ version }}.tar.gz
-    sha256: b49b1ccbf86ef78f4da5ff13ec3ee94f6133c55db3a95b823577b0808db5f2f1
+  - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/clr.tar.gz
+    sha256: 86a95f426909821202f30197cd3e57a5e5985d9d62414a90533742f4a546ad49
     folder: clr
     patches:
       - 0001-Mark-raw-strings.patch
       - 0002-Use-major-version-for-library-VERSION.patch
 
   - url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
-    sha256: fd612fa750bebd0c3be0ea642b2cae8ff5c7e00a2280b22b9ea16ee86a11d763
+    sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
     folder: hipcc
     patches:
-      - 0001-Make-cmake-rocm-detection-required.patch
       - 0002-Fix-cmake-backward-compatibility.patch
       - hipcc-path.diff
 
@@ -40,8 +40,6 @@ requirements:
     - {{ compiler('c') }}
     - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15  # [linux]
     - cmake
     - make
     - cppheaderparser
@@ -70,8 +68,6 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
-        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - numactl
         - rocm-core {{ version }}.*
@@ -126,8 +122,6 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
-        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - {{ pin_subpackage("hip-devel", exact=True) }}
       run:
@@ -190,8 +184,6 @@ outputs:
         - cmake-package-check
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-        - libstdcxx-devel_linux-64 >=15  # [linux]
         - cmake
         - ninja
       files:
@@ -215,8 +207,6 @@ outputs:
         - cmake-package-check
         - {{ compiler('c') }}
         - {{ compiler('cxx') }}
-        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-        - libstdcxx-devel_linux-64 >=15  # [linux]
         - cmake
         - ninja
       files:
@@ -228,8 +218,6 @@ outputs:
         - {{ compiler('c') }}
         - {{ stdlib("c") }}
         - {{ compiler('cxx') }}
-        # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-        - libstdcxx-devel_linux-64 >=15  # [linux]
       host:
         - numactl
         - rocm-core  {{ version }}.*
@@ -263,8 +251,8 @@ about:
   license: NCSA
   license_family: MIT
   license_file:
-    - clr/LICENSE.txt
-    - hip/LICENSE.txt
+    - clr/LICENSE.md
+    - hip/LICENSE.md
     - hipcc/amd/hipcc/LICENSE.txt
   summary: 'HIP: C++ Heterogeneous-Compute Interface for Portability '
 

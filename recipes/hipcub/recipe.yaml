@@ -1,14 +1,14 @@
 context:
   name: hipcub
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/hipCUB/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: ed7ce02bbbd1ed49dfeb2ec86cae01825dc7081c98875f046a9950ac4c9c8caa
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipcub.tar.gz
+  sha256: 87e78242615cd1c773b7443bb51c8fc2307a7ef903cecfa34cf42a5944d6162d
 
 build:
   number: 0
@@ -27,21 +27,25 @@ requirements:
   host:
     - rocm-core ${{ version }}.*
     - rocm-cmake
-    - rocprim
+    - rocprim ${{ version }}.*
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
 
 tests:
   - package_contents:
       include:
-        - ${{ name }}/${{ name }}_version.hpp
+        - hipcub/hipcub.hpp
+      files:
+        - lib/cmake/hipcub/hipcub-config.cmake
 
 about:
-  homepage: https://rocm.docs.amd.com/projects/hipCUB
+  repository: https://github.com/ROCm/hipCUB
+  homepage: https://rocm.docs.amd.com/projects/hipCUB/en/latest/
   license: MIT
-  license_family: MIT
   license_file: LICENSE.txt
-  summary: "hipCUB is a thin header-only wrapper library on top of rocPRIM."
+  summary: "HIP CUB: thin layer on top of rocPRIM or CUB"
 
 extra:
   recipe-maintainers:
-    - flferretti
-    - conda-forge/rocm-core
+    - traversaro

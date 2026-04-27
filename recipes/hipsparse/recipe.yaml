@@ -1,14 +1,14 @@
 context:
   name: hipsparse
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/hipSPARSE/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 8f2d187ef9a44e58538a7bf3298b245e740066c74e431da01c38ed35fad649fc
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipsparse.tar.gz
+  sha256: 5292b78254d146bbceeaa799fa17e5b8a876c0e72e1a606f5c4e7e4792e9ce1f
 
 build:
   number: 0
@@ -21,9 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - ${{ compiler('fortran') }}
     - cmake

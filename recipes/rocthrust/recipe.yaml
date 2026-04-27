@@ -1,14 +1,15 @@
 context:
   name: rocthrust
-  version: "7.0.2"
+  version: "7.2.1"
+
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/rocThrust/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: 931b7db032e1a9d4bc571be03a8c0f1880957851527a53a71ca38e7d6a2fc695
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocthrust.tar.gz
+  sha256: 1fdc9b896011af46b8be653bd722dc91a02a0d3d8c85ed18b711f3c127b54d2c
 
 build:
   number: 0
@@ -27,12 +28,17 @@ requirements:
   host:
     - rocm-core ${{ version }}.*
     - rocm-cmake
-    - rocprim
+    - rocprim ${{ version }}.*
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
 
 tests:
   - package_contents:
       include:
+        - thrust/version.h
         - thrust/rocthrust_version.hpp
+      files:
+        - lib/cmake/rocthrust/rocthrust-config.cmake
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocThrust

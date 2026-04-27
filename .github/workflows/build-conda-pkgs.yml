@@ -19,6 +19,8 @@ env:
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
+  # If true, upload the conda packages folder as a GitHub Actions artifact
+  ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS: "true"
   # Upload packages when manually requested via workflow_dispatch input,
   # or when the 'upload-packages' label is added to a PR.
   ROCK_THE_CONDA_UPLOAD_PACKAGES: >-
@@ -69,6 +71,11 @@ jobs:
         restore-keys: |
           ${{ matrix.job_name }}-conda-pkgs-cache
 
+    - name: See packages restored by cache
+      shell: bash -l {0}
+      run: |
+        ls ${{ matrix.folder_cache }} || true
+
     - name: Optional force full rebuild
       if: ${{ env.IGNORE_CACHE_AND_DO_FULL_REBUILD == 'true' }}
       shell: bash -l {0}
@@ -88,6 +95,15 @@ jobs:
         path: |
           ${{ matrix.folder_cache }}
         key: ${{ matrix.job_name }}-conda-pkgs-cache-${{ github.run_id }}-${{ github.run_attempt }}
+
+    - name: Upload conda packages folder artifact
+      uses: actions/upload-artifact@v4
+      if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS == 'true' }}
+      with:
+        name: conda-pkgs-${{ matrix.job_name }}-${{ github.run_id }}-${{ github.run_attempt }}
+        path: ${{ matrix.folder_cache }}
+        if-no-files-found: warn
+        retention-days: 14
 
     - name: Upload packages
       if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}

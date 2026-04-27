@@ -1,14 +1,14 @@
 context:
   name: hipsolver
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: https://github.com/ROCm/hipSOLVER/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: eac1a691bdc00ceb50580c1dab6cbffd6c7d579ebbad145857f58c4de84a3cae
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipsolver.tar.gz
+  sha256: 8f56b56b3523065ac8edf334a5789b5cf32ace7a1b616fd0826e5d11d57287a1
 
 build:
   number: 0
@@ -21,9 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - ${{ compiler('fortran') }}
     - cmake

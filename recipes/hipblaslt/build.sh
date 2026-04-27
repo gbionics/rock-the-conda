@@ -9,7 +9,7 @@ export ROCM_PATH=${PREFIX}
 # '<arch>:xnack+;<arch>:xnack-'. Entries already with modifiers are preserved.
 # This is done as the hipblaslt upstream mention that there is a performance benefit in compiling
 # for xnack+ and xnack- separately for these architectures.
-AMDGPU_TARGETS_EXPANDED=""
+GPU_TARGETS_EXPANDED=""
 if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
     IFS=';' read -r -a _rocm_targets <<< "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
     _expanded_targets=()
@@ -31,23 +31,32 @@ if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
                 ;;
         esac
     done
-    AMDGPU_TARGETS_EXPANDED=$(IFS=';'; echo "${_expanded_targets[*]}")
+    GPU_TARGETS_EXPANDED=$(IFS=';'; echo "${_expanded_targets[*]}")
 fi
 
 echo "Original CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS: ${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
-echo "AMDGPU_TARGETS option passed after adding xnack variants for gfx908 and gfx90a: ${AMDGPU_TARGETS_EXPANDED}"
+echo "GPU_TARGETS option passed after adding xnack variants for gfx908 and gfx90a: ${GPU_TARGETS_EXPANDED}"
 
 # A lot of part of the build system hardcode amdclang++ as compiler and assume that is in $PREFIX, let's temporary
 # add a symlink with this name, see https://github.com/ROCm/rocm-libraries/issues/944
-env
+ln -sf -- "$HIPCXX" "$BUILD_PREFIX/bin/amdclang++"
+ln -sf -- "$HIPCXX" "$BUILD_PREFIX/bin/amdclang"
 
-ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang++"
-ln -sf -- "$HIPCXX" "$PREFIX/bin/amdclang"
-
-cmake -GNinja ${CMAKE_ARGS} -DAMDGPU_TARGETS="${AMDGPU_TARGETS_EXPANDED}" -DPython_EXECUTABLE=$PYTHON -Bbuild -S.
+# CMAKE_C_COMPILER AND CMAKE_CXX_COMPILER is passed as a Workaround for hack check that requires the compiler to have a specific name:
+# https://github.com/ROCm/Tensile/blob/e8a8999e0e7374aaae546a6d7cb703d9e06b0ebf/Tensile/Utilities/Toolchain.py#L147C58-L147C65
+# and https://github.com/traversaro/rock-the-conda/issues/3#issuecomment-3315983823
+cmake -GNinja ${CMAKE_ARGS} \
+    -DCMAKE_C_COMPILER="$BUILD_PREFIX/bin/amdclang" \
+    -DCMAKE_CXX_COMPILER="$BUILD_PREFIX/bin/amdclang++" \
+    -DGPU_TARGETS="${GPU_TARGETS_EXPANDED}" \
+    -DAMDGPU_TARGETS="${GPU_TARGETS_EXPANDED}" \
+    -DPython_EXECUTABLE=$PYTHON \
+    -DPython3_EXECUTABLE=$PYTHON \
+    -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=ALWAYS \
+    -Bbuild -S projects/hipblaslt
 cmake --build ./build
 cmake --install ./build
 
 # Remove amdclang++ symlink to avoid to ship it
-rm -f -- "$PREFIX/bin/amdclang++"
-rm -f -- "$PREFIX/bin/amdclang"
+rm -f -- "$BUILD_PREFIX/bin/amdclang++"
+rm -f -- "$BUILD_PREFIX/bin/amdclang"

@@ -1,14 +1,17 @@
 #!/bin/bash
-set -euxo pipefail
 
-cmake ${CMAKE_ARGS} \
-    -GNinja \
-    -DCMAKE_BUILD_TYPE=Release \
+set -xeuo pipefail
+
+cmake -S . -B build -G Ninja \
+    ${CMAKE_ARGS} \
+    -DGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
+    -DAMDGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
     -DBUILD_TEST=OFF \
-    -DBUILD_BENCHMARKS=OFF \
-    -DBUILD_EXAMPLES=OFF \
+    -DBUILD_BENCHMARK=OFF \
+    -DBUILD_EXAMPLE=OFF \
     -DBUILD_FILE_REORG_BACKWARD_COMPATIBILITY=OFF \
-    -B build
+    -DBUILD_HIPSTDPAR_TEST=OFF
 
-cmake --build build
+cmake --build build -j${CPU_COUNT}
+
 cmake --install build

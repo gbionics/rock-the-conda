@@ -1,14 +1,19 @@
 context:
   name: rocblas
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/rocBLAS/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: 8398cda68242db2386abc9eaf00c3588bb27e2b382e29be2bc5624c2d4ac8a99
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocblas.tar.gz"
+    sha256: c55bc74e2a2c9f1b6cf23c586c391787a8198826a85d72e2e1358e6259299578
+    target_directory: projects/rocblas
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/tensile.tar.gz"
+    sha256: 61007dbacaf70b4f7c048e7e1435871028da83bcf63674909634c5ae6848d781
+    target_directory: shared/tensile
+
 
 build:
   number: 1
@@ -21,9 +26,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - ${{ compiler('hip') }}
     - cmake
     - pkg-config
@@ -36,9 +38,6 @@ requirements:
     - joblib
     - pyyaml
     - packaging
-    # Needed to clone locally tensile and patch it
-    - git
-    - sed
   host:
     - rocm-core ${{ version }}.*
     - rocm-cmake
@@ -82,7 +81,7 @@ about:
   homepage: https://rocm.docs.amd.com/projects/rocBLAS
   license: MIT
   license_family: MIT
-  license_file: LICENSE.md
+  license_file: projects/rocblas/LICENSE.md
   summary: "rocBLAS is the AMD library for BLAS in ROCm. Implemented using the HIP language and optimized for AMD GPUs."
 
 extra:

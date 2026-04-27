@@ -1,6 +1,6 @@
 context:
   name: llama.cpp
-  version: "8224"
+  version: "8646"
   build: 0
   # ensure arm_variant_type gets detected as a used variable
   touch_arm_variant_type: ${{ arm_variant_type if (linux and aarch64) else "None" }}
@@ -11,7 +11,7 @@ package:
 
 source:
   url: https://github.com/ggml-org/${{ name }}/archive/b${{ version | split(".") | list | last }}.tar.gz
-  sha256: 38f83231bfea5dbc041226e47962a707f04759cd854aaba901e9177f34b2e5a1
+  sha256: b22ebfa6e9cbbcb9f9db34aa97a359d88fc29151f622fd6d660515150779aa57
 
 
 build:
@@ -102,8 +102,12 @@ build:
 
         {%- if hip_compiler_version != "None" %}
         ${{ ggml_args("HIP=ON") }}
+        ${{ ggml_args("HIP_ROCWMMA_FATTN=ON") }}
         ${{ cmake_args("CMAKE_HIP_ARCHITECTURES=$CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS") }}
         ${{ cmake_args("CMAKE_HIP_COMPILER=$HIPCXX") }}
+        # CMake HIP builds do not automatically inherit CXXFLAGS include paths.
+        # Ensure host ROCm headers (e.g. hipblas/hipblas.h) are visible.
+        ${{ cmake_args("CMAKE_HIP_FLAGS=-I$PREFIX/include") }}
 
         {%- endif %}
 
@@ -176,9 +180,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
-    - libgcc-devel_linux-64 >=15.2.0
     - if: cuda_compiler_version != "None"
       then:
         - ${{ compiler('cuda') }}

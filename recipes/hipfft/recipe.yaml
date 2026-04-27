@@ -1,14 +1,14 @@
 context:
   name: hipfft
-  version: "7.0.2"
+  version: "7.2.1"
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/hipFFT/archive/refs/tags/rocm-${{ version }}.tar.gz"
-    sha256: 78b929e2ecafceb996f94132ad19091d98da2967a0cddc24be964cefd6719ec5
+  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipfft.tar.gz"
+    sha256: 2aadd7801852a8baa9333e8370dc04f6737aaf7b85dcc94b4d19a57867780d1a
 
 build:
   number: 0
@@ -21,8 +21,6 @@ requirements:
     - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15
     - ${{ compiler('hip') }}
     - cmake
     - pkg-config

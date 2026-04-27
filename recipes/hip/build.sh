@@ -8,7 +8,7 @@ export HIP_CLANG_PATH=${PREFIX}/bin
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
-cmake ${CMAKE_ARGS} ..
+cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE ..
 make VERBOSE=1 -j${CPU_COUNT}
 make install
 popd
@@ -27,6 +27,7 @@ cmake -LAH \
   -DCLR_BUILD_OCL=ON \
   -DHIPCC_BIN_DIR=$PREFIX/bin \
   -DHIP_COMMON_DIR=$SRC_DIR/hip \
+  -DPython_EXECUTABLE=$BUILD_PREFIX/bin/python \
   -DPython3_EXECUTABLE=$BUILD_PREFIX/bin/python \
   -DROCM_PATH=$PREFIX \
   -DAMD_OPENCL_INCLUDE_DIR=$SRC_DIR/clr/opencl/amdocl/ \
@@ -53,12 +54,12 @@ DIRS_TO_REMOVE="
 
 for FILE in $FILES_TO_REMOVE
 do
-  rm "$PREFIX/$FILE"
+  rm -f "$PREFIX/$FILE"
 done
 
 for DIR in $DIRS_TO_REMOVE
 do 
-  rmdir "$PREFIX/$DIR"
+  rmdir "$PREFIX/$DIR" || true
 done
 
 popd

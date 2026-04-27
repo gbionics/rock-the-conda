@@ -1,5 +1,6 @@
 {% set name = "rocm-comgr" %}
-{% set version = "7.0.2" %}
+{% set version = "7.2.1" %}
+
 
 
 package:
@@ -8,9 +9,9 @@ package:
 
 source:
   url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
-  sha256: fd612fa750bebd0c3be0ea642b2cae8ff5c7e00a2280b22b9ea16ee86a11d763
+  sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
   patches:
-    - patches/fix-build-upstream-llvm-20.patch
+    - patches/rocm-comgr-7.2.0-llvm-22-compat.patch
 
 build:
   number: 0
@@ -20,14 +21,12 @@ requirements:
   build:
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    # Workaround for https://github.com/conda-forge/ctng-compiler-activation-feedstock/issues/182
-    - libstdcxx-devel_linux-64 >=15  # [linux]
     - {{ stdlib('c') }}
     - cmake
     - make
   host:
-    - clangdev 20.*
-    - llvmdev 20.*
+    - clangdev 22.*
+    - llvmdev 22.*
     - llvm
     - lld
     - zlib
