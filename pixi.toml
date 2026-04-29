@@ -64,6 +64,8 @@ build-all-rattler-build-libraries-no-deps = { cmd = "rattler-build build $RATTLE
 build-rocwmma-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocwmma", outputs = ["output/linux-64/rocwmma-*.conda"] }
 build-rocwmma = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocwmma", depends-on = ["build-hip", "build-rocm-core", "build-rocm-cmake"], outputs = ["output/linux-64/rocwmma-*.conda"] }
 build-all-rattler-build-libraries = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes", depends-on = ["build-rocm-core", "build-hip", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr", "build-rocmlir", "build-migraphx"] }
+build-amdsmi-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/amdsmi", outputs = ["output/linux-64/amdsmi-*.conda", "output/linux-64/libamd-smi-*.conda"] }
+build-amdsmi = { cmd = "find output/linux-64 -name 'amdsmi-*.conda' | grep -q . && echo 'Skipping build-amdsmi: output already exists' || rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/amdsmi", depends-on = ["build-rocm-core"], outputs = ["output/linux-64/amdsmi-*.conda", "output/linux-64/libamd-smi-*.conda"] }
 build-rocprim-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprim", outputs = ["output/linux-64/rocprim-*.conda"] }
 build-rocprim = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocprim", depends-on = ["build-hip", "build-rocm-core"], outputs = ["output/linux-64/rocprim-*.conda"] }
 build-rocfft-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocfft", outputs = ["output/linux-64/rocfft-*.conda"] }
