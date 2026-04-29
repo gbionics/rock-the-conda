@@ -45,6 +45,11 @@ jobs:
           - job_name: 'build-strix-packages'
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
+            pixi_env: 'default'
+          - job_name: 'build-all-packages'
+            runs_on: [self-hosted, linux, x64, amdgpu]
+            folder_cache: 'output/linux-64'
+            pixi_env: 'all-archs'
 
     steps:
     - uses: actions/checkout@v6
@@ -86,7 +91,7 @@ jobs:
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build packages
-      run: pixi run build-packages
+      run: pixi run -e ${{ matrix.pixi_env }} build-packages
 
     - name: Save build cache
       uses: actions/cache/save@v4
@@ -109,4 +114,4 @@ jobs:
       if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
       env:
         ROCK_THE_CONDA_PREFIX_DEV_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
-      run: pixi run upload-all
+      run: pixi run -e ${{ matrix.pixi_env }} upload-all
