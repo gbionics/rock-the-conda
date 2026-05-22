@@ -8,6 +8,7 @@ cd build
 # instances are unnecessary paths.
 EXTRA_CMAKE_ARGS=""
 ONLY_RDNA35=true
+NUMBER_OF_THREADS=3
 IFS=';' read -ra TARGETS <<< "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
 for target in "${TARGETS[@]}"; do
     if [[ "$target" != "gfx1150" && "$target" != "gfx1151" ]]; then
@@ -18,6 +19,7 @@ done
 
 if [[ "$ONLY_RDNA35" == "true" ]]; then
     EXTRA_CMAKE_ARGS="-DDISABLE_DL_KERNELS=ON -DDISABLE_DPP_KERNELS=ON"
+    NUMBER_OF_THREADS=6
 fi
 
 # Configure CMake
@@ -34,5 +36,5 @@ cmake -GNinja \
 # Depending on the specific machine you are running this in, you may need to
 # change the number of threads to avoid out of memory issues, it is possible to do that with "--parallel 4",
 # where 4  is the number of threads
-cmake --build .  --parallel 6
+cmake --build .  --parallel ${NUMBER_OF_THREADS}
 cmake --install .
