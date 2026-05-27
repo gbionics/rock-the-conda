@@ -8,8 +8,8 @@ cd build
 # instances are unnecessary paths.
 EXTRA_CMAKE_ARGS=""
 ONLY_RDNA35=true
-# This is dimensioned on a Strix Halo with ~123 GB of available RAM
-NUMBER_OF_THREADS=12
+# This is dimensioned on a Strix Halo with ~123 GB  of available RAM + 128 GB of cache
+NUMBER_OF_THREADS=8
 IFS=';' read -ra TARGETS <<< "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
 for target in "${TARGETS[@]}"; do
     if [[ "$target" != "gfx1150" && "$target" != "gfx1151" ]]; then
