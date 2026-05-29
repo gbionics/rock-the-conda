@@ -43,6 +43,8 @@ requirements:
     - bzip2
     - roctracer
     - cpp-half
+    - frugally-deep
+    - eigen-abi-devel
   run:
     - hip-runtime-amd
     - rocblas
