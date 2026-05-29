@@ -38,6 +38,7 @@ requirements:
     - joblib
     - pyyaml
     - packaging
+    - llvm-openmp
   host:
     - rocm-core ${{ version }}.*
     - rocm-cmake
