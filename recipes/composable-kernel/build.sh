@@ -9,7 +9,7 @@ cd build
 EXTRA_CMAKE_ARGS=""
 ONLY_RDNA35=true
 # This is dimensioned on a Strix Halo with ~123 GB  of available RAM + 128 GB of cache
-NUMBER_OF_THREADS=8
+NUMBER_OF_THREADS=4
 IFS=';' read -ra TARGETS <<< "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
 for target in "${TARGETS[@]}"; do
     if [[ "$target" != "gfx1150" && "$target" != "gfx1151" ]]; then
@@ -19,9 +19,11 @@ for target in "${TARGETS[@]}"; do
 done
 
 if [[ "$ONLY_RDNA35" == "true" ]]; then
+    NUMBER_OF_THREADS=6
     EXTRA_CMAKE_ARGS="-DDISABLE_DL_KERNELS=ON -DDISABLE_DPP_KERNELS=ON"
     CK_ACTUALLY_USED_GPU_ARCHS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}
 else
+    NUMBER_OF_THREADS=4
     EXTRA_CMAKE_ARGS="-DMIOPEN_REQ_LIBS_ONLY:BOOL=ON -DHIPTENSOR_REQ_LIBS_ONLY:BOOL=ON"
     # To keep the compilation time and memory usage down, we prefer to use the generic target
     # used by default in composable-kernel, i.e. in 7.2.3 : gfx10-3-generic;gfx11-generic;gfx12-generic
