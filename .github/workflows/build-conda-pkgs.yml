@@ -19,6 +19,8 @@ env:
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
+  # Try to avoid "warning: The server looks like it shut down unexpectedly, compiling locally instead" errors
+  SCCACHE_IDLE_TIMEOUT: "0"
   # If true, upload the conda packages folder as a GitHub Actions artifact
   ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS: "true"
   # Upload packages when manually requested via workflow_dispatch input,
