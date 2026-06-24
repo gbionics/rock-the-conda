@@ -38,7 +38,7 @@ jobs:
     runs-on: ${{ matrix.runs_on }}
     # The default value of this is 360, we keep it large as rocm builds can take a long time,
     # 7200 is the maximum values allowed by GitHub Actions
-    timeout-minutes: 3600
+    timeout-minutes: 7199
     strategy:
       fail-fast: false
       matrix:
