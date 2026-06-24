@@ -36,8 +36,9 @@ jobs:
     if: github.event.action != 'labeled' || github.event.label.name == 'upload-packages'
     name: '[pixi:build-packages:${{ matrix.job_name }}]'
     runs-on: ${{ matrix.runs_on }}
-    # The default value of this is 360, we keep it large as rocm builds can take a long time
-    timeout-minutes: 36000
+    # The default value of this is 360, we keep it large as rocm builds can take a long time,
+    # 7200 is the maximum values allowed by GitHub Actions
+    timeout-minutes: 7200
     strategy:
       fail-fast: false
       matrix:
