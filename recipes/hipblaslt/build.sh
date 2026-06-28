@@ -7,6 +7,7 @@ export ROCM_PATH=${PREFIX}
 # Expand xnack variants for gfx908 and gfx90a if present in CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS.
 # The variable is a ';'-separated list. Bare gfx908/gfx90a entries expand to
 # '<arch>:xnack+;<arch>:xnack-'. Entries already with modifiers are preserved.
+# gfx1030 is dropped from this translated list.
 # This is done as the hipblaslt upstream mention that there is a performance benefit in compiling
 # for xnack+ and xnack- separately for these architectures.
 GPU_TARGETS_EXPANDED=""
@@ -24,6 +25,8 @@ if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
             gfx908:*|gfx90a:*)
                 _expanded_targets+=("${_t}")
                 ;;
+            gfx1030|gfx1030:*)
+                ;;
             "")
                 ;;
             *)
@@ -35,7 +38,7 @@ if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
 fi
 
 echo "Original CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS: ${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
-echo "GPU_TARGETS option passed after adding xnack variants for gfx908 and gfx90a: ${GPU_TARGETS_EXPANDED}"
+echo "GPU_TARGETS option passed after doing hipblaslt specific changes: ${GPU_TARGETS_EXPANDED}"
 
 # A lot of part of the build system hardcode amdclang++ as compiler and assume that is in $PREFIX, let's temporary
 # add a symlink with this name, see https://github.com/ROCm/rocm-libraries/issues/944
