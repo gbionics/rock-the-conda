@@ -43,6 +43,7 @@ requirements:
     - zlib
     - elfutils
     - libdrm
+    - nlohmann_json
   run_exports:
     - ${{ pin_subpackage("rocprofiler-sdk", upper_bound="x.x") }}
 
