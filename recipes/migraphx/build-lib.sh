@@ -33,6 +33,8 @@ ln -sf ../half_float/half.hpp ${PREFIX}/include/half/half.hpp
 cmake -GNinja -S migraphx -B migraphx/build \
     ${CMAKE_ARGS} \
     -DGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
+    -DPython_EXECUTABLE=$PYTHON \
+    -DPython3_EXECUTABLE=$PYTHON \
     -DBUILD_TESTING=OFF \
     -DMIGRAPHX_ENABLE_PYTHON=OFF \
     -DMIGRAPHX_USE_MIOPEN=ON \
