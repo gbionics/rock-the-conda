@@ -7,7 +7,7 @@ export ROCM_PATH=${PREFIX}
 # Expand xnack variants for gfx908 and gfx90a if present in CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS.
 # The variable is a ';'-separated list. Bare gfx908/gfx90a entries expand to
 # '<arch>:xnack+;<arch>:xnack-'. Entries already with modifiers are preserved.
-# gfx1030 is dropped from this translated list.
+# gfx1030 is dropped from this translated list, see https://github.com/gbionics/rock-the-conda/pull/50#issuecomment-4827565479
 # This is done as the hipblaslt upstream mention that there is a performance benefit in compiling
 # for xnack+ and xnack- separately for these architectures.
 GPU_TARGETS_EXPANDED=""

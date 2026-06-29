@@ -49,10 +49,12 @@ jobs:
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
             pixi_env: 'default'
+            token_env_var: 'ROCK_THE_CONDA_STRIX_TOKEN'
           - job_name: 'build-all-packages'
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
             pixi_env: 'all-archs'
+            token_env_var: 'ROCK_THE_CONDA_ALL_ARCHS_TOKEN'
 
     steps:
     - uses: actions/checkout@v6
@@ -114,7 +116,11 @@ jobs:
         retention-days: 14
 
     - name: Upload packages
-      if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
+      if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
       env:
-        ROCK_THE_CONDA_PREFIX_DEV_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
-      run: pixi run -e ${{ matrix.pixi_env }} upload-all
+        ROCK_THE_CONDA_STRIX_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
+        ROCK_THE_CONDA_ALL_ARCHS_TOKEN: ${{ secrets.ROCK_THE_CONDA_ALL_ARCHS_PREFIX_DEV_TOKEN }}
+      run: |
+        token_var="${{ matrix.token_env_var }}"
+        export ROCK_THE_CONDA_PREFIX_DEV_TOKEN="${!token_var}"
+        pixi run -e ${{ matrix.pixi_env }} upload-all
