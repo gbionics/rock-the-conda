@@ -1,35 +1,21 @@
 diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
-index 4756b81..8c4a9fd 100644
+index 5bee3dc..a6f519d 100644
 --- a/external/CMakeLists.txt
 +++ b/external/CMakeLists.txt
-@@ -131,13 +131,8 @@ if(NOT TARGET PTL::ptl-static)
-     add_subdirectory(ptl EXCLUDE_FROM_ALL)
- endif()
+@@ -138,7 +138,8 @@ rocprofiler_checkout_git_submodule(
+     REPO_URL https://github.com/jbeder/yaml-cpp.git
+     REPO_BRANCH "master")
  
--rocprofiler_checkout_git_submodule(
--    RECURSIVE
--    RELATIVE_PATH external/yaml-cpp
--    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
--    REPO_URL https://github.com/jbeder/yaml-cpp.git
--    REPO_BRANCH "master")
--
 -add_subdirectory(yaml-cpp EXCLUDE_FROM_ALL)
 +# Use system yaml-cpp instead of building from submodule
-+find_package(yaml-cpp REQUIRED)
++find_package(yaml-cpp REQUIRED GLOBAL)
  
  target_link_libraries(rocprofiler-sdk-yaml-cpp
                        INTERFACE $<BUILD_INTERFACE:yaml-cpp::yaml-cpp>)
-@@ -217,18 +212,11 @@ endif()
- #
- add_subdirectory(otf2)
+@@ -224,13 +225,10 @@ rocprofiler_checkout_git_submodule(
+     REPO_URL https://github.com/nlohmann/json.git
+     REPO_BRANCH "develop")
  
--rocprofiler_checkout_git_submodule(
--    RECURSIVE
--    RELATIVE_PATH external/json
--    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
--    REPO_URL https://github.com/nlohmann/json.git
--    REPO_BRANCH "develop")
--
 -#
 -# JSON
 -#
@@ -38,7 +24,7 @@ index 4756b81..8c4a9fd 100644
 -    rocprofiler-sdk-json SYSTEM
 -    INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/json/include>)
 +# Use system nlohmann_json instead of building from submodule
-+find_package(nlohmann_json REQUIRED)
++find_package(nlohmann_json REQUIRED GLOBAL)
 +target_link_libraries(rocprofiler-sdk-json INTERFACE nlohmann_json::nlohmann_json)
 +target_include_directories(rocprofiler-sdk-json SYSTEM INTERFACE)
  

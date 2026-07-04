@@ -14,9 +14,11 @@ source:
     - 0002-disable-cpackaging.patch
     - 0003-add-rocprofiler-register-target.patch
     - 0004-add-missing-headers.patch
+    - 0005-devendor-elfio-and-otf2.patch
+    - 0006-fix-find-package-scoping.patch
 
 build:
-  number: 1
+  number: 2
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -38,6 +40,7 @@ requirements:
     - gotcha
     - glog
     - elfio
+    - otf2
     - tbb-devel
     - pybind11
     - zlib

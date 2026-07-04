@@ -1,0 +1,47 @@
+context:
+  name: otf2
+  version: "3.0.3"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://perftools.pages.jsc.fz-juelich.de/cicd/otf2/tags/otf2-${{ version }}/otf2-${{ version }}.tar.gz
+  sha256: 18a3905f7917340387e3edc8e5766f31ab1af41f4ecc5665da6c769ca21c4ee8
+
+build:
+  number: 0
+  skip:
+    - not linux
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - make
+    - pkg-config
+  run_exports:
+    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+
+tests:
+  - package_contents:
+      include:
+        - otf2/otf2.h
+      lib:
+        - otf2
+
+about:
+  homepage: https://perftools.pages.jsc.fz-juelich.de/cicd/otf2
+  repository: https://gitlab.jsc.fz-juelich.de/perftools/otf2
+  license: BSD-3-Clause
+  license_file:
+    - COPYING
+  summary: "The Open Trace Format 2 library"
+  description: |
+    OTF2 is a highly scalable, memory efficient event trace data format plus
+    support library, and the successor of OTF.
+
+extra:
+  recipe-maintainers:
+    - traversaro

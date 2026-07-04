@@ -1,0 +1,74 @@
+diff --git a/cmake/rocprofiler_options.cmake b/cmake/rocprofiler_options.cmake
+index 08d1032..fd56bbd 100644
+--- a/cmake/rocprofiler_options.cmake
++++ b/cmake/rocprofiler_options.cmake
+@@ -65,6 +65,10 @@ rocprofiler_add_option(ROCPROFILER_BUILD_PYBIND11
+                        "Enable building pybind11 library internally" ON)
+ rocprofiler_add_option(ROCPROFILER_BUILD_GOTCHA
+                        "Enable building gotcha library internally" ON)
++rocprofiler_add_option(ROCPROFILER_BUILD_ELFIO "Enable building ELFIO library internally"
++                       ON)
++rocprofiler_add_option(ROCPROFILER_BUILD_OTF2 "Enable building OTF2 library internally"
++                       ON)
+ if(ROCPROFILER_BUILD_TESTS)
+     rocprofiler_add_option(
+         ROCPROFILER_BUILD_GTEST
+diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
+index a6f519d..598825e 100644
+--- a/external/CMakeLists.txt
++++ b/external/CMakeLists.txt
+@@ -197,26 +197,39 @@ target_link_libraries(
+     INTERFACE $<BUILD_INTERFACE:rocprofiler-sdk-perfetto-static-library>)
+ 
+ # ELFIO
+-rocprofiler_checkout_git_submodule(
+-    RECURSIVE
+-    RELATIVE_PATH external/elfio
+-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+-    REPO_URL https://github.com/serge1/ELFIO.git
+-    REPO_BRANCH "Release_3.12")
+-
+-set(ELFIO_BUILD_EXAMPLES OFF)
+-set(ELFIO_BUILD_TESTS OFF)
+-add_subdirectory(elfio EXCLUDE_FROM_ALL)
+-if(TARGET rocprofiler-sdk-elfio)
+-    get_target_property(ELFIO_INCLUDE_DIR elfio::elfio INTERFACE_INCLUDE_DIRECTORIES)
+-    target_include_directories(rocprofiler-sdk-elfio SYSTEM
+-                               INTERFACE ${ELFIO_INCLUDE_DIR})
++if(ROCPROFILER_BUILD_ELFIO)
++    rocprofiler_checkout_git_submodule(
++        RECURSIVE
++        RELATIVE_PATH external/elfio
++        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
++        REPO_URL https://github.com/serge1/ELFIO.git
++        REPO_BRANCH "Release_3.12")
++
++    set(ELFIO_BUILD_EXAMPLES OFF)
++    set(ELFIO_BUILD_TESTS OFF)
++    add_subdirectory(elfio EXCLUDE_FROM_ALL)
++    if(TARGET rocprofiler-sdk-elfio)
++        get_target_property(ELFIO_INCLUDE_DIR elfio::elfio INTERFACE_INCLUDE_DIRECTORIES)
++        target_include_directories(rocprofiler-sdk-elfio SYSTEM
++                                   INTERFACE ${ELFIO_INCLUDE_DIR})
++    endif()
++else()
++    find_package(elfio REQUIRED GLOBAL)
++    target_link_libraries(rocprofiler-sdk-elfio INTERFACE elfio::elfio)
+ endif()
+ 
+ #
+ # OTF2
+ #
+-add_subdirectory(otf2)
++if(ROCPROFILER_BUILD_OTF2)
++    add_subdirectory(otf2)
++else()
++    find_package(PkgConfig REQUIRED)
++    pkg_check_modules(OTF2 REQUIRED IMPORTED_TARGET otf2)
++    add_library(otf2 INTERFACE)
++    add_library(otf2::otf2 ALIAS otf2)
++    target_link_libraries(otf2 INTERFACE PkgConfig::OTF2)
++endif()
+ 
+ rocprofiler_checkout_git_submodule(
+     RECURSIVE
