@@ -77,10 +77,9 @@ index 1a2b3c4e..7f8b9e5f 100644
  // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  // SOFTWARE.
-+
 +// Missing fmt/ranges.h for fmt::join
 +#include <fmt/ranges.h>
- 
+
  #include "generateStats.hpp"
  #include "domain_type.hpp"
 diff --git a/source/lib/rocprofiler-sdk-tool/tool.cpp b/source/lib/rocprofiler-sdk-tool/tool.cpp
@@ -181,6 +180,21 @@ index 1a2b3c4e..7f8b9e5f 100644
  
  #include "lib/rocprofiler-sdk/hsa/queue.hpp"
  #include "lib/common/scope_destructor.hpp"
+diff --git a/source/lib/common/elf_utils.hpp b/source/lib/common/elf_utils.hpp
+index 1a2b3c4e..7f8b9e5f 100644
+--- a/source/lib/common/elf_utils.hpp
++++ b/source/lib/common/elf_utils.hpp
+@@ -22,9 +22,9 @@
+ 
+ #pragma once
+ 
+-#include <elfio/elfio.hpp>
+-
+ #include <cstdint>
++#include <elfio/elfio.hpp>
+ #include <functional>
+ #include <map>
+ #include <ostream>
 diff --git a/external/elfio/elfio/elf_types.hpp b/external/elfio/elfio/elf_types.hpp
 index 1234567..abcdefg 100644
 --- a/external/elfio/elfio/elf_types.hpp
