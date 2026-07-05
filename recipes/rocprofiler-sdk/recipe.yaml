@@ -40,7 +40,7 @@ requirements:
     - gotcha
     - glog
     - elfio
-    - otf2
+    - libotf2
     - tbb-devel
     - pybind11
     - zlib

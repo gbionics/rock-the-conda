@@ -1,9 +1,8 @@
 context:
-  name: otf2
   version: "3.0.3"
 
 package:
-  name: ${{ name|lower }}
+  name: libotf2
   version: ${{ version }}
 
 source:
@@ -21,10 +20,8 @@ requirements:
     - ${{ stdlib('c') }}
     - make
     - pkg-config
-    # import imp is used in the build script
-    - python <3.12
   run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+    - ${{ pin_subpackage('libotf2', upper_bound="x.x") }}
 
 tests:
   - package_contents:
@@ -45,5 +42,6 @@ about:
     support library, and the successor of OTF.
 
 extra:
+  feedstock-name: otf2
   recipe-maintainers:
     - traversaro
