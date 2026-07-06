@@ -1,0 +1,12 @@
+diff --git a/source/lib/output/generateStats.cpp b/source/lib/output/generateStats.cpp
+--- a/source/lib/output/generateStats.cpp
++++ b/source/lib/output/generateStats.cpp
+@@ -33,6 +33,7 @@
+ #include <rocprofiler-sdk/fwd.h>
+ #include <rocprofiler-sdk/marker/api_id.h>
+ 
+ #include <fmt/format.h>
++#include <fmt/ranges.h>
+ 
+ #include <unistd.h>
+ #include <cstdint>

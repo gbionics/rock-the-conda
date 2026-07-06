@@ -17,6 +17,7 @@ source:
     - 0005-devendor-elfio-and-otf2.patch
     - 0006-fix-find-package-scoping.patch
     - 0007-fix-elfio-cstdint-order.patch
+    - 0008-fix-fmt-join-include.patch
 
 build:
   number: 3
