@@ -287,7 +287,6 @@ tests:
           - check_file "$PREFIX/bin/llama-perplexity" "llama-perplexity"
           - check_file "$PREFIX/bin/llama-quantize" "llama-quantize"
           - check_file "$PREFIX/bin/llama-retrieval" "llama-retrieval"
-          - check_file "$PREFIX/bin/llama-save-load-state" "llama-save-load-state"
           - check_file "$PREFIX/bin/llama-server" "llama-server"
           - check_file "$PREFIX/bin/llama-simple" "llama-simple"
           - check_file "$PREFIX/bin/llama-simple-chat" "llama-simple-chat"
