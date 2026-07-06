@@ -96,7 +96,9 @@ jobs:
       uses: mozilla-actions/sccache-action@v0.0.9
 
     - name: Build packages
-      run: pixi run -e ${{ matrix.pixi_env }} build-packages
+      run: |
+        unset LD_LIBRARY_PATH
+        pixi run -e ${{ matrix.pixi_env }} build-packages
 
     - name: Save build cache
       uses: actions/cache/save@v4
