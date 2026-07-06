@@ -1,6 +1,6 @@
 context:
   name: llama.cpp
-  version: "8646"
+  version: "9851"
   build: 0
   # ensure arm_variant_type gets detected as a used variable
   touch_arm_variant_type: ${{ arm_variant_type if (linux and aarch64) else "None" }}
@@ -11,7 +11,7 @@ package:
 
 source:
   url: https://github.com/ggml-org/${{ name }}/archive/b${{ version | split(".") | list | last }}.tar.gz
-  sha256: b22ebfa6e9cbbcb9f9db34aa97a359d88fc29151f622fd6d660515150779aa57
+  sha256: 6ebb3afc8afec3774e26d19348948e358fb2215bc1e9dde4fa971612ed6c4bf5
 
 
 build:
@@ -200,6 +200,7 @@ requirements:
         - libvulkan-headers
         - libvulkan-loader
         - shaderc
+        - spirv-headers
     - if: cuda_compiler_version != "None"
       then:
         # NOTE: Without cuda-version, we are installing cuda-toolkit 11.8 instead of 11.2!
@@ -258,7 +259,7 @@ tests:
 
         # Check binaries
           - echo "Checking binary files..."
-          - check_file "$PREFIX/bin/convert_hf_to_gguf.py" "convert_hf_to_gguf.py"
+          - check_file "$PREFIX/bin/llama" "llama"
           - check_file "$PREFIX/bin/llama-batched" "llama-batched"
           - check_file "$PREFIX/bin/llama-batched-bench" "llama-batched-bench"
           - check_file "$PREFIX/bin/llama-bench" "llama-bench"
