@@ -35,6 +35,7 @@ ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
 ROCK_THE_CONDA_ROCM_GPU_TARGETS = "gfx1150;gfx1151"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental"
+CONDA_BUILD_ARGS_LLVM = "-c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
 
 [feature.all-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
@@ -135,7 +136,7 @@ download-torchcodec-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feeds
 download-flash-attn-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/flash-attn-feedstock/.git || git clone $FLASH_ATTN_FEEDSTOCK_REPO ./feedstocks/flash-attn-feedstock) && git -C ./feedstocks/flash-attn-feedstock fetch --all --tags && git -C ./feedstocks/flash-attn-feedstock checkout $FLASH_ATTN_FEEDSTOCK_COMMIT" }
 build-triton-feedstock = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
 build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
-build-llvmdev-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/llvmdev-feedstock/recipe", depends-on = ["download-llvmdev-feedstock"], outputs = ["output/linux-64/llvmdev-*.conda"] }
+build-llvmdev-feedstock = { cmd = "conda-build -c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output ./feedstocks/llvmdev-feedstock/recipe", depends-on = ["download-llvmdev-feedstock"], outputs = ["output/linux-64/llvmdev-*.conda"] }
 build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./pytorch/conda_build_config.yaml -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock", "build-llvmdev-feedstock"], outputs = ["output/linux-64/pytorch-*.conda"] }
 build-pytorch-no-deps = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./pytorch/conda_build_config.yaml -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe"}
 build-torchvision-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS -m ./pytorch/conda_build_config.yaml -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml --recipe-dir ./feedstocks/torchvision-feedstock/recipe", outputs = ["output/linux-64/torchvision-*.conda"] }
