@@ -123,6 +123,8 @@ jobs:
       run: |
         # Sometimes we build llvm packages for internal use, but we never want to upload them
         rm -rf ${{ matrix.folder_cache }}/llvm*
+        rm -rf ${{ matrix.folder_cache }}/libllvm*
+        rm -rf ${{ matrix.folder_cache }}/lit*
 
     - name: Upload packages
       if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
