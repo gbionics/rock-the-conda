@@ -1,0 +1,40 @@
+[workspace]
+authors = ["Silvio Traversaro <silvio@traversaro.it>"]
+name = "pytorch"
+platforms = ["linux-64"]
+channels = []
+
+# Run:
+# pixi run benchmark to run a GPU matrix multiplication benchmark with ROCm, and
+# pixi run check to verify PyTorch can see the ROCm GPU and print device info
+# pixi run -e strix benchmark uses the strix-specific package (more lightweight)
+# pixi run -e cpu benchmark to run the same matrix multiplication benchmark on CPU
+
+[feature.allarchs]
+channels = ["https://prefix.dev/rock-the-conda", "https://prefix.dev/conda-forge"]
+
+[feature.strixarchs]
+channels = ["https://prefix.dev/rock-the-conda-strix", "https://prefix.dev/conda-forge"]
+
+[feature.cpudeps]
+channels = ["https://prefix.dev/conda-forge"]
+
+[feature.rocmdeps.dependencies]
+pytorch = { version = "*", build = "*rocm*" }
+python = "*"
+
+[feature.cpudeps.dependencies]
+pytorch = { version = "*", build = "*cpu*" }
+python = "*"
+
+[feature.tasks.tasks]
+check = { cmd = "python check_gpu.py" }
+benchmark = { cmd = "python benchmark.py" }
+
+[feature.cputasks.tasks]
+benchmark = { cmd = "python benchmark.py --device cpu" }
+
+[environments]
+default = { features = ["tasks", "allarchs", "rocmdeps"], no-default-feature = true }
+strix = { features = ["tasks", "strixarchs", "rocmdeps"], no-default-feature = true }
+cpu = { features = ["cputasks", "allarchs", "cpudeps"], no-default-feature = true }
