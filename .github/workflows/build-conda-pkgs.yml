@@ -92,8 +92,11 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    # the sccache version here needs to be the same of the one in pixi.lock
     - name: Setup sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.10
+      with:
+        version: "v0.15.0"
 
     - name: Build packages
       run: |
