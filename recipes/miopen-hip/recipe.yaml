@@ -37,6 +37,7 @@ requirements:
     - hipblaslt
     - rocrand
     - composable-kernel ${{ version }}.*
+    - rocmlir
     - sqlite
     - libboost-devel
     - nlohmann_json
@@ -50,6 +51,7 @@ requirements:
     - rocblas
     - hipblaslt
     - composable-kernel
+    - rocmlir
     - sqlite
     - bzip2
   run_exports:
