@@ -40,11 +40,16 @@ outputs:
   - package:
       name: libamd-smi
     inherit: amdsmi-build
-    build:
-      files:
-        - lib/libamd_smi.so*
-        - include/amd_smi/**
     requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - cmake >=3.20
+        - ninja
+        - pkg-config
+      host:
+        - libdrm
       run_exports:
         - ${{ pin_subpackage('libamd-smi', upper_bound='x.x') }}
       run:
