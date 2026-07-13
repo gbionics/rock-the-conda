@@ -57,6 +57,7 @@ outputs:
         - rocmlir
         - libprotobuf
         - libboost-devel
+        - python
     build:
       script: build-lib.sh
 

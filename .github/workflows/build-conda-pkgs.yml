@@ -19,6 +19,8 @@ env:
   IGNORE_CACHE_AND_DO_FULL_REBUILD: 'false'
   # This env variable triggers the GHA cache support in sccache
   SCCACHE_GHA_ENABLED: "on"
+  # Try to avoid "warning: The server looks like it shut down unexpectedly, compiling locally instead" errors
+  SCCACHE_IDLE_TIMEOUT: "0"
   # If true, upload the conda packages folder as a GitHub Actions artifact
   ROCK_THE_CONDA_UPLOAD_PACKAGES_AS_ARTIFACTS: "true"
   # Upload packages when manually requested via workflow_dispatch input,
@@ -36,8 +38,9 @@ jobs:
     if: github.event.action != 'labeled' || github.event.label.name == 'upload-packages'
     name: '[pixi:build-packages:${{ matrix.job_name }}]'
     runs-on: ${{ matrix.runs_on }}
-    # The default value of this is 360, we keep it large as rocm builds can take a long time
-    timeout-minutes: 3600
+    # The default value of this is 360, we keep it large as rocm builds can take a long time,
+    # 7200 is the maximum values allowed by GitHub Actions
+    timeout-minutes: 7199
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +48,13 @@ jobs:
           - job_name: 'build-strix-packages'
             runs_on: [self-hosted, linux, x64, amdgpu]
             folder_cache: 'output/linux-64'
+            pixi_env: 'default'
+            token_env_var: 'ROCK_THE_CONDA_STRIX_TOKEN'
+          - job_name: 'build-all-packages'
+            runs_on: [self-hosted, linux, x64, amdgpu]
+            folder_cache: 'output/linux-64'
+            pixi_env: 'all-archs'
+            token_env_var: 'ROCK_THE_CONDA_ALL_ARCHS_TOKEN'
 
     steps:
     - uses: actions/checkout@v6
@@ -82,11 +92,16 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    # the sccache version here needs to be the same of the one in pixi.lock
     - name: Setup sccache
-      uses: mozilla-actions/sccache-action@v0.0.9
+      uses: mozilla-actions/sccache-action@v0.0.10
+      with:
+        version: "v0.14.0"
 
     - name: Build packages
-      run: pixi run build-packages
+      run: |
+        unset LD_LIBRARY_PATH
+        pixi run -e ${{ matrix.pixi_env }} build-packages
 
     - name: Save build cache
       uses: actions/cache/save@v4
@@ -105,8 +120,21 @@ jobs:
         if-no-files-found: warn
         retention-days: 14
 
+    - name: Never up
+      shell: bash -l {0}
+      if: always()
+      run: |
+        # Sometimes we build llvm packages for internal use, but we never want to upload them
+        rm -rf ${{ matrix.folder_cache }}/llvm*
+        rm -rf ${{ matrix.folder_cache }}/libllvm*
+        rm -rf ${{ matrix.folder_cache }}/lit*
+
     - name: Upload packages
-      if: ${{ env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
+      if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
       env:
-        ROCK_THE_CONDA_PREFIX_DEV_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
-      run: pixi run upload-all
+        ROCK_THE_CONDA_STRIX_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
+        ROCK_THE_CONDA_ALL_ARCHS_TOKEN: ${{ secrets.ROCK_THE_CONDA_ALL_ARCHS_PREFIX_DEV_TOKEN }}
+      run: |
+        token_var="${{ matrix.token_env_var }}"
+        export ROCK_THE_CONDA_PREFIX_DEV_TOKEN="${!token_var}"
+        pixi run -e ${{ matrix.pixi_env }} upload-all

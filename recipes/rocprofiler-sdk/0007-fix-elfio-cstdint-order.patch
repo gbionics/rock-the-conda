@@ -1,0 +1,11 @@
+--- a/source/lib/common/elf_utils.cpp
++++ b/source/lib/common/elf_utils.cpp
+@@ -20,6 +20,8 @@
+ // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ // SOFTWARE.
+ 
++#include <cstdint>
++
+ #include "lib/common/elf_utils.hpp"
+ 
+ #include <rocprofiler-sdk/cxx/utility.hpp>

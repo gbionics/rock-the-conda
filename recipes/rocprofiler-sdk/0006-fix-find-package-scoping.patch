@@ -1,0 +1,32 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d7c04dd..7c43286 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
++cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
+ 
+ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR AND CMAKE_CURRENT_SOURCE_DIR STREQUAL
+                                                   CMAKE_SOURCE_DIR)
+diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
+index a6f519d..412aedb 100644
+--- a/external/CMakeLists.txt
++++ b/external/CMakeLists.txt
+@@ -64,7 +64,7 @@ if(ROCPROFILER_BUILD_TESTS)
+         mark_as_advanced(BUILD_GMOCK)
+         mark_as_advanced(GTEST_HAS_ABSL)
+     else()
+-        find_package(GTest REQUIRED)
++        find_package(GTest REQUIRED GLOBAL)
+         target_link_libraries(rocprofiler-sdk-gtest INTERFACE GTest::gtest)
+     endif()
+ endif()
+@@ -111,7 +111,7 @@ if(ROCPROFILER_BUILD_FMT)
+         rocprofiler-sdk-fmt SYSTEM
+         INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external/fmt/include>)
+ else()
+-    find_package(fmt REQUIRED)
++    find_package(fmt REQUIRED GLOBAL)
+     target_link_libraries(rocprofiler-sdk-fmt INTERFACE fmt::fmt)
+ endif()
+ 
