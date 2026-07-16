@@ -45,6 +45,7 @@ requirements:
     - roctracer
     - cpp-half
     - frugally-deep
+    - functionalplus
     - eigen-abi-devel
   run:
     - hip-runtime-amd
