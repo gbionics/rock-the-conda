@@ -44,7 +44,7 @@ requirements:
     - bzip2
     - roctracer
     - cpp-half
-    - frugally-deep
+    - frugally-deep >=0.20.0
     - functionalplus
     - eigen-abi-devel
   run:
