@@ -14,8 +14,10 @@ find_library(_rocmlir_capi_rock MLIRCAPIRock
     HINTS "${_rocmlir_prefix}/lib" NO_DEFAULT_PATH)
 find_library(_rocmlir_capi_register MLIRCAPIRegisterRocMLIR
     HINTS "${_rocmlir_prefix}/lib" NO_DEFAULT_PATH)
+find_library(_rocmlir_thin MLIRRockThin
+    HINTS "${_rocmlir_prefix}/lib" NO_DEFAULT_PATH)
 
-if(NOT _rocmlir_capi_migraphx OR NOT _rocmlir_capi_rock OR NOT _rocmlir_capi_register)
+if(NOT _rocmlir_capi_migraphx OR NOT _rocmlir_capi_rock OR NOT _rocmlir_capi_register OR NOT _rocmlir_thin)
     set(rocMLIR_FOUND FALSE)
     set(rocMLIR_NOT_FOUND_MESSAGE
         "rocMLIR C-API libraries not found (looked in ${_rocmlir_prefix}/lib)")
@@ -26,7 +28,7 @@ if(NOT TARGET rocMLIR::rockCompiler)
     add_library(rocMLIR::rockCompiler INTERFACE IMPORTED)
     set_target_properties(rocMLIR::rockCompiler PROPERTIES
         INTERFACE_LINK_LIBRARIES
-            "${_rocmlir_capi_migraphx};${_rocmlir_capi_rock};${_rocmlir_capi_register}"
+            "${_rocmlir_thin};${_rocmlir_capi_migraphx};${_rocmlir_capi_rock};${_rocmlir_capi_register}"
         INTERFACE_INCLUDE_DIRECTORIES
             "${_rocmlir_prefix}/include"
     )
