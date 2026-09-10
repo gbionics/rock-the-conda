@@ -20,6 +20,11 @@ cmake -S . -B build -GNinja \
 cmake --build build -j${CPU_COUNT}
 cmake --install build
 
+# MLIRRockThin provides MIOpen's interface without the fat rockCompiler archive.
+install -Dm755 build/lib/libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.so.2.0"
+ln -sf libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.so"
+install -Dm644 mlir/tools/rocmlir-lib/Miir.h "${PREFIX}/include/Miir.h"
+
 # rocMLIR only installs headers in BUILD_FAT_LIBROCKCOMPILER mode,
 # but downstream packages like MIGraphX need the C API headers.
 # First, install the base MLIR C API headers from the bundled LLVM.
