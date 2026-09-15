@@ -66,6 +66,14 @@ jobs:
         # avoid donwloading and re-uploading the pixi cache every time
         cache: false
 
+    - name: Debug virtual packages
+      shell: bash -l {0}
+      run: |
+        # Sometimes we build llvm packages for internal use, but we never want to upload them
+        git clone https://github.com/traversaro/amdgpu-virtual-packages
+        cd amdgpu-virtual-packages
+        pixi run --manifest-path . print-amdgpu-virtual-packages
+
     - name: Print pixi info
       run: pixi info
 
