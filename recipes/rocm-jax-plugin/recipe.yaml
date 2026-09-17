@@ -1,8 +1,8 @@
 context:
   name: jax-rocm7-plugin
-  version: "0.7.1"
-  rocm_version: "7.0.2"
-  build: 2
+  version: "0.11.1"
+  rocm_version: "7.2.1"
+  build: 0
 
 package:
   name: ${{ name }}
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-jax/archive/refs/tags/rocm-jax-v${{ version }}.tar.gz
-  sha256: 8f71d9459140e95d5e67cec89a3d8681136b534e3bab46a1ba5aa63a614bad54
+  sha256: 363afe82c356bca5a4430111227727fccc47e2df42b3f8b7a9102e18b42938b8
 
 build:
   number: ${{ build }}
@@ -19,7 +19,6 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
     - match(python, "<3.11")
-    - linux
 
 requirements:
   build:
