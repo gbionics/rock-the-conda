@@ -25,6 +25,22 @@ install -Dm755 build/lib/libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.s
 ln -sf libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.so"
 install -Dm644 mlir/tools/rocmlir-lib/Miir.h "${PREFIX}/include/Miir.h"
 
+# rocMLIR's C API libraries are linked against SO from the bundled
+# LLVM/MLIR tree, but with BUILD_FAT_LIBROCKCOMPILER=OFF cmake installs
+# rocMLIR's own targets.
+shopt -s nullglob
+for _mlir_lib in build/lib/libMLIR*.so*; do
+    _mlir_base="$(basename "${_mlir_lib}")"
+    # Avoid replacing stuff that cmake has already installed.
+    [ -e "${PREFIX}/lib/${_mlir_base}" ] && continue
+    if [ -L "${_mlir_lib}" ]; then
+        cp -P "${_mlir_lib}" "${PREFIX}/lib/${_mlir_base}"
+    else
+        install -Dm755 "${_mlir_lib}" "${PREFIX}/lib/${_mlir_base}"
+    fi
+done
+shopt -u nullglob
+
 # rocMLIR only installs headers in BUILD_FAT_LIBROCKCOMPILER mode,
 # but downstream packages like MIGraphX need the C API headers.
 # First, install the base MLIR C API headers from the bundled LLVM.
