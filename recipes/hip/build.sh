@@ -8,7 +8,7 @@ export HIP_CLANG_PATH=${PREFIX}/bin
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
-cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE ..
+cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_Git=ON ..
 make VERBOSE=1 -j${CPU_COUNT}
 make install
 popd
@@ -33,6 +33,7 @@ cmake -LAH \
   -DAMD_OPENCL_INCLUDE_DIR=$SRC_DIR/clr/opencl/amdocl/ \
   -DHIP_ENABLE_ROCPROFILER_REGISTER=OFF \
   -DHIP_CLANG_PATH=$PREFIX/bin \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Git=ON \
   ..
 
 make VERBOSE=1 -j${CPU_COUNT}
@@ -70,7 +71,7 @@ for CHANGE in "activate" "deactivate"
 do
     mkdir -p "${PREFIX}/etc/conda/${CHANGE}.d"
     cp "${RECIPE_DIR}/activate/hip_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip_${CHANGE}.sh"
-    cp "${RECIPE_DIR}/activate/hip-clang_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip-clang_${CHANGE}.sh"
+    cp "${RECIPE_DIR}/activate/hip-rocm-clang_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip-rocm-clang_${CHANGE}.sh"
 done
 
 # register the opencl implementation
