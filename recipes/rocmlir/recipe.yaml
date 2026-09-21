@@ -1,7 +1,6 @@
 context:
   name: rocmlir
   version: "7.2.1"
-  llvm_version: "20"
 
 package:
   name: ${{ name|lower }}
@@ -30,27 +29,26 @@ requirements:
     - git
   host:
     - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - rocr-runtime
 
 tests:
   - package_contents:
       files:
-        - bin/rocmlir-opt
-        - bin/rocmlir-gen
+        - lib/librockCompiler.so
         - lib/cmake/rocmlir/rocmlir-config.cmake
-        - lib/cmake/rocmlir/rocmlir-config-version.cmake
-        - lib/libMLIRExecutionEngineUtils.so*
+        - lib/cmake/rocmlir/rocmlir-targets.cmake
       include:
-        - mlir-c/IR.h
-        - mlir-c/Support.h
-        - mlir-c/Dialect/Rock.h
-        - mlir-c/Dialect/RockEnums.h
-        - mlir-c/Dialect/MIGraphX.h
-        - Miir.h
-      lib:
-        - MLIRRockThin
-        - MLIRCAPIMIGraphX
-        - MLIRCAPIRock
-        - MLIRCAPIRegisterRocMLIR
+        - rocmlir/Miir.h
+        - rocmlir/external/include/mlir-c/IR.h
+        - rocmlir/mlir-c/Dialect/Rock.h
+        - rocmlir/mlir-c/Dialect/MIGraphX.h
+  - script:
+      - grep -q miirCreateHandle ${PREFIX}/lib/librockCompiler.so
+      - grep -q mlirContextCreate ${PREFIX}/lib/librockCompiler.so
+      - test ! -e ${PREFIX}/lib/librockCompiler.a
+      - test -z "$(ls ${PREFIX}/lib/libMLIR*.so* 2>/dev/null)"
+      - test ! -e ${PREFIX}/lib/libMLIRRockOps.a
 
 about:
   homepage: https://github.com/ROCm/rocMLIR
