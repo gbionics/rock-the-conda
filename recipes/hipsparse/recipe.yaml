@@ -1,6 +1,6 @@
 context:
   name: hipsparse
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipsparse.tar.gz
-  sha256: 5292b78254d146bbceeaa799fa17e5b8a876c0e72e1a606f5c4e7e4792e9ce1f
+  sha256: a1a1212746e4605703a3b42644bad83b07f6e7369d651dd657cd35611504a57a
 
 build:
   number: 0

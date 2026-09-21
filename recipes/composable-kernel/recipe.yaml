@@ -1,6 +1,6 @@
 context:
   name: composable-kernel
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/composablekernel.tar.gz
-  sha256: b5a699f1bce24727ed333aeed8afd10a8ac3c1ddcf86eb86ec9d638a22c24125
+  sha256: ace080bd7a0cbd4abb94d515d9bf08158aa8d5e94901730b71403000192b2dfa
 
 build:
   number: 0

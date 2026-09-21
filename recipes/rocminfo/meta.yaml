@@ -1,5 +1,6 @@
 {% set name = "rocminfo" %}
-{% set version = "7.2.1" %}
+{% set version = "7.2.4" %}
+
 
 
 
@@ -9,7 +10,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/rocminfo.tar.gz
-  sha256: 6f3235bea6b8e92460de66a7f40366d17e20ae36693324eccd3eb3fa4e75cc98
+  sha256: 8c4dbe41e03180311a61a13eb6be51faeb8e0f70850dc984076a0a09262fda5d
 
 build:
   number: 0

@@ -1,6 +1,6 @@
 context:
   name: hipblaslt
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,16 +8,16 @@ package:
 
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblaslt.tar.gz"
-    sha256: d6364248679857c489244d49d5e3c606ca24bace77dd6ad7be70bccdfabf8e1b
+    sha256: 72ad0a8db025c6d47397791a9fce5c80cde1b89fc830523d0b34e5138329de63
     target_directory: projects/hipblaslt
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/origami.tar.gz"
-    sha256: e51552b3f1a88b55a2baf6e9bef42b610d6a792dfeedb1c65e13cd27a1a5aa97
+    sha256: f917d10a3a9a8ec2f527c046a90a674a655b007d28132058c20e0fb34f6fcf71
     target_directory: shared/origami
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/mxdatagenerator.tar.gz"
-    sha256: 2e10bc34b1f7eeacd0ac78dc84c602701f29e52d5e3fe233b88ec622a259f1f3
+    sha256: c80f94fd60c5e7d14a93f5eb8344084c347133eb721e30c49ae8265a66df3900
     target_directory: shared/mxdatagenerator
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocroller.tar.gz"
-    sha256: 5a1c6e35b7c52a3a1fd2e2333efcc049788cd703ba145c6c9f020782bf40bd0d
+    sha256: d37e6e468d8a0add2056b947b94b09a96dd6fce665d4f8c3164a0117596b7403
     target_directory: shared/rocroller
     patches:
       - patches/rocroller-find-yaml-cpp.patch

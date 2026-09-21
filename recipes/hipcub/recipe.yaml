@@ -1,6 +1,6 @@
 context:
   name: hipcub
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipcub.tar.gz
-  sha256: 87e78242615cd1c773b7443bb51c8fc2307a7ef903cecfa34cf42a5944d6162d
+  sha256: 2b08b0e7fc8d97717bc9656a0cc0e502dd221770f34deb8721ced2239939d779
 
 build:
   number: 0

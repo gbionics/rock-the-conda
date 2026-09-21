@@ -1,5 +1,6 @@
 {% set name = "hip" %}
-{% set version = "7.2.1" %}
+{% set version = "7.2.4" %}
+
 
 
 {% set major_version = version.split('.')[0] %}
@@ -14,18 +15,18 @@ package:
 
 source:
   - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/hip.tar.gz
-    sha256: f0ac1915e476a152492ad77a3a7b66509087fb7810f1332c2fdfab63bc19c8d9
+    sha256: 76c3d6909e531f30b84c908984891559d221d8c427d44abc88be5dbb123f9ad6
     folder: hip
 
   - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-{{ version }}/clr.tar.gz
-    sha256: 86a95f426909821202f30197cd3e57a5e5985d9d62414a90533742f4a546ad49
+    sha256: c9670697ee47b2d33dde84e4c815a62f594061da9ff184b133b87a227a1a1f02
     folder: clr
     patches:
       - 0001-Mark-raw-strings.patch
       - 0002-Use-major-version-for-library-VERSION.patch
 
   - url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
-    sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
+    sha256: 526b5fe23417c41acbeb2273e470887b4593f48a297a8d9c1a1aa730d556f9fb
     folder: hipcc
     patches:
       - 0002-Fix-cmake-backward-compatibility.patch

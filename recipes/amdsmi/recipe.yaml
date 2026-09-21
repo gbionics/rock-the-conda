@@ -1,7 +1,7 @@
 schema_version: 1
 
 context:
-  version: "7.2.1"
+  version: "7.2.4"
   esmi_version: "4.2"
 
 recipe:
@@ -10,7 +10,7 @@ recipe:
 
 source:
   - url: https://github.com/ROCm/amdsmi/archive/refs/tags/rocm-${{ version }}.tar.gz
-    sha256: f65bc66020054329469d61582722302426c9691ab72e902f4ed1e52a5fad7dd0
+    sha256: 1075067f450860313445edc97026ba430c33e93c18a9c1b1440d71a1f210d1cb
   - url: https://github.com/amd/esmi_ib_library/archive/refs/tags/esmi_pkg_ver-${{ esmi_version }}.tar.gz
     sha256: de19d222d09e2171f47f8bbd6608e5648bd547c82543379bb8fb5ed2e379e141
     target_directory: esmi_ib_library

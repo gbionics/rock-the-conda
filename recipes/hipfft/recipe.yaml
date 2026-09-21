@@ -1,6 +1,6 @@
 context:
   name: hipfft
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipfft.tar.gz"
-    sha256: 2aadd7801852a8baa9333e8370dc04f6737aaf7b85dcc94b4d19a57867780d1a
+    sha256: 65d08232b0f83dda214c96e869db4b68380a12a7f6526ae008ec5faf19ec30e9
 
 build:
   number: 0

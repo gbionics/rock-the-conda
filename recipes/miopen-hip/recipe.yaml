@@ -1,6 +1,6 @@
 context:
   name: miopen-hip
-  version: "7.2.1"
+  version: "7.2.4"
   llvm_major_version: "22"
 
 package:
@@ -9,7 +9,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/miopen.tar.gz
-  sha256: 70a566bc6cee51698debd27fc7f4ae7ac189b70b1ebf0b754769dbcd5da88ec9
+  sha256: 3752c7463cf58f05519b6025b303f54716aa7ff47a36dfbfa71ea4bc1be21411
 
 build:
   number: 2

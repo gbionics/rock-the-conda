@@ -1,6 +1,6 @@
 context:
   name: hipsolver
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipsolver.tar.gz
-  sha256: 8f56b56b3523065ac8edf334a5789b5cf32ace7a1b616fd0826e5d11d57287a1
+  sha256: 7f99c576b3fd5e6a379e285531dc68ade121918f6d41209ce534d857f421ff39
 
 build:
   number: 0

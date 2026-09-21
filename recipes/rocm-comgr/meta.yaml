@@ -1,5 +1,6 @@
 {% set name = "rocm-comgr" %}
-{% set version = "7.2.1" %}
+{% set version = "7.2.4" %}
+
 
 
 
@@ -9,7 +10,7 @@ package:
 
 source:
   url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-{{ version }}.tar.gz
-  sha256: 4d3449d758e3f79b336248b0207a394eda04ba5cdd48a4088e135ddf769127fa
+  sha256: 526b5fe23417c41acbeb2273e470887b4593f48a297a8d9c1a1aa730d556f9fb
   patches:
     - patches/rocm-comgr-7.2.0-llvm-22-compat.patch
 
