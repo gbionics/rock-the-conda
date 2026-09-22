@@ -67,6 +67,11 @@ BUILD_ARGS=(
     --bazel_options="--action_env=LD_LIBRARY_PATH=${PREFIX}/lib:${BUILD_PREFIX}/lib"
     --bazel_options="--action_env=RCCL_ROOT=${PREFIX}"
     --bazel_options="--action_env=ROCM_PATH=${PREFIX}"
+    --bazel_options="--repo_env=ROCM_PATH=${PREFIX}"
+    --bazel_options="--repo_env=TF_ROCM_AMDGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS//;/,}"
+    --bazel_options="--copt=-DHWY_COMPILE_ONLY_STATIC"
+    --bazel_options="--host_copt=-DHWY_COMPILE_ONLY_STATIC"
+    --bazel_options="--repo_env=CLANG_COMPILER_PATH=${BUILD_PREFIX}/bin/clang"
     --bazel_options="--action_env=HIP_PATH=${PREFIX}"
 )
 
