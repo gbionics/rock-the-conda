@@ -2,7 +2,8 @@
 
 set -xeuo pipefail
 
-export ROCM_LIBPATCH_VERSION=${PKG_VERSION//\./0}
+: "${ROCM_LIBPATCH_VERSION:=${PKG_VERSION//\./0}}"
+export ROCM_LIBPATCH_VERSION
 export HIP_CLANG_PATH=${PREFIX}/bin
 
 pushd hipcc/amd/hipcc
@@ -65,15 +66,21 @@ done
 
 popd
 
+# conda-build flattens unversioned library symlinks to the fully versioned
+# files while rattler-build preserves the intermediate SONAME link. Normalize
+# them here so both builders package identical symlink targets.
+for LIBRARY in libamdhip64 libhiprtc-builtins libhiprtc
+do
+    ln -sfn "$(readlink "${PREFIX}/lib/${LIBRARY}.so.7")" "${PREFIX}/lib/${LIBRARY}.so"
+done
+ln -sfn "$(readlink "${PREFIX}/lib/libamdocl64.so.2")" "${PREFIX}/lib/libamdocl64.so"
+
 # Copy the [de]activate scripts to $PREFIX/etc/conda/[de]activate.d.
 # This will allow them to be run on environment activation.
 for CHANGE in "activate" "deactivate"
 do
     mkdir -p "${PREFIX}/etc/conda/${CHANGE}.d"
     cp "${RECIPE_DIR}/activate/hip_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip_${CHANGE}.sh"
-    sed -e "s/@rocm_gpu_targets@/${ROCM_GPU_TARGETS}/g" \
-        "${RECIPE_DIR}/activate/hip-rocm-clang_${CHANGE}.sh" \
-        > "${PREFIX}/etc/conda/${CHANGE}.d/hip-rocm-clang_${CHANGE}.sh"
 done
 
 # register the opencl implementation

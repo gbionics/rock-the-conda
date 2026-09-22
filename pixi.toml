@@ -32,14 +32,14 @@ CONDA_BLD_PATH = "$PIXI_PROJECT_ROOT/output"
 
 [feature.strix-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
-HIP_VARIANT_CONFIG = "{ROCM_GPU_TARGETS: 'gfx1150;gfx1151'}"
+ROCM_GPU_TARGETS = "gfx1150;gfx1151"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental --env-isolation none"
 CONDA_BUILD_ARGS_LLVM = "-c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
 
 [feature.all-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
-HIP_VARIANT_CONFIG = "{ROCM_GPU_TARGETS: 'gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201'}"
+ROCM_GPU_TARGETS = "gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge -c local  --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental --env-isolation none"
 
@@ -58,8 +58,8 @@ build-rocm-comgr = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir
 build-rocr-runtime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocr-runtime", depends-on = ["build-rocm-core", "build-rocm-devices-libs"], outputs = ["output/linux-64/rocr-runtime-*.conda"] }
 build-rocminfo = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocminfo", depends-on = ["build-rocr-runtime", "build-rocm-core"], outputs = ["output/linux-64/rocminfo-*.conda"] }
 build-rocminfo-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocminfo", outputs = ["output/linux-64/rocminfo-*.conda"] }
-build-hip-no-deps = { cmd = "conda-build ./recipes/hip $CONDA_BUILD_ARGS --variants \"$HIP_VARIANT_CONFIG\"", outputs = ["output/linux-64/hip-*.conda"] }
-build-hip = { cmd = "conda-build ./recipes/hip $CONDA_BUILD_ARGS --variants \"$HIP_VARIANT_CONFIG\"", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr"], outputs = ["output/linux-64/hip-*.conda"] }
+build-hip-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", outputs = ["output/linux-64/hip-*.conda"] }
+build-hip = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr"], outputs = ["output/linux-64/hip-*.conda"] }
 build-rocm-smi-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-smi", outputs = ["output/linux-64/rocm-smi-*.conda"] }
 build-rocm-smi = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-smi", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime"], outputs = ["output/linux-64/rocm-smi-*.conda"] }
 build-all-rattler-build-libraries-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes" }
