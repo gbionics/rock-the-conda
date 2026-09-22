@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipcub
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipcub-split
   version: ${{ version }}
 
 source:
@@ -16,28 +18,62 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocprim ${{ version }}.*
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: hipcub-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocprim-devel ${{ version }}.*
+    build:
+      script: build.sh
 
-
-tests:
-  - package_contents:
-      include:
-        - hipcub/hipcub.hpp
+  - package:
+      name: libhipcub-devel
+    inherit:
+      from: hipcub-build
+      run_exports: false
+    build:
       files:
-        - lib/cmake/hipcub/hipcub-config.cmake
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocprim-devel ${{ version }}.*
+
+      run:
+        - hip-devel
+        - librocprim-devel
+
+      run_exports:
+        - ${{ pin_subpackage('libhipcub-devel', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - hipcub/hipcub.hpp
+          files:
+            - lib/cmake/hipcub/hipcub-config.cmake
 
 about:
   repository: https://github.com/ROCm/hipCUB

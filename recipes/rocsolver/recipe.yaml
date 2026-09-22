@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocsolver
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocsolver-split
   version: ${{ version }}
 
 source:
@@ -16,37 +18,100 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - pkg-config
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocblas
-    - rocprim
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
+outputs:
+  - staging:
+      name: rocsolver-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocblas-devel
+        - librocprim-devel
+    build:
+      script: build.sh
 
-tests:
-  # needs hip-devel
-  #- requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check ${{ name }}
-  - package_contents:
-      include:
-        - ${{ name }}/${{ name }}.h
-      lib:
-        - ${{ name }}
+  - package:
+      name: librocsolver
+    inherit:
+      from: rocsolver-build
+      run_exports: false
+    build:
+      files:
+        - lib/librocsolver.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocblas-devel
+        - librocprim-devel
+    tests:
+      - package_contents:
+          lib:
+            - ${{ name }}
+
+  - package:
+      name: librocsolver-devel
+    inherit:
+      from: rocsolver-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocblas-devel
+        - librocprim-devel
+
+      run:
+        - hip-devel
+        - librocblas-devel
+        - librocprim-devel
+        - ${{ pin_subpackage('librocsolver', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('librocsolver', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check rocsolver
+      - package_contents:
+          include:
+            - ${{ name }}/${{ name }}.h
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocSOLVER

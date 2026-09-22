@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipsolver
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipsolver-split
   version: ${{ version }}
 
 source:
@@ -16,29 +18,93 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - ${{ compiler('fortran') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocsolver
-    - rocblas
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: hipsolver-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsolver-devel
+        - librocblas-devel
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - hipsolver/hipsolver.h
-      lib:
-        - hipsolver
+  - package:
+      name: libhipsolver
+    inherit:
+      from: hipsolver-build
+      run_exports: false
+    build:
+      files:
+        - lib/libhipsolver.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsolver-devel
+        - librocblas-devel
+    tests:
+      - package_contents:
+          lib:
+            - hipsolver
+
+  - package:
+      name: libhipsolver-devel
+    inherit:
+      from: hipsolver-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsolver-devel
+        - librocblas-devel
+
+      run:
+        - hip-devel
+        - librocsolver-devel
+        - librocblas-devel
+        - ${{ pin_subpackage('libhipsolver', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhipsolver', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - hipsolver/hipsolver.h
 
 about:
   repository: https://github.com/ROCm/hipSOLVER

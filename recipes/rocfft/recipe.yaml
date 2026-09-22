@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocfft
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocfft-split
   version: ${{ version }}
 
 source:
@@ -16,36 +18,96 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - pkg-config
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - sqlite
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
+outputs:
+  - staging:
+      name: rocfft-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - sqlite
+    build:
+      script: build.sh
 
-tests:
-  # Needs hip-devel
-  #- requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check rocfft
-  - package_contents:
-      include:
-        - rocfft/rocfft.h
-      lib:
-        - rocfft
+  - package:
+      name: librocfft
+    inherit:
+      from: rocfft-build
+      run_exports: false
+    build:
+      files:
+        - lib/librocfft.so*
+        - lib/rocfft/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - sqlite
+    tests:
+      - package_contents:
+          lib:
+            - rocfft
+
+  - package:
+      name: librocfft-devel
+    inherit:
+      from: rocfft-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - sqlite
+
+      run:
+        - hip-devel
+        - ${{ pin_subpackage('librocfft', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('librocfft', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check rocfft
+      - package_contents:
+          include:
+            - rocfft/rocfft.h
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocFFT

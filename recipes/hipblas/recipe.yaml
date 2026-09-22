@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipblas
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipblas-split
   version: ${{ version }}
 
 source:
@@ -16,45 +18,126 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    # Note: fortran is only required on Linux
-    - ${{ compiler('fortran') }}
-    - cmake
-    - pkg-config
-    - ninja
-    # Needed by rocm_check_target_ids CMake function
-    - lld 22.*
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocm-smi
-    - hipblaslt
-    - roctracer
-    - hipblas-common
-    - rocblas
-    - rocsolver
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
+outputs:
+  - staging:
+      name: hipblas-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        # Note: fortran is only required on Linux
+        - ${{ compiler('fortran') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld 22.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - libhipblaslt-devel
+        - roctracer
+        - libhipblas-common-devel
+        - librocblas-devel
+        - librocsolver-devel
+    build:
+      script: build.sh
 
-tests:
-  # Needs hip-devel
-  #- requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check hipblas
-  - package_contents:
-      include:
-        - hipblas/hipblas.h
-      lib:
-        - hipblas
+  - package:
+      name: libhipblas
+    inherit:
+      from: hipblas-build
+      run_exports: false
+    build:
+      files:
+        - lib/libhipblas.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        # Note: fortran is only required on Linux
+        - ${{ compiler('fortran') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld 22.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - libhipblaslt-devel
+        - roctracer
+        - libhipblas-common-devel
+        - librocblas-devel
+        - librocsolver-devel
+    tests:
+      - package_contents:
+          lib:
+            - hipblas
+
+  - package:
+      name: libhipblas-devel
+    inherit:
+      from: hipblas-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        # Note: fortran is only required on Linux
+        - ${{ compiler('fortran') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld 22.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - libhipblaslt-devel
+        - roctracer
+        - libhipblas-common-devel
+        - librocblas-devel
+        - librocsolver-devel
+
+      run:
+        - hip-devel
+        - libhipblaslt-devel
+        - libhipblas-common-devel
+        - librocblas-devel
+        - librocsolver-devel
+        - ${{ pin_subpackage('libhipblas', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhipblas', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hipblas
+      - package_contents:
+          include:
+            - hipblas/hipblas.h
 
 about:
   homepage: https://rocm.docs.amd.com/projects/hipBLAS

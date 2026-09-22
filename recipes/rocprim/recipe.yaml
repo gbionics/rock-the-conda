@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocprim
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocprim-split
   version: ${{ version }}
 
 source:
@@ -16,35 +18,66 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - pkg-config
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
+outputs:
+  - staging:
+      name: rocprim-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+    build:
+      script: build.sh
 
+  - package:
+      name: librocprim-devel
+    inherit:
+      from: rocprim-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
 
-tests:
-  # Temporary commented out, find_package(rocprim) needs
-  # hip-devel to be installed to work, but it does not make sense
-  # to add that as a run dependency, unless we add a rocprim-devel
-  # package.
-  # - requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check rocprim
-  - package_contents:
-      include:
-        - ${{ name }}/${{ name }}.hpp
+      run:
+        - hip-devel
+
+      run_exports:
+        - ${{ pin_subpackage('librocprim-devel', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check rocprim
+      - package_contents:
+          include:
+            - ${{ name }}/${{ name }}.hpp
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocPRIM

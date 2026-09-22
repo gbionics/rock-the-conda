@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipsparse
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipsparse-split
   version: ${{ version }}
 
 source:
@@ -16,28 +18,89 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - ${{ compiler('fortran') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocsparse
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: hipsparse-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsparse-devel
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - hipsparse/hipsparse.h
-      lib:
-        - hipsparse
+  - package:
+      name: libhipsparse
+    inherit:
+      from: hipsparse-build
+      run_exports: false
+    build:
+      files:
+        - lib/libhipsparse.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsparse-devel
+    tests:
+      - package_contents:
+          lib:
+            - hipsparse
+
+  - package:
+      name: libhipsparse-devel
+    inherit:
+      from: hipsparse-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocsparse-devel
+
+      run:
+        - hip-devel
+        - librocsparse-devel
+        - ${{ pin_subpackage('libhipsparse', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhipsparse', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - hipsparse/hipsparse.h
 
 about:
   repository: https://github.com/ROCm/hipSPARSE

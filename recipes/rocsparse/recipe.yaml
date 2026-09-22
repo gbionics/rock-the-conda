@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocsparse
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocsparse-split
   version: ${{ version }}
 
 source:
@@ -16,28 +18,90 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocprim
-    - rocblas
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: rocsparse-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocprim-devel
+        - librocblas-devel
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - rocsparse/rocsparse.h
-      lib:
-        - librocsparse
+  - package:
+      name: librocsparse
+    inherit:
+      from: rocsparse-build
+      run_exports: false
+    build:
+      files:
+        - lib/librocsparse.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocprim-devel
+        - librocblas-devel
+    tests:
+      - package_contents:
+          lib:
+            - librocsparse
+
+  - package:
+      name: librocsparse-devel
+    inherit:
+      from: rocsparse-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocprim-devel
+        - librocblas-devel
+
+      run:
+        - hip-devel
+        - librocprim-devel
+        - librocblas-devel
+        - ${{ pin_subpackage('librocsparse', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('librocsparse', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - rocsparse/rocsparse.h
 
 about:
   repository: https://github.com/ROCm/rocSPARSE

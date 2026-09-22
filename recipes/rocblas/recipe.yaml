@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocblas
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocblas-split
   version: ${{ version }}
 
 source:
@@ -14,69 +16,186 @@ source:
     sha256: 3d31f46117a5d982d01032c2fed65eae5a3c26b33d496acb9cd19f60d107cce9
     target_directory: shared/tensile
 
-
 build:
   number: 2
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - pkg-config
-    - ninja
-    # Needed for tensilite
-    - python ${{ python_min }}.*
-    - pip
-    - setuptools
-    - msgpack-python
-    - joblib
-    - pyyaml
-    - packaging
-    - llvm-openmp
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocm-smi
-    - roctracer
-    - hipblas-common
-    - hipblaslt
-    # Needed for tensilite
-    - python ${{ python_min }}.*
-    - pip
-    - setuptools
-    - msgpack-cxx
-    - libboost-devel
-    - msgpack-python
-    - joblib
-    - pyyaml
-    - packaging
-    - rocm-smi
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
-  ignore_run_exports:
-    # Ignoring as these are test-only dependencies
-    from_package:
-      - python
+outputs:
+  - staging:
+      name: rocblas-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - llvm-openmp
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - roctracer
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-cxx
+        - libboost-devel
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - rocm-smi
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+    build:
+      script: build.sh
 
-tests:
-  #- requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check rocblas
-  - package_contents:
-      include:
-        - rocblas/rocblas.h
-      lib:
-        - rocblas
+  - package:
+      name: librocblas
+    inherit:
+      from: rocblas-build
+      run_exports: false
+    build:
+      files:
+        - lib/librocblas.so*
+        - lib/rocblas/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - llvm-openmp
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - roctracer
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-cxx
+        - libboost-devel
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - rocm-smi
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+    tests:
+      - package_contents:
+          lib:
+            - rocblas
+
+  - package:
+      name: librocblas-devel
+    inherit:
+      from: rocblas-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - llvm-openmp
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - rocm-smi
+        - roctracer
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-cxx
+        - libboost-devel
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - rocm-smi
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+
+      run:
+        - hip-devel
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        - libboost-devel
+        - ${{ pin_subpackage('librocblas', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('librocblas', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check rocblas
+      - package_contents:
+          include:
+            - rocblas/rocblas.h
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocBLAS

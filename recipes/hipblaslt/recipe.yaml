@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipblaslt
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipblaslt-split
   version: ${{ version }}
 
 source:
@@ -28,80 +30,222 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-      # Test dependencies
-    - ${{ compiler('fortran') }}
-    # Workaround for rocroller bug, remove in the future
-    - cmake<4
-    - pkg-config
-    - ninja
-    # Needed for tensilite
-    - python ${{ python_min }}.*
-    - pip
-    - setuptools
-    - msgpack-python
-    - joblib
-    - pyyaml
-    - packaging
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake ${{ version }}.*
-    - hipblas-common
-    - roctracer
-    # Needed for tensilite
-    - python ${{ python_min }}.*
-    - pip
-    - setuptools
-    - msgpack-python
-    - joblib
-    - pyyaml
-    - packaging
-    - msgpack-cxx
-    - libboost-devel
-    - rocm-smi
-    # rocroller depedencies
-    - fmt
-    - spdlog
-    - yaml-cpp
-    # Test dependencies
-    - blis
-    - liblapack
-    - gtest
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
-  ignore_run_exports:
-    # Ignoring as these are test-only dependencies
-    from_package:
-      - python
-      - ${{ compiler('fortran') }}
-      - blis
-      - liblapack
-      - gtest
-      - spdlog
-      - libboost-devel
+outputs:
+  - staging:
+      name: hipblaslt-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+          # Test dependencies
+        - ${{ compiler('fortran') }}
+        # Workaround for rocroller bug, remove in the future
+        - cmake<4
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake ${{ version }}.*
+        - libhipblas-common-devel
+        - roctracer
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - msgpack-cxx
+        - libboost-devel
+        - rocm-smi
+        # rocroller depedencies
+        - fmt
+        - spdlog
+        - yaml-cpp
+        # Test dependencies
+        - blis
+        - liblapack
+        - gtest
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+          - ${{ compiler('fortran') }}
+          - blis
+          - liblapack
+          - gtest
+          - spdlog
+          - libboost-devel
+    build:
+      script: build.sh
 
-tests:
-  # Temporary commented out, find_package(hipblaslt) needs
-  # hip-devel to be installed to work, but it does not make sense
-  # to add that as a run dependency, unless we add a hipblaslt-devel
-  # package.
-  # - requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check hipblaslt
-  - package_contents:
-      include:
-        - hipblaslt/hipblaslt.h
-      lib:
-        - hipblaslt
+  - package:
+      name: libhipblaslt
+    inherit:
+      from: hipblaslt-build
+      run_exports: false
+    build:
+      files:
+        - lib/libhipblaslt.so*
+        - lib/hipblaslt/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+          # Test dependencies
+        - ${{ compiler('fortran') }}
+        # Workaround for rocroller bug, remove in the future
+        - cmake<4
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake ${{ version }}.*
+        - libhipblas-common-devel
+        - roctracer
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - msgpack-cxx
+        - libboost-devel
+        - rocm-smi
+        # rocroller depedencies
+        - fmt
+        - spdlog
+        - yaml-cpp
+        # Test dependencies
+        - blis
+        - liblapack
+        - gtest
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+          - ${{ compiler('fortran') }}
+          - blis
+          - liblapack
+          - gtest
+          - spdlog
+          - libboost-devel
+    tests:
+      - package_contents:
+          lib:
+            - hipblaslt
+
+  - package:
+      name: libhipblaslt-devel
+    inherit:
+      from: hipblaslt-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+          # Test dependencies
+        - ${{ compiler('fortran') }}
+        # Workaround for rocroller bug, remove in the future
+        - cmake<4
+        - pkg-config
+        - ninja
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake ${{ version }}.*
+        - libhipblas-common-devel
+        - roctracer
+        # Needed for tensilite
+        - python ${{ python_min }}.*
+        - pip
+        - setuptools
+        - msgpack-python
+        - joblib
+        - pyyaml
+        - packaging
+        - msgpack-cxx
+        - libboost-devel
+        - rocm-smi
+        # rocroller depedencies
+        - fmt
+        - spdlog
+        - yaml-cpp
+        # Test dependencies
+        - blis
+        - liblapack
+        - gtest
+      ignore_run_exports:
+        # Ignoring as these are test-only dependencies
+        from_package:
+          - python
+          - ${{ compiler('fortran') }}
+          - blis
+          - liblapack
+          - gtest
+          - spdlog
+          - libboost-devel
+
+      run:
+        - hip-devel
+        - libhipblas-common-devel
+        - libboost-devel
+        - ${{ pin_subpackage('libhipblaslt', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhipblaslt', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hipblaslt
+      - package_contents:
+          include:
+            - hipblaslt/hipblaslt.h
+
 about:
   homepage: https://rocm.docs.amd.com/projects/hipBLASLt
   repository: https://github.com/ROCm/rocm-libraries

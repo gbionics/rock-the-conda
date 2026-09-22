@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: hipfft
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipfft-split
   version: ${{ version }}
 
 source:
@@ -16,36 +18,96 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - pkg-config
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocfft
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound='x.x') }}
+outputs:
+  - staging:
+      name: hipfft-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocfft-devel
+    build:
+      script: build.sh
 
-tests:
-  # Needs hip-devel
-  #- requirements:
-  #    run:
-  #      - cmake-package-check
-  #      - ${{ compiler('c') }}
-  #      - ${{ compiler('cxx') }}
-  #  script:
-  #    - cmake-package-check hipfft
-  - package_contents:
-      include:
-        - hipfft/hipfft.h
-      lib:
-        - hipfft
+  - package:
+      name: libhipfft
+    inherit:
+      from: hipfft-build
+      run_exports: false
+    build:
+      files:
+        - lib/libhipfft.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocfft-devel
+    tests:
+      - package_contents:
+          lib:
+            - hipfft
+
+  - package:
+      name: libhipfft-devel
+    inherit:
+      from: hipfft-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocfft-devel
+
+      run:
+        - hip-devel
+        - librocfft-devel
+        - ${{ pin_subpackage('libhipfft', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhipfft', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hipfft
+      - package_contents:
+          include:
+            - hipfft/hipfft.h
 
 about:
   homepage: https://rocm.docs.amd.com/projects/hipFFT

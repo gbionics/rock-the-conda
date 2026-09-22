@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocrand
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocrand-split
   version: ${{ version }}
 
 source:
@@ -16,27 +18,83 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: rocrand-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - rocrand/rocrand.h
-        - rocrand/rocrand_xorwow.h
-      lib:
-        - librocrand
+  - package:
+      name: librocrand
+    inherit:
+      from: rocrand-build
+      run_exports: false
+    build:
+      files:
+        - lib/librocrand.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+    tests:
+      - package_contents:
+          lib:
+            - librocrand
+
+  - package:
+      name: librocrand-devel
+    inherit:
+      from: rocrand-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+
+      run:
+        - hip-devel
+        - ${{ pin_subpackage('librocrand', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('librocrand', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - rocrand/rocrand.h
+            - rocrand/rocrand_xorwow.h
 
 about:
   repository: https://github.com/ROCm/rocRAND

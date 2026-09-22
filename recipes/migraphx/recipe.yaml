@@ -43,13 +43,13 @@ outputs:
       host:
         - rocm-core ${{ version }}.*
         - rocm-cmake
-        - rocblas
+        - librocblas-devel
         - openmpi
-        - miopen-hip
-        - hipblaslt
-        - hipblas
-        - hipblas-common
-        - composable-kernel
+        - libmiopen-hip-devel
+        - libhipblaslt-devel
+        - libhipblas-devel
+        - libhipblas-common-devel
+        - libcomposable-kernel-devel
         - cpp-half
         - nlohmann_json
         - msgpack-cxx
@@ -101,13 +101,13 @@ outputs:
       host:
         - rocm-core ${{ version }}.*
         - rocm-cmake
-        - rocblas
+        - librocblas-devel
         - openmpi
-        - miopen-hip
-        - hipblaslt
-        - hipblas
-        - hipblas-common
-        - composable-kernel
+        - libmiopen-hip-devel
+        - libhipblaslt-devel
+        - libhipblas-devel
+        - libhipblas-common-devel
+        - libcomposable-kernel-devel
         - cpp-half
         - nlohmann_json
         - msgpack-cxx

@@ -33,12 +33,12 @@ requirements:
   host:
     - rocm-core ${{ rocm_version }}.*
     - migraphx
-    - miopen-hip
-    - rocblas
-    - hipblas
-    - hipblas-common
-    - hipblaslt
-    - composable-kernel
+    - libmiopen-hip-devel
+    - librocblas-devel
+    - libhipblas-devel
+    - libhipblas-common-devel
+    - libhipblaslt-devel
+    - libcomposable-kernel-devel
     - cpp-half
     - python
     - numpy

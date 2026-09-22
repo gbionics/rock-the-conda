@@ -1,9 +1,11 @@
+schema_version: 1
+
 context:
   name: rocwmma
   version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: rocwmma-split
   version: ${{ version }}
 
 source:
@@ -19,25 +21,61 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - libgomp
+outputs:
+  - staging:
+      name: rocwmma-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - libgomp
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - rocwmma/rocwmma.hpp
+  - package:
+      name: librocwmma-devel
+    inherit:
+      from: rocwmma-build
+      run_exports: false
+    build:
       files:
-        - lib/cmake/rocwmma/rocwmma-config.cmake
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - libgomp
+
+      run:
+        - hip-devel
+
+      run_exports:
+        - ${{ pin_subpackage('librocwmma-devel', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - rocwmma/rocwmma.hpp
+          files:
+            - lib/cmake/rocwmma/rocwmma-config.cmake
 
 about:
   repository: https://github.com/ROCm/rocWMMA
