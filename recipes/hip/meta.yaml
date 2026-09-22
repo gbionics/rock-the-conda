@@ -29,8 +29,12 @@ source:
       - 0003-hipcc-path.diff
 
 build:
-  number: 5
+  number: 6
   skip: true  # [not linux]
+  # Referencing the variant here both exposes it to build.sh and ensures that
+  # packages with different target lists have different build hashes.
+  script_env:
+    - ROCM_GPU_TARGETS={{ ROCM_GPU_TARGETS }}
 
 requirements:
   build:
@@ -169,6 +173,7 @@ outputs:
       - etc/conda/deactivate.d/hip-rocm-clang_deactivate.sh
     test:
       commands:
+        - test "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}" = "{{ ROCM_GPU_TARGETS }}"
         - cmake-package-check hip --targets hip::host hip::device
         - cmake -B./test/test_cmake_enable_hip_build -S./test/test_cmake_enable_hip -GNinja
         - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
