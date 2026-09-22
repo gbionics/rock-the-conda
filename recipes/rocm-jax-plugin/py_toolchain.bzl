@@ -1,10 +1,15 @@
-load("@bazel_tools//tools/python:toolchain.bzl", "py_runtime_pair")
+load("@rules_python//python:py_runtime.bzl", "py_runtime")
+load("@rules_python//python:py_runtime_pair.bzl", "py_runtime_pair")
 
 py_runtime(
     name = "python3",
     python_version = "PY3",
     interpreter_path = '@@SRC_DIR@@/python.shebang',
     stub_shebang = '#!/bin/bash @@SRC_DIR@@/python.shebang',
+    interpreter_version_info = {
+        "major": "@@PY_MAJOR@@",
+        "minor": "@@PY_MINOR@@",
+    },
 )
 
 py_runtime_pair(
