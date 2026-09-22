@@ -119,6 +119,7 @@ outputs:
         - bin/roc-obj
         - bin/roc-obj-extract
         - bin/roc-obj-ls
+        - include/hip_prof_str.h
         - include/hip/amd_detail/*
         - include/hip/*.h
         - lib/cmake/hip/FindHIP.cmake
@@ -150,6 +151,7 @@ outputs:
         - bin/hipcc.pl
         - bin/hipconfig*
         - bin/hipvars.pm
+        - hip/bin/hipvars.pm
         - share/doc/hipcc/*
         - etc/conda/activate.d/hip_activate.sh
         - etc/conda/deactivate.d/hip_deactivate.sh
@@ -253,7 +255,7 @@ outputs:
     build:
       files:
         - lib/libamdocl64.so*
-        - share/doc/opencl/LICENSE.txt
+        - share/doc/opencl/LICENSE.md
     requirements:
       build:
         - ${{ compiler('c') }}

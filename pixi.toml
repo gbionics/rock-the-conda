@@ -58,8 +58,8 @@ build-rocm-comgr = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir
 build-rocr-runtime = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocr-runtime", depends-on = ["build-rocm-core", "build-rocm-devices-libs"], outputs = ["output/linux-64/rocr-runtime-*.conda"] }
 build-rocminfo = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocminfo", depends-on = ["build-rocr-runtime", "build-rocm-core"], outputs = ["output/linux-64/rocminfo-*.conda"] }
 build-rocminfo-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocminfo", outputs = ["output/linux-64/rocminfo-*.conda"] }
-build-hip-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", outputs = ["output/linux-64/hip-*.conda"] }
-build-hip = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr"], outputs = ["output/linux-64/hip-*.conda"] }
+build-hip-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --error-unused-staging-files --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", outputs = ["output/linux-64/hip-*.conda"] }
+build-hip = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --error-unused-staging-files --recipe ./recipes/hip --variant \"ROCM_GPU_TARGETS=$ROCM_GPU_TARGETS\"", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime", "build-rocm-comgr"], outputs = ["output/linux-64/hip-*.conda"] }
 build-rocm-smi-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-smi", outputs = ["output/linux-64/rocm-smi-*.conda"] }
 build-rocm-smi = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes/rocm-smi", depends-on = ["build-rocm-core", "build-rocminfo", "build-rocr-runtime"], outputs = ["output/linux-64/rocm-smi-*.conda"] }
 build-all-rattler-build-libraries-no-deps = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./recipes" }

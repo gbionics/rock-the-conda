@@ -48,10 +48,14 @@ FILES_TO_REMOVE="
     include/CL/cl.hpp
     include/CL/cl2.hpp
     include/prof_protocol.h
-    share/doc/opencl-asan/LICENSE.txt
+    bin/roc-obj-extract.bat
+    bin/roc-obj-ls.bat
+    share/doc/hip-asan/LICENSE.md
+    share/doc/opencl-asan/LICENSE.md
     bin/clinfo"
 
 DIRS_TO_REMOVE="
+    share/doc/hip-asan
     share/doc/opencl-asan"
 
 for FILE in $FILES_TO_REMOVE
@@ -65,15 +69,6 @@ do
 done
 
 popd
-
-# conda-build flattens unversioned library symlinks to the fully versioned
-# files while rattler-build preserves the intermediate SONAME link. Normalize
-# them here so both builders package identical symlink targets.
-for LIBRARY in libamdhip64 libhiprtc-builtins libhiprtc
-do
-    ln -sfn "$(readlink "${PREFIX}/lib/${LIBRARY}.so.7")" "${PREFIX}/lib/${LIBRARY}.so"
-done
-ln -sfn "$(readlink "${PREFIX}/lib/libamdocl64.so.2")" "${PREFIX}/lib/libamdocl64.so"
 
 # Copy the [de]activate scripts to $PREFIX/etc/conda/[de]activate.d.
 # This will allow them to be run on environment activation.
