@@ -78,8 +78,8 @@ tests:
       - python -c "import jax; print(jax.devices())"
 
 about:
-  repository: https://github.com/ROCm/rocm-jax
-  homepage: https://github.com/ROCm/rocm-jax
+  repository: https://github.com/ROCm/jax
+  homepage: https://github.com/ROCm/jax
   license: Apache-2.0
   license_file: LICENSE
   summary: "ROCm backend plugin for JAX"
