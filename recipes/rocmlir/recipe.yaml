@@ -29,7 +29,7 @@ requirements:
     - ninja
     - git
   host:
-    - rocm-core ${{ version }}.*
+    - rocm-core 7.2.*
 
 tests:
   - package_contents:
