@@ -120,15 +120,6 @@ jobs:
         if-no-files-found: warn
         retention-days: 14
 
-    - name: Never up
-      shell: bash -l {0}
-      if: always()
-      run: |
-        # Sometimes we build llvm packages for internal use, but we never want to upload them
-        rm -rf ${{ matrix.folder_cache }}/llvm*
-        rm -rf ${{ matrix.folder_cache }}/libllvm*
-        rm -rf ${{ matrix.folder_cache }}/lit*
-
     - name: Upload packages
       if: ${{ always() && env.ROCK_THE_CONDA_UPLOAD_PACKAGES == 'true' }}
       env:
