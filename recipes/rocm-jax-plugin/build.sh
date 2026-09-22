@@ -1,17 +1,14 @@
 #!/bin/bash
 set -euxo pipefail
 
-cd jax_rocm_plugin
-
 $RECIPE_DIR/add_py_toolchain.sh
 
-# Patch XLA's rocm_configure.bzl to bake the actual ROCM_PATH into
-# TF_ROCM_TOOLKIT_PATH (instead of hardcoded /opt/rocm), so that
-# conda binary relocation fixes the path at install time.
-cp "$RECIPE_DIR/0001-use-actual-rocm-path-for-install-path.patch" \
-   third_party/xla_rocm_configure.patch
-sed -i 's|patch_file = \[\]|patch_file = ["//third_party:xla_rocm_configure.patch"]|' \
-   third_party/xla/workspace.bzl
+# XLA's ROCm crosstool hardcodes the legacy WORKSPACE repo path for
+# config_rocm_hipcc, which does not exist under bzlmod.
+cp "$RECIPE_DIR/0001-fix-rocm-crosstool-bzlmod-paths.patch" third_party/xla/
+sed -i 's|^    module_name = "xla",|&\n    patch_strip = 1,\n    patches = ["//third_party/xla:0001-fix-rocm-crosstool-bzlmod-paths.patch"],|' \
+    MODULE.bazel
+grep -q "0001-fix-rocm-crosstool-bzlmod-paths" MODULE.bazel
 
 export JAXLIB_RELEASE=1
 
@@ -59,6 +56,8 @@ DIST_DIR="$(pwd)/dist"
 
 BUILD_ARGS=(
     --python_version="${HOST_PY_VER}"
+    --bazel_startup_options="--bazelrc=build/rocm/rocm.bazelrc"
+    --bazel_options="--config=rocm_clang_local"
     --bazel_path="${BUILD_PREFIX}/bin/bazel"
     --use_clang=true
     --clang_path="${BUILD_PREFIX}/bin/clang"
