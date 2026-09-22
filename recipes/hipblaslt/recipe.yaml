@@ -97,6 +97,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/libhipblaslt.so*
         - lib/hipblaslt/**
         - share/doc/**

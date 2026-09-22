@@ -75,6 +75,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/librocblas.so*
         - lib/rocblas/**
         - share/doc/**

@@ -45,6 +45,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/libhipsolver.so*
         - share/doc/**
     requirements:

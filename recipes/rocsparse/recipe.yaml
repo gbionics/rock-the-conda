@@ -44,6 +44,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/librocsparse.so*
         - share/doc/**
     requirements:

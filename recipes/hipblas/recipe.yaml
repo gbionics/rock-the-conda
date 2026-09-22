@@ -53,6 +53,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/libhipblas.so*
         - share/doc/**
     requirements:

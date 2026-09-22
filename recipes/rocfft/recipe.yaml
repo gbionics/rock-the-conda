@@ -44,6 +44,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/librocfft.so*
         - lib/rocfft/**
         - share/doc/**

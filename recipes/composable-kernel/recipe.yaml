@@ -42,6 +42,7 @@ outputs:
       run_exports: false
     build:
       files:
+        - bin/**
         - lib/libdevice_conv_operations.so*
         - share/doc/**
     requirements:
