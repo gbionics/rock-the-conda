@@ -17,7 +17,7 @@ source:
     target_directory: shared/origami
 
 build:
-  number: 2
+  number: 3
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -45,6 +45,8 @@ outputs:
       host:
         - rocm-core ${{ version }}.*
         - rocm-cmake ${{ version }}.*
+        # Tensile requires rocm-smi while generating device libraries.
+        - rocm-smi ${{ version }}.*
         - libhipblas-common-devel
         - librocroller-devel ${{ version }}.*
         # Needed for tensilite
@@ -61,6 +63,7 @@ outputs:
         from_package:
           - python
           - libboost-devel
+          - rocm-smi
     build:
       script: build.sh
 

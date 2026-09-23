@@ -4,6 +4,11 @@
 # otherwise they default to /opt/rocm that is not correct in conda-forge packages
 export ROCM_PATH=${PREFIX}
 
+# Avoid creating bytecode caches inside the host prefix while Tensile imports
+# its build-time Python dependencies. Rattler otherwise sees them as unowned
+# staging files.
+export PYTHONDONTWRITEBYTECODE=1
+
 # Expand xnack variants for gfx908 and gfx90a if present in CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS.
 # The variable is a ';'-separated list. Bare gfx908/gfx90a entries expand to
 # '<arch>:xnack+;<arch>:xnack-'. Entries already with modifiers are preserved.
