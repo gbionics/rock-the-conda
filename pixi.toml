@@ -33,7 +33,6 @@ ROCM_GPU_TARGETS = "gfx1150;gfx1151"
 CONDA_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c local -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
 
-
 [feature.all-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
 ROCM_GPU_TARGETS = "gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"

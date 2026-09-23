@@ -9,7 +9,9 @@ git submodule update --init --recursive external/mlir-hal
 cmake -S . -B build -GNinja \
     ${CMAKE_ARGS} \
     -DROCM_PATH=${PREFIX} \
-    -DBUILD_FAT_LIBROCKCOMPILER=OFF \
+    -DLLVM_VERSION_SUFFIX= \
+    -DLLVM_APPEND_VC_REV=OFF \
+    -DBUILD_FAT_LIBROCKCOMPILER=ON \
     -DROCMLIR_GEN_CPP_FILES=OFF \
     -DMLIR_ENABLE_ROCM_RUNNER=OFF \
     -DMLIR_INCLUDE_INTEGRATION_TESTS=OFF \
@@ -20,28 +22,27 @@ cmake -S . -B build -GNinja \
 cmake --build build -j${CPU_COUNT}
 cmake --install build
 
-# MLIRRockThin provides MIOpen's interface without the fat rockCompiler archive.
-install -Dm755 build/lib/libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.so.2.0"
-ln -sf libMLIRRockThin.so.2.0 "${PREFIX}/lib/libMLIRRockThin.so"
-install -Dm644 mlir/tools/rocmlir-lib/Miir.h "${PREFIX}/include/Miir.h"
+# Consumers only use the C API, so link one .so and let the linker drop the rest.
+cat > rocmlir.map <<'MAP'
+ROCMLIR_1 { global: miir*; mlir*; local: *; };
+MAP
 
-# rocMLIR only installs headers in BUILD_FAT_LIBROCKCOMPILER mode,
-# but downstream packages like MIGraphX need the C API headers.
-# First, install the base MLIR C API headers from the bundled LLVM.
-cp -r external/llvm-project/mlir/include/mlir-c "${PREFIX}/include/"
+${CXX} -shared -o "${PREFIX}/lib/librockCompiler.so" \
+    -Wl,-soname,librockCompiler.so \
+    -Wl,--whole-archive \
+        build/lib/libMLIRCAPIRock.a \
+        build/lib/libMLIRCAPIMIGraphX.a \
+        build/lib/libMLIRCAPIRegisterRocMLIR.a \
+        build/lib/libMLIRRockThin.a \
+        build/external/llvm-project/llvm/lib/libMLIRCAPIIR.a \
+    -Wl,--no-whole-archive \
+    build/lib/librockCompiler.a \
+    -Wl,--version-script=rocmlir.map \
+    ${LDFLAGS} -L"${PREFIX}/lib" -lamdhip64 -lhsa-runtime64
 
-# Then overlay the rocMLIR-specific dialect headers on top.
-cp -rn mlir/include/mlir-c "${PREFIX}/include/" 2>/dev/null || true
+sed -i 's#librockCompiler\.a#librockCompiler.so#' \
+    "${PREFIX}/lib/cmake/rocmlir/rocmlir-targets.cmake"
+rm "${PREFIX}/lib/librockCompiler.a"
 
-# Also install build-generated headers
-if [ -d build/mlir/include/mlir-c ]; then
-    cp -rn build/mlir/include/mlir-c "${PREFIX}/include/" 2>/dev/null || true
-fi
-
-# Install a lightweight CMake config so that downstream packages can
-# find_package(rocMLIR CONFIG) and get the rocMLIR::rockCompiler target
-# backed by the C-API shared libraries, without needing the full fat
-# static archive (BUILD_FAT_LIBROCKCOMPILER).
-mkdir -p "${PREFIX}/lib/cmake/rocmlir"
-cp "${RECIPE_DIR}/rocmlir-config.cmake" "${PREFIX}/lib/cmake/rocmlir/"
-cp "${RECIPE_DIR}/rocmlir-config-version.cmake" "${PREFIX}/lib/cmake/rocmlir/"
+for _a in build/lib/*.a; do rm -f "${PREFIX}/lib/$(basename "${_a}")"; done
+rm -rf "${PREFIX}/lib/objects-Release"
