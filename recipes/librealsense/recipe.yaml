@@ -103,7 +103,8 @@ outputs:
           then: __cuda
       run_exports:
         # See https://github.com/IntelRealSense/librealsense/pull/3449
-        - ${{ pin_subpackage("librealsense", upper_bound="x.x") }}
+        # and https://github.com/realsenseai/librealsense/issues/15617
+        - ${{ pin_subpackage("librealsense", upper_bound="x.x.x") }}
     tests:
       - script:
           - if: not win
