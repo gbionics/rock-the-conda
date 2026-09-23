@@ -1,0 +1,163 @@
+schema_version: 1
+
+context:
+  name: librealsense
+  version: "2.59.0.0"
+  commit: 6de76081bad37128df39b4c3801b53854d4f95e1
+  # Order of priority:
+  # CUDA (+200)
+  # ROCm (+100)
+  # CPU (+0); CUDA with arm-variant=tegra keeps the upstream build-number policy
+  # See https://github.com/conda-forge/librealsense-feedstock/issues/41
+  build_number: ${{ 100 if hip_compiler_version != "None" else 0 }}
+  build_prefix: ${{ "cuda" ~ (cuda_compiler_version | version_to_buildstring) if cuda_compiler_version != "None" else "rocm" ~ (rocm_version | version_to_buildstring) if hip_compiler_version != "None" else "cpu" }}
+
+recipe:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/realsenseai/librealsense/archive/${{ commit }}.zip
+  sha256: c45994479fbda33c34864d4c1ac08088a331dc28a8edc4b83bb9efcdb54e870c
+  patches:
+    - drop_additional_flags.patch
+    - do_not_run_ldconfig_on_install.patch
+    - devendor_pybind11.patch
+    - fix_pyd_windows_install.patch
+    - fix_clang22_enum_range.patch
+    - use_hip_host_target.patch
+
+build:
+  number: ${{ build_number }}
+  # arm_variant_type is ignored for non-CUDA builds. Avoid building both the
+  # sbsa and tegra variants in that case; only CUDA 12.9 supports tegra.
+  skip:
+    - hip_compiler_version != "None" and (not linux or cuda_compiler_version != "None")
+    - target_platform == "linux-aarch64" and arm_variant_type == "tegra" and cuda_compiler_version != "12.9"
+
+outputs:
+  # Build and install the C++ library and Python bindings once. The librealsense
+  # package inherits all staged files, matching the layout of the v0 recipe.
+  - staging:
+      name: librealsense-build
+    build:
+      script:
+        - if: win
+          then: bld.bat
+        - if: not win and hip_compiler_version != "None"
+          then: bash $RECIPE_DIR/build.sh rocm
+        - if: not win and hip_compiler_version == "None" and cuda_compiler_version != "None"
+          then: bash $RECIPE_DIR/build.sh cuda
+        - if: not win and hip_compiler_version == "None" and cuda_compiler_version == "None"
+          then: bash $RECIPE_DIR/build.sh cpu
+    requirements:
+      build:
+        - if: build_platform != target_platform
+          then:
+            - python
+            - cross-python_${{ target_platform }}
+        - ${{ compiler("c") }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler("cxx") }}
+        - if: cuda_compiler_version != "None"
+          then:
+            - ${{ compiler("cuda") }}
+            - if: target_platform == "linux-aarch64"
+              then: arm-variant * ${{ arm_variant_type }}
+        - if: hip_compiler_version != "None"
+          then: ${{ compiler("hip") }}
+        - cmake <4
+        - ninja
+        - if: linux
+          then: libudev
+      host:
+        - python
+        - if: linux
+          then: libudev
+        - libusb
+        - pybind11
+        - pybind11-abi
+        - nlohmann_json
+        - pybind11_json
+        - if: cuda_compiler_version != "None"
+          then:
+            - cuda-version ==${{ cuda_compiler_version }}
+            - cuda-cudart-dev
+        - if: hip_compiler_version != "None"
+          then:
+            - rocm-core ${{ rocm_version }}.*
+      ignore_run_exports:
+        from_package:
+          - python
+
+  - package:
+      name: librealsense
+    inherit: librealsense-build
+    build:
+      number: ${{ build_number }}
+      script: []
+      string: ${{ build_prefix }}_py${{ python | version_to_buildstring }}_h${{ hash }}_${{ build_number }}
+    requirements:
+      run:
+        - if: cuda_compiler_version != "None"
+          then: __cuda
+      run_exports:
+        # See https://github.com/IntelRealSense/librealsense/pull/3449
+        - ${{ pin_subpackage("librealsense", upper_bound="x.x") }}
+    tests:
+      - script:
+          - if: not win
+            then:
+              - test -f ${PREFIX}/include/librealsense2/rs.hpp
+              - test -f ${PREFIX}/lib/cmake/realsense2/realsense2Config.cmake
+          - if: linux
+            then: test -f ${PREFIX}/lib/librealsense2.so
+          - if: osx
+            then: test -f ${PREFIX}/lib/librealsense2.dylib
+          - if: win
+            then:
+              - if not exist %PREFIX%\Library\include\librealsense2\rs.hpp exit 1
+              - if not exist %PREFIX%\Library\lib\realsense2.lib exit 1
+              - if not exist %PREFIX%\Library\bin\realsense2.dll exit 1
+              - if not exist %PREFIX%\Library\lib\cmake\realsense2\realsense2Config.cmake exit 1
+
+  # Compatibility metapackage: the bindings are installed into librealsense,
+  # as they were in the v0 recipe. Host numpy contributes its run export.
+  - package:
+      name: pyrealsense2
+    build:
+      number: ${{ build_number }}
+      script: []
+      string: ${{ build_prefix }}_py${{ python | version_to_buildstring }}_h${{ hash }}_${{ build_number }}
+    requirements:
+      host:
+        - python
+        - numpy
+      run:
+        - python
+        - ${{ pin_subpackage("librealsense", exact=True) }}
+    tests:
+      - python:
+          imports:
+            - pyrealsense2
+
+about:
+  homepage: https://github.com/IntelRealSense/librealsense
+  repository: https://github.com/IntelRealSense/librealsense
+  license: Apache-2.0
+  license_file: LICENSE
+  summary: Cross-platform library for Intel® RealSense™ depth and tracking cameras.
+  description: |
+    This feedstock packages the C++ library `librealsense` and the Python library
+    `pyrealsense2`. The packages are built enabling the `FORCE_RSUSB_BACKEND`
+    CMake option, and they are available for all Linux and macOS platforms
+    supported by conda-forge, including `linux-aarch64` for Nvidia Jetson boards.
+    CUDA-enabled packages should be selected automatically on CUDA-capable
+    platforms. Use `librealsense=*=*cuda*` to force a CUDA build or
+    `librealsense=*=*cpu*` to force a CPU-only build.
+    This recipe packages native ROCm support from the pinned upstream commit.
+    Use `librealsense=*=*rocm*` to select the ROCm-enabled Linux build.
+
+extra:
+  recipe-maintainers:
+    - traversaro

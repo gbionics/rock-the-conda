@@ -1,0 +1,24 @@
+From 7b1c1c1adf642d56ccb2691e092029da767308c3 Mon Sep 17 00:00:00 2001
+From: Silvio Traversaro <silvio@traversaro.it>
+Date: Tue, 27 May 2025 22:49:51 +0200
+Subject: [PATCH] Devendor pybind11
+
+---
+ CMake/external_pybind11.cmake | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/CMake/external_pybind11.cmake b/CMake/external_pybind11.cmake
+index a2ab2f8686..3abf484d6f 100644
+--- a/CMake/external_pybind11.cmake
++++ b/CMake/external_pybind11.cmake
+@@ -118,8 +118,8 @@ function(get_pybind11_json)
+ endfunction()
+ 
+ # Trigger the build
+-get_pybind11()
+-get_pybind11_json()
++find_package(pybind11 REQUIRED)
++find_package(pybind11_json REQUIRED)
+ 
+ # This function overrides "pybind11_add_module" function,  arguments is same as "pybind11_add_module" arguments
+ # pybind11_add_module(<name> SHARED [file, file2, ...] )
