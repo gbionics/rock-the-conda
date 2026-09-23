@@ -12,7 +12,7 @@ gpu_backend="${1:?expected one of: cpu, cuda, rocm}"
 if [[ "${gpu_backend}" == "rocm" ]]
 then
     echo "==> enabling CMake's HIP support"
-    CMAKE_ARGS="${CMAKE_ARGS} -DBUILD_WITH_CUDA=OFF -DBUILD_WITH_HIP=ON"
+    CMAKE_ARGS="${CMAKE_ARGS} -DBUILD_WITH_CUDA=OFF -DBUILD_WITH_HIP=ON -DBUILD_WITH_HIP_ZEROCOPY=ON"
     CMAKE_ARGS="${CMAKE_ARGS} -DROCM_PATH=${BUILD_PREFIX} -DCMAKE_HIP_COMPILER=${HIPCXX}"
     CMAKE_ARGS="${CMAKE_ARGS} -DCMAKE_HIP_ARCHITECTURES=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
 elif [[ "${gpu_backend}" == "cuda" ]]
