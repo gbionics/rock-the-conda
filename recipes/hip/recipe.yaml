@@ -20,6 +20,7 @@ source:
     target_directory: clr
     patches:
       - 0001-Mark-raw-strings.patch
+      - 0004-hip-config-optional-tools.patch
 
   - url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-${{ version }}.tar.gz
     sha256: 526b5fe23417c41acbeb2273e470887b4593f48a297a8d9c1a1aa730d556f9fb
@@ -29,7 +30,7 @@ source:
       - 0003-hipcc-path.diff
 
 build:
-  number: 6
+  number: 7
   skip:
     - not linux
 
@@ -129,6 +130,7 @@ outputs:
     requirements:
       run:
         - ${{ pin_subpackage('hip-runtime-amd') }}
+        - rocm-device-libs ${{ major_minor_version }}.*
       run_exports:
         - ${{ pin_subpackage('hip-runtime-amd') }}
     tests:
@@ -138,6 +140,13 @@ outputs:
             - lib/cmake/hip/FindHIP.cmake
           include:
             - hip/hip_common.h
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hip --targets hip::host hip::device
 
   - package:
       name: hipcc
