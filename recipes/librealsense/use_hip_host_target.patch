@@ -1,0 +1,35 @@
+--- a/CMake/global_config.cmake
++++ b/CMake/global_config.cmake
+@@ -145,20 +145,7 @@
+ 
+     if (BUILD_WITH_HIP)
+         target_include_directories(${LRS_TARGET} PRIVATE ${HIP_INCLUDE_DIRS})
+-        # Resolve the full path to the HIP runtime instead of linking the bare "amdhip64"
+-        # name: a bare name needs "-L${ROCM_PATH}/lib" on the final link line, and
+-        # ROCm's lib dir is not always on the default linker search path (only picked up
+-        # automatically if ldconfig / HIP_PATH already knows about it). More importantly,
+-        # when BUILD_SHARED_LIBS=OFF, ${LRS_TARGET} is a static archive: CMake forwards its
+-        # PRIVATE link libraries to whatever finally links that archive (e.g. the "static!"
+-        # unit tests), but only this target's own target_link_directories -- which is
+-        # PRIVATE and does NOT forward. A resolved full path needs no "-L" at all, so it
+-        # works correctly however far downstream the archive is linked.
+-        find_library(RS_AMDHIP64_LIBRARY amdhip64 PATHS "${ROCM_PATH}/lib" NO_DEFAULT_PATH)
+-        if(NOT RS_AMDHIP64_LIBRARY)
+-            message(FATAL_ERROR "Could not find the HIP runtime library (amdhip64) under ${ROCM_PATH}/lib")
+-        endif()
+-        target_link_libraries(${LRS_TARGET} PRIVATE ${RS_AMDHIP64_LIBRARY})
++        target_link_libraries(${LRS_TARGET} PRIVATE hip::host)
+     endif()
+ 
+     set_target_properties (${LRS_TARGET} PROPERTIES FOLDER Library)
+--- a/CMake/hip_config.cmake
++++ b/CMake/hip_config.cmake
+@@ -76,7 +76,7 @@
+ 
+ # NOTE: include paths and the link target are applied to ${LRS_TARGET}
+ # (and any other consumer) in CMake/global_config.cmake via
+-# target_include_directories / target_link_libraries against hip::device.
++# target_include_directories / target_link_libraries against hip::host.
+ # Do NOT call include_directories() here -- that would leak the paths into
+ # every target in the build tree.
+ 

@@ -1,0 +1,14 @@
+--- a/include/librealsense2/h/rs_option.h
++++ b/include/librealsense2/h/rs_option.h
+@@ -23,7 +23,11 @@
+     /** \brief Defines general configuration controls.
+     These can generally be mapped to camera UVC controls, and can be set / queried at any time unless stated otherwise.
+     */
++#ifdef __cplusplus
++    typedef enum rs2_option : int
++#else
+     typedef enum rs2_option
++#endif
+     {
+         RS2_OPTION_BACKLIGHT_COMPENSATION, /**< Enable / disable color backlight compensation*/
+         RS2_OPTION_BRIGHTNESS, /**< Color image brightness*/

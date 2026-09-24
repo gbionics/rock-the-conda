@@ -1,0 +1,35 @@
+From 3a7d82e1c5f94b6a2d8e09f1b4c7d3e5a6f8b9c2 Mon Sep 17 00:00:00 2001
+From: Esteve Fernandez <esteve.fernandez@bonsairobotics.ai>
+Date: Mon, 11 May 2026 11:17:43 +0100
+Subject: [PATCH] Fix .pyd installation on Windows
+
+Signed-off-by: Esteve Fernandez <esteve.fernandez@bonsairobotics.ai>
+---
+ wrappers/python/CMakeLists.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/wrappers/python/CMakeLists.txt b/wrappers/python/CMakeLists.txt
+index f28eda2..d5f30da 100644
+--- a/wrappers/python/CMakeLists.txt
++++ b/wrappers/python/CMakeLists.txt
+@@ -162,7 +162,7 @@ if( BUILD_LEGACY_PYBACKEND )
+ 
+     install(TARGETS pybackend2 pyrealsense2
+         EXPORT pyrealsense2Targets
+-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++        RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}
+         LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+         ARCHIVE DESTINATION ${PYTHON_INSTALL_DIR}
+     )
+@@ -172,7 +172,7 @@ if( BUILD_LEGACY_PYBACKEND )
+ else() # not BUILD_LEGACY_PYBACKEND
+ 
+     install(TARGETS pyrealsense2
+-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++        RUNTIME DESTINATION ${PYTHON_INSTALL_DIR}
+         LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+         ARCHIVE DESTINATION ${PYTHON_INSTALL_DIR}
+     )
+-- 
+2.48.1
+
