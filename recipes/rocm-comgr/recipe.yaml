@@ -1,0 +1,54 @@
+schema_version: 1
+
+context:
+  name: rocm-comgr
+  version: "7.2.4"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-${{ version }}.tar.gz
+  sha256: 526b5fe23417c41acbeb2273e470887b4593f48a297a8d9c1a1aa730d556f9fb
+  patches:
+    - patches/rocm-comgr-7.2.0-llvm-22-compat.patch
+
+build:
+  number: 1
+  skip: not linux
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    - cmake
+    - make
+  host:
+    - clangdev 22.*
+    - llvmdev 22.*
+    - llvm
+    - lld
+    - zlib
+    - zstd
+    - rocm-device-libs ${{ version }}.*
+    - rocm-cmake ${{ version }}.*
+    - rocm-core ${{ version }}.*
+
+tests:
+  - script:
+      - test -f $PREFIX/include/amd_comgr/amd_comgr.h
+      - test -f $PREFIX/lib/libamd_comgr.so
+
+about:
+  license: NCSA
+  license_file: amd/comgr/LICENSE.txt
+  summary: ROCm Code Object Manager
+  homepage: https://github.com/ROCm/llvm-project/tree/amd-staging/amd/comgr
+
+extra:
+  recipe-maintainers:
+    - zklaus
+    - isuruf
+    - conda-forge/rocm-core

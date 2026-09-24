@@ -1,6 +1,6 @@
 context:
   name: rccl
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rccl/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: a373bcfe03cf2243a97536860a81940998c36a0b324d9e10830e3cd2c3f8b523
+  sha256: e8927c61f76e70801e660a3482d383b30159d6f2a9e0580e5cdf168f2503e8c7
   patches:
     - patches/0001-backport-gfx115x-build-fixes.patch
 

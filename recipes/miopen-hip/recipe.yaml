@@ -1,15 +1,17 @@
+schema_version: 1
+
 context:
   name: miopen-hip
-  version: "7.2.1"
+  version: "7.2.4"
   llvm_major_version: "22"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: miopen-hip-split
   version: ${{ version }}
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/miopen.tar.gz
-  sha256: 70a566bc6cee51698debd27fc7f4ae7ac189b70b1ebf0b754769dbcd5da88ec9
+  sha256: 3752c7463cf58f05519b6025b303f54716aa7ff47a36dfbfa71ea4bc1be21411
 
 build:
   number: 2
@@ -17,54 +19,162 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-    # Needed by rocm_check_target_ids CMake function
-    - lld ${{ llvm_major_version }}.*
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - hip-devel
-    - hipcc
-    - rocblas
-    - hipblas-common
-    - hipblaslt
-    - rocrand
-    - composable-kernel ${{ version }}.*
-    - rocmlir
-    - sqlite
-    - libboost-devel
-    - nlohmann_json
-    - bzip2
-    - roctracer
-    - cpp-half
-    - frugally-deep >=0.20.0
-    - functionalplus
-    - eigen-abi-devel
-  run:
-    - hip-runtime-amd
-    - rocblas
-    - hipblaslt
-    - composable-kernel
-    - rocmlir
-    - sqlite
-    - bzip2
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: miopen-hip-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld ${{ llvm_major_version }}.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - hip-devel
+        - hipcc
+        - librocblas-devel
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        - librocrand-devel
+        - libcomposable-kernel-devel ${{ version }}.*
+        - rocmlir
+        - sqlite
+        - libboost-devel
+        - nlohmann_json
+        - bzip2
+        - roctracer
+        - cpp-half
+        - frugally-deep >=0.20.0
+        - functionalplus
+        - eigen-abi-devel
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - miopen/miopen.h
-        - miopen/config.h
-      lib:
-        - libMIOpen
+  - package:
+      name: libmiopen-hip
+    inherit:
+      from: miopen-hip-build
+      run_exports: false
+    build:
+      files:
+        - bin/**
+        - lib/libMIOpen.so*
+        - share/miopen/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld ${{ llvm_major_version }}.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - hip-devel
+        - hipcc
+        - librocblas-devel
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        - librocrand-devel
+        - libcomposable-kernel-devel ${{ version }}.*
+        - rocmlir
+        - sqlite
+        - libboost-devel
+        - nlohmann_json
+        - bzip2
+        - roctracer
+        - cpp-half
+        - frugally-deep >=0.20.0
+        - functionalplus
+        - eigen-abi-devel
+      run:
+        - hip-runtime-amd
+        - librocblas
+        - libhipblaslt
+        - libcomposable-kernel
+        - rocmlir
+        - sqlite
+        - bzip2
+    tests:
+      - package_contents:
+          lib:
+            - libMIOpen
+
+  - package:
+      name: libmiopen-hip-devel
+    inherit:
+      from: miopen-hip-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+        # Needed by rocm_check_target_ids CMake function
+        - lld ${{ llvm_major_version }}.*
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - hip-devel
+        - hipcc
+        - librocblas-devel
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        - librocrand-devel
+        - libcomposable-kernel-devel ${{ version }}.*
+        - rocmlir
+        - sqlite
+        - libboost-devel
+        - nlohmann_json
+        - bzip2
+        - roctracer
+        - cpp-half
+        - frugally-deep >=0.20.0
+        - functionalplus
+        - eigen-abi-devel
+      run:
+        - hip-devel
+        - librocblas-devel
+        - libhipblas-common-devel
+        - libhipblaslt-devel
+        - librocrand-devel
+        - libcomposable-kernel-devel
+        - libboost-devel
+        - ${{ pin_subpackage('libmiopen-hip', exact=True) }}
+        - hip-runtime-amd
+        - librocblas
+        - libhipblaslt
+        - libcomposable-kernel
+        - rocmlir
+        - sqlite
+        - bzip2
+
+      run_exports:
+        - ${{ pin_subpackage('libmiopen-hip', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - miopen/miopen.h
+            - miopen/config.h
 
 about:
   repository: https://github.com/ROCm/MIOpen

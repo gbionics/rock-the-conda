@@ -221,10 +221,10 @@ requirements:
         # Mutex package to specify rocm version
         - rocm-core ${{ rocm_version }}.*
         - rocminfo
-        - rocblas
-        - hipblas
-        - hipblas-common
-        - rocwmma
+        - librocblas-devel
+        - libhipblas-devel
+        - libhipblas-common-devel
+        - librocwmma-devel
         - fmt
         # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
         # set by compiler('hip')

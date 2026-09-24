@@ -1,14 +1,16 @@
+schema_version: 1
+
 context:
   name: hiprand
-  version: "7.2.1"
+  version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hiprand-split
   version: ${{ version }}
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hiprand.tar.gz
-  sha256: a9991655563c354511cb60594c884d12a22496fc05093f18373277224d951735
+  sha256: c31cec665ee0a7333fd4dfa54d46dd601710a17f56826f1d309aea4333c37360
 
 build:
   number: 0
@@ -16,28 +18,90 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - ${{ compiler('fortran') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-    - rocrand
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: hiprand-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocrand-devel
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - hiprand/hiprand.h
-      lib:
-        - hiprand
+  - package:
+      name: libhiprand
+    inherit:
+      from: hiprand-build
+      run_exports: false
+    build:
+      files:
+        - bin/**
+        - lib/libhiprand.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocrand-devel
+    tests:
+      - package_contents:
+          lib:
+            - hiprand
+
+  - package:
+      name: libhiprand-devel
+    inherit:
+      from: hiprand-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - ${{ compiler('fortran') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+        - librocrand-devel
+
+      run:
+        - hip-devel
+        - librocrand-devel
+        - ${{ pin_subpackage('libhiprand', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libhiprand', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - hiprand/hiprand.h
 
 about:
   repository: https://github.com/ROCm/hipRAND

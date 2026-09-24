@@ -1,0 +1,320 @@
+schema_version: 1
+
+context:
+  version: "7.2.4"
+  major_version: "7"
+  major_minor_version: "7.2"
+  llvm_major_version: "22"
+
+recipe:
+  name: hip-split
+  version: ${{ version }}
+
+source:
+  - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/hip.tar.gz
+    sha256: 76c3d6909e531f30b84c908984891559d221d8c427d44abc88be5dbb123f9ad6
+    target_directory: hip
+
+  - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/clr.tar.gz
+    sha256: c9670697ee47b2d33dde84e4c815a62f594061da9ff184b133b87a227a1a1f02
+    target_directory: clr
+    patches:
+      - 0001-Mark-raw-strings.patch
+      - 0004-hip-config-optional-tools.patch
+
+  - url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-${{ version }}.tar.gz
+    sha256: 526b5fe23417c41acbeb2273e470887b4593f48a297a8d9c1a1aa730d556f9fb
+    target_directory: hipcc
+    patches:
+      - 0002-Fix-cmake-backward-compatibility.patch
+      - 0003-hipcc-path.diff
+
+build:
+  number: 7
+  skip:
+    - not linux
+
+outputs:
+  # Build and install HIP/CLR once, then split the staged prefix into the same
+  # seven packages produced by the legacy conda-build multi-output recipe.
+  - staging:
+      name: hip-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - cmake
+        - make
+        - cppheaderparser
+        - wget
+        - python *
+      host:
+        - clangdev ${{ llvm_major_version }}.*
+        - numactl
+        - llvmdev ${{ llvm_major_version }}.*
+        - ocl-icd
+        - rocm-core ${{ version }}.*
+        - rocm-comgr ${{ major_minor_version }}.*
+        - rocr-runtime ${{ major_minor_version }}.*
+        - rocm-cmake ${{ major_minor_version }}.*
+        - zlib
+        - rocminfo ${{ major_minor_version }}.*
+        - libgl-devel
+        - libopengl-devel
+        - libglx-devel
+        - libegl-devel
+    build:
+      script:
+        # Staging outputs have no PKG_VERSION, so pass the recipe version-derived
+        # library patch explicitly (7.2.4 -> 70204), as the legacy build did.
+        - export ROCM_LIBPATCH_VERSION=${{ version | replace('.', '0') }}
+        - bash "$RECIPE_DIR/build.sh"
+
+  - package:
+      name: hip-runtime-amd
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      files:
+        - lib/.hipInfo
+        - lib/cmake/hip/hip-targets*.cmake
+        - lib/cmake/hip-lang/*.cmake
+        - lib/cmake/hiprtc/*.cmake
+        - lib/libamdhip64.so*
+        - lib/libhiprtc.so*
+        - lib/libhiprtc-builtins.so*
+        - share/doc/hip/LICENSE.md
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+      host:
+        - numactl
+        - rocm-core ${{ version }}.*
+        - rocm-comgr ${{ major_minor_version }}.*
+        - rocr-runtime ${{ major_minor_version }}.*
+      run:
+        # Work around the missing run exports in numactl.
+        - libnuma
+        - rocm-comgr ${{ major_minor_version }}.*
+        - rocr-runtime ${{ major_minor_version }}.*
+    tests:
+      - package_contents:
+          files:
+            - lib/.hipInfo
+            - lib/libamdhip64.so
+            - lib/libamdhip64.so.${{ major_version }}
+
+  - package:
+      name: hip-devel
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      files:
+        - bin/hipcc_cmake_linker_helper
+        - bin/hipdemangleatp
+        - bin/roc-obj
+        - bin/roc-obj-extract
+        - bin/roc-obj-ls
+        - include/hip_prof_str.h
+        - include/hip/amd_detail/*
+        - include/hip/*.h
+        - lib/cmake/hip/FindHIP.cmake
+        - lib/cmake/hip/FindHIP/*.cmake
+        - lib/cmake/hip/hip-config*.cmake
+        - share/hip/version
+    requirements:
+      run:
+        - ${{ pin_subpackage('hip-runtime-amd') }}
+        - rocm-device-libs ${{ major_minor_version }}.*
+      run_exports:
+        - ${{ pin_subpackage('hip-runtime-amd') }}
+    tests:
+      - package_contents:
+          files:
+            - share/hip/version
+            - lib/cmake/hip/FindHIP.cmake
+          include:
+            - hip/hip_common.h
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hip --targets hip::host hip::device
+
+  - package:
+      name: hipcc
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      files:
+        - bin/hipcc
+        - bin/hipcc.bin
+        - bin/hipcc.pl
+        - bin/hipconfig*
+        - bin/hipvars.pm
+        - hip/bin/hipvars.pm
+        - share/doc/hipcc/*
+        - etc/conda/activate.d/hip_activate.sh
+        - etc/conda/deactivate.d/hip_deactivate.sh
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+      host:
+        - ${{ pin_subpackage('hip-devel', exact=True) }}
+      run:
+        - ${{ pin_subpackage('hip-devel', exact=True) }}
+        - clang ${{ llvm_major_version }}.*
+        - clangxx ${{ llvm_major_version }}.*
+        - llvm-tools ${{ llvm_major_version }}.*
+        - perl
+        - python *
+        - rocm-core ${{ version }}.*
+        - rocminfo ${{ major_minor_version }}.*
+        # rocm-device-libs, lld and clang-tools are required for HIP compilation.
+        - rocm-device-libs ${{ major_minor_version }}.*
+        - lld ${{ llvm_major_version }}.*
+        - clang-tools ${{ llvm_major_version }}.*
+        - compiler-rt ${{ llvm_major_version }}.*
+    tests:
+      - files:
+          recipe:
+            - test/
+        script:
+          - export HIP_PLATFORM=amd
+          - $PREFIX/bin/hipcc --offload-arch=gfx803 --version
+          - $PREFIX/bin/hipconfig
+          - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
+
+  # Compiler package used by compiler('hip') in conda-build and rattler-build.
+  - package:
+      name: hip-rocm-clang_linux-64
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      script: install-hip-rocm-clang.sh
+      files:
+        - etc/conda/activate.d/hip-rocm-clang_activate.sh
+        - etc/conda/deactivate.d/hip-rocm-clang_deactivate.sh
+    requirements:
+      run:
+        - ${{ pin_subpackage('hipcc', exact=True) }}
+      run_exports:
+        strong:
+          - rocm-core ${{ major_minor_version }}.*
+          - ${{ pin_subpackage('hip-runtime-amd') }}
+    tests:
+      - files:
+          recipe:
+            - test/
+        requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+        script:
+          - test "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}" = "${{ ROCM_GPU_TARGETS }}"
+          - cmake-package-check hip --targets hip::host hip::device
+          - cmake -B./test/test_cmake_enable_hip_build -S./test/test_cmake_enable_hip -GNinja
+          - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
+          - $HIPCXX --version
+
+  # Metapackage providing the compiler outside conda-build and rattler-build.
+  - package:
+      name: hip-compiler
+    build:
+      # This is intentionally a pure metapackage.
+      files: []
+    requirements:
+      run:
+        - ${{ pin_subpackage('hip-rocm-clang_linux-64', exact=True) }}
+    tests:
+      - files:
+          recipe:
+            - test/
+        requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+        script:
+          - cmake-package-check hip --targets hip::host hip::device
+          - cmake -B./test/test_cmake_enable_hip_build -S./test/test_cmake_enable_hip -GNinja
+          - hipcc --offload-arch=gfx942 ./test/test_cmake_enable_hip/main_hip_smoke_test.hip
+
+  - package:
+      name: rocm-opencl
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      files:
+        - lib/libamdocl64.so*
+        - share/doc/opencl/LICENSE.md
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+      host:
+        - numactl
+        - rocm-core ${{ version }}.*
+        - rocm-comgr ${{ version }}.*
+        - rocr-runtime ${{ version }}.*
+      run:
+        - ${{ pin_compatible('rocm-comgr') }}
+        - ${{ pin_compatible('rocr-runtime') }}
+        - libnuma
+    tests:
+      - package_contents:
+          lib:
+            - libamdocl64.so
+
+  - package:
+      name: rocm-opencl-runtime
+    inherit:
+      from: hip-build
+      run_exports: false
+    build:
+      files:
+        - etc/OpenCL/vendors/amdocl64.icd
+    requirements:
+      run:
+        - ${{ pin_subpackage('rocm-opencl', exact=True) }}
+        - if: linux
+          then: ocl-icd
+        - if: not linux
+          then: khronos-ocl-icd-loader
+    tests:
+      - package_contents:
+          files:
+            - etc/OpenCL/vendors/amdocl64.icd
+
+about:
+  homepage: https://github.com/ROCm/HIP
+  license: NCSA
+  license_family: MIT
+  license_file:
+    - clr/LICENSE.md
+    - hip/LICENSE.md
+    - hipcc/amd/hipcc/LICENSE.txt
+  summary: "HIP: C++ Heterogeneous-Compute Interface for Portability "
+
+extra:
+  recipe-maintainers:
+    - isuruf
+    - zklaus

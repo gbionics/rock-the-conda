@@ -1,0 +1,57 @@
+schema_version: 1
+
+context:
+  name: rocr-runtime
+  version: "7.2.4"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocr-runtime.tar.gz
+  sha256: 3a96a3312a6c300db66a3551e8a88f25075cfdfa1197822f9f70c2a80c011860
+
+build:
+  number: 1
+  skip: not linux
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - make
+    - pkg-config
+    # For xxd
+    - vim
+  host:
+    - elfutils
+    - rocm-device-libs ${{ version }}.*
+    - clangdev 22.*
+    - llvmdev  22.*
+    - lld      22.*
+    - numactl
+    - libdrm
+    - zlib
+    - rocm-core ${{ version }}.*
+
+tests:
+  - package_contents:
+      include:
+        - hsa/hsa.h
+      lib:
+        - hsa-runtime64
+
+about:
+  license: NCSA
+  license_file: LICENSE.txt
+  summary: "ROCm Platform Runtime: ROCr a HPC market enhanced HSA based runtime"
+  homepage: https://rocm.docs.amd.com/projects/ROCR-Runtime/
+
+extra:
+  recipe-maintainers:
+    - zklaus
+    - isuruf
+    - conda-forge/rocm-core

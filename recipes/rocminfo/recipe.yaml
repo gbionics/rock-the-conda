@@ -1,0 +1,55 @@
+schema_version: 1
+
+context:
+  name: rocminfo
+  version: "7.2.4"
+
+package:
+  name: ${{ name | lower }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocminfo.tar.gz
+  sha256: 8c4dbe41e03180311a61a13eb6be51faeb8e0f70850dc984076a0a09262fda5d
+
+build:
+  number: 1
+  skip: not linux
+
+requirements:
+  build:
+    - ${{ compiler("c") }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler("cxx") }}
+    - cmake
+    - make
+  host:
+    - numactl
+    # rocm-core is a host dependency due as convention, see
+    # https://github.com/conda-forge/rocm-core-feedstock/issues/21
+    - rocm-core ${{ version }}.*
+    - rocr-runtime ${{ version }}.*
+  run:
+    - rocr-runtime ${{ version }}.*
+    # rocm_agent_enumerator is a Python script
+    - python
+
+tests:
+  - package_contents:
+      bin:
+        - rocminfo
+        - rocm_agent_enumerator
+  - script:
+      file: run_test.sh
+
+about:
+  homepage: https://github.com/ROCm/rocminfo
+  license: NCSA
+  license_file: License.txt
+  summary: ROCm Application for Reporting System Info
+
+extra:
+  recipe-maintainers:
+    - isuruf
+    - zklaus
+    - conda-forge/rocm-core

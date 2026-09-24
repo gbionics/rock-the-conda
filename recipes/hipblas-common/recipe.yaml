@@ -1,43 +1,76 @@
+schema_version: 1
+
 context:
   name: hipblas-common
-  version: "7.2.1"
+  version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: hipblas-common-split
   version: ${{ version }}
 
 source:
   - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblas-common.tar.gz"
-    sha256: acb1e40f3a7f8013ce8b5c133af9c242dfbe251226562cf5f328b0184a867c46
+    sha256: 5c7806accb2123b7a0a0d814517adc85335ab9c0ed3318fcbad2282d219f397b
 
 build:
   number: 0
   skip: not linux
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib('c') }}
-    - ${{ compiler('cxx') }}
-    - cmake
-    - pkg-config
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake ${{ version }}.*
-
-
-tests:
-  - requirements:
-      run:
-        - cmake-package-check
+outputs:
+  - staging:
+      name: hipblas-common-build
+    requirements:
+      build:
         - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
         - ${{ compiler('cxx') }}
-    script:
-      - cmake-package-check hipblas-common
-  - package_contents:
-      include:
-        - hipblas-common/hipblas-common.h
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake ${{ version }}.*
+    build:
+      script: build.sh
+
+  - package:
+      name: libhipblas-common-devel
+    inherit:
+      from: hipblas-common-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib('c') }}
+        - ${{ compiler('cxx') }}
+        - cmake
+        - pkg-config
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake ${{ version }}.*
+
+      run_exports:
+        - ${{ pin_subpackage('libhipblas-common-devel', upper_bound='x.x') }}
+    tests:
+      - requirements:
+          run:
+            - cmake-package-check
+            - ${{ compiler('c') }}
+            - ${{ compiler('cxx') }}
+        script:
+          - cmake-package-check hipblas-common
+      - package_contents:
+          include:
+            - hipblas-common/hipblas-common.h
 
 about:
   homepage: https://github.com/ROCm/rocm-libraries

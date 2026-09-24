@@ -1,6 +1,6 @@
 context:
   name: migraphx
-  version: "7.2.1"
+  version: "7.2.4"
 
 recipe:
   name: ${{ name }}
@@ -8,7 +8,7 @@ recipe:
 
 source:
   - url: https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-${{ version }}.tar.gz
-    sha256: 611e4646f11fe559946275a6c79f1aaabe0a5c7cb95a42b28e724ba29f4c753a
+    sha256: 51f55c1a1ebe71b12a927b19384cb7911736869c91f01396f6113e88865dbdc0
     target_directory: migraphx
 
   # CK JIT library (migraphx branch) static lib only used by MIGraphX.
@@ -43,13 +43,13 @@ outputs:
       host:
         - rocm-core ${{ version }}.*
         - rocm-cmake
-        - rocblas
+        - librocblas-devel
         - openmpi
-        - miopen-hip
-        - hipblaslt
-        - hipblas
-        - hipblas-common
-        - composable-kernel
+        - libmiopen-hip-devel
+        - libhipblaslt-devel
+        - libhipblas-devel
+        - libhipblas-common-devel
+        - libcomposable-kernel-devel
         - cpp-half
         - nlohmann_json
         - msgpack-cxx
@@ -102,13 +102,13 @@ outputs:
       host:
         - rocm-core ${{ version }}.*
         - rocm-cmake
-        - rocblas
+        - librocblas-devel
         - openmpi
-        - miopen-hip
-        - hipblaslt
-        - hipblas
-        - hipblas-common
-        - composable-kernel
+        - libmiopen-hip-devel
+        - libhipblaslt-devel
+        - libhipblas-devel
+        - libhipblas-common-devel
+        - libcomposable-kernel-devel
         - cpp-half
         - nlohmann_json
         - msgpack-cxx

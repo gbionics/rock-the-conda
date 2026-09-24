@@ -1,14 +1,16 @@
+schema_version: 1
+
 context:
   name: composable-kernel
-  version: "7.2.1"
+  version: "7.2.4"
 
-package:
-  name: ${{ name|lower }}
+recipe:
+  name: composable-kernel-split
   version: ${{ version }}
 
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/composablekernel.tar.gz
-  sha256: b5a699f1bce24727ed333aeed8afd10a8ac3c1ddcf86eb86ec9d638a22c24125
+  sha256: ace080bd7a0cbd4abb94d515d9bf08158aa8d5e94901730b71403000192b2dfa
 
 build:
   number: 0
@@ -16,28 +18,85 @@ build:
     - not linux
     - hip_compiler_version in (None, "None")
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
-    - ${{ compiler('cxx') }}
-    - ${{ compiler('hip') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core ${{ version }}.*
-    - rocm-cmake
-  run_exports:
-    - ${{ pin_subpackage(name, upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: composable-kernel-build
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+    build:
+      script: build.sh
 
-tests:
-  - package_contents:
-      include:
-        - ck/library/reference_tensor_operation/cpu/reference_gemm.hpp
-        - ck/library/reference_tensor_operation/gpu/reference_gemm.hpp
-        - ck/library/tensor_operation_instance/gpu/grouped_gemm.hpp
-      lib:
-        - device_conv_operations
+  - package:
+      name: libcomposable-kernel
+    inherit:
+      from: composable-kernel-build
+      run_exports: false
+    build:
+      files:
+        - bin/**
+        - lib/libdevice_conv_operations.so*
+        - share/doc/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+    tests:
+      - package_contents:
+          lib:
+            - device_conv_operations
+
+  - package:
+      name: libcomposable-kernel-devel
+    inherit:
+      from: composable-kernel-build
+      run_exports: false
+    build:
+      files:
+        - include/**
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ stdlib("c") }}
+        - ${{ compiler('cxx') }}
+        - ${{ compiler('hip') }}
+        - cmake
+        - ninja
+      host:
+        - rocm-core ${{ version }}.*
+        - rocm-cmake
+
+      run:
+        - hip-devel
+        - ${{ pin_subpackage('libcomposable-kernel', exact=True) }}
+
+      run_exports:
+        - ${{ pin_subpackage('libcomposable-kernel', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - ck/library/reference_tensor_operation/cpu/reference_gemm.hpp
+            - ck/library/reference_tensor_operation/gpu/reference_gemm.hpp
+            - ck/library/tensor_operation_instance/gpu/grouped_gemm.hpp
 
 about:
   repository: https://github.com/ROCm/composable_kernel

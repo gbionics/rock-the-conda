@@ -1,0 +1,48 @@
+schema_version: 1
+
+context:
+  name: libdivide
+  version: "5.3.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ridiculousfish/libdivide/archive/refs/tags/v${{ version }}.tar.gz
+  sha256: de3933bf2fd21300d99fcc6460a8a4a1343ae90b965d6893f044c350bac68c6e
+
+build:
+  number: 0
+  script: build.sh
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+
+tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check libdivide
+  - package_contents:
+      include:
+        - libdivide.h
+
+about:
+  homepage: https://libdivide.com
+  repository: https://github.com/ridiculousfish/libdivide
+  license: Zlib OR BSL-1.0
+  license_file: LICENSE.txt
+  summary: "Header-only library for optimized integer division"
+
+extra:
+  recipe-maintainers:
+    - traversaro
