@@ -13,7 +13,7 @@ source:
     sha256: 65d08232b0f83dda214c96e869db4b68380a12a7f6526ae008ec5faf19ec30e9
 
 build:
-  number: 0
+  number: 1
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
@@ -45,8 +45,7 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/libhipfft.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -64,6 +63,7 @@ outputs:
       - package_contents:
           lib:
             - hipfft
+            - hipfftw
 
   - package:
       name: libhipfft-devel
@@ -77,6 +77,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

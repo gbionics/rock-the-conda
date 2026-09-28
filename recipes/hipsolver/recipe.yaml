@@ -13,7 +13,7 @@ source:
   sha256: 7f99c576b3fd5e6a379e285531dc68ade121918f6d41209ce534d857f421ff39
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -46,8 +46,7 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/libhipsolver.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -79,6 +78,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

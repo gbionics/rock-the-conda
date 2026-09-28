@@ -13,7 +13,7 @@ source:
     sha256: c37e25e7a4f09a1064c53b93b14c14cb7400f046405ea0ef3ea1f4b4a80d7528
 
 build:
-  number: 0
+  number: 1
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
@@ -45,9 +45,8 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/librocfft.so*
+        - lib/*.so*
         - lib/rocfft/**
-        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -78,6 +77,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

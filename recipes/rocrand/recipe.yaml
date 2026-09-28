@@ -13,7 +13,7 @@ source:
   sha256: 9b5ddd4ac403e5c1199728750234c37386effbf648aff873910c6f3299beadaf
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -43,8 +43,7 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/librocrand.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -73,6 +72,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

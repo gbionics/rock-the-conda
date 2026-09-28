@@ -13,7 +13,7 @@ source:
     sha256: 5627f0dc9d9bf34a5a3e100312077b275b6fff305c3f25f970824bc1c85a3676
 
 build:
-  number: 0
+  number: 1
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
@@ -54,8 +54,7 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/libhipblas.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -95,6 +94,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

@@ -13,7 +13,7 @@ source:
   sha256: d37e6e468d8a0add2056b947b94b09a96dd6fce665d4f8c3164a0117596b7403
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -52,8 +52,7 @@ outputs:
       run_exports: false
     build:
       files:
-        - lib/librocroller.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -94,6 +93,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

@@ -17,7 +17,7 @@ source:
     target_directory: shared/tensile
 
 build:
-  number: 2
+  number: 3
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
@@ -76,9 +76,8 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/librocblas.so*
+        - lib/*.so*
         - lib/rocblas/**
-        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -136,6 +135,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}

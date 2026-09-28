@@ -13,7 +13,7 @@ source:
   sha256: 5342f1e536d42c86461a3482cd1921ba3f854e15b5705d792494b36c4750e6e5
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -45,8 +45,7 @@ outputs:
     build:
       files:
         - bin/**
-        - lib/librocsparse.so*
-        - share/doc/**
+        - lib/*.so*
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -77,6 +76,7 @@ outputs:
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
+        - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
