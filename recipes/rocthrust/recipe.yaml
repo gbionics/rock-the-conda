@@ -35,12 +35,17 @@ requirements:
     - hip-devel
     - librocprim-devel
 tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check rocthrust
   - package_contents:
       include:
         - thrust/version.h
         - thrust/rocthrust_version.hpp
-      files:
-        - lib/cmake/rocthrust/rocthrust-config.cmake
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocThrust

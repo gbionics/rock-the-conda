@@ -37,11 +37,16 @@ requirements:
   run:
     - hip-devel
 tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check rocwmma
   - package_contents:
       include:
         - rocwmma/rocwmma.hpp
-      files:
-        - lib/cmake/rocwmma/rocwmma-config.cmake
 
 about:
   repository: https://github.com/ROCm/rocWMMA

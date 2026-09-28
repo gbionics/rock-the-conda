@@ -33,11 +33,16 @@ requirements:
     - rocr-runtime
 
 tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check rocmlir
   - package_contents:
       files:
         - lib/librockCompiler.so
-        - lib/cmake/rocmlir/rocmlir-config.cmake
-        - lib/cmake/rocmlir/rocmlir-targets.cmake
       include:
         - rocmlir/Miir.h
         - rocmlir/external/include/mlir-c/IR.h

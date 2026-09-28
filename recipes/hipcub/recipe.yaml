@@ -35,11 +35,16 @@ requirements:
     - hip-devel
     - librocprim-devel
 tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check hipcub
   - package_contents:
       include:
         - hipcub/hipcub.hpp
-      files:
-        - lib/cmake/hipcub/hipcub-config.cmake
 
 about:
   repository: https://github.com/ROCm/hipCUB
