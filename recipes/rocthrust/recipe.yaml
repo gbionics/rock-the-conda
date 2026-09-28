@@ -4,8 +4,8 @@ context:
   name: rocthrust
   version: "7.2.4"
 
-recipe:
-  name: rocthrust-split
+package:
+  name: librocthrust-devel
   version: ${{ version }}
 
 source:
@@ -17,64 +17,30 @@ build:
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
+  script: build.sh
 
-outputs:
-  - staging:
-      name: rocthrust-build
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocprim-devel ${{ version }}.*
-    build:
-      script: build.sh
-
-  - package:
-      name: librocthrust-devel
-    inherit:
-      from: rocthrust-build
-      run_exports: false
-    build:
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ compiler('hip') }}
+    - cmake
+    - ninja
+  host:
+    - rocm-core ${{ version }}.*
+    - rocm-cmake
+    - librocprim-devel ${{ version }}.*
+  run:
+    - hip-devel
+    - librocprim-devel
+tests:
+  - package_contents:
+      include:
+        - thrust/version.h
+        - thrust/rocthrust_version.hpp
       files:
-        - include/**
-        - lib/*.a
-        - lib/cmake/**
-        - lib/pkgconfig/**
-        - share/pkgconfig/**
-        - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocprim-devel ${{ version }}.*
-
-      run:
-        - hip-devel
-        - librocprim-devel
-
-      run_exports:
-        - ${{ pin_subpackage('librocthrust-devel', upper_bound='x.x') }}
-    tests:
-      - package_contents:
-          include:
-            - thrust/version.h
-            - thrust/rocthrust_version.hpp
-          files:
-            - lib/cmake/rocthrust/rocthrust-config.cmake
+        - lib/cmake/rocthrust/rocthrust-config.cmake
 
 about:
   homepage: https://rocm.docs.amd.com/projects/rocThrust
