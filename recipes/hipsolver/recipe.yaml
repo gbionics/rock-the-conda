@@ -40,9 +40,7 @@ outputs:
 
   - package:
       name: libhipsolver
-    inherit:
-      from: hipsolver-build
-      run_exports: false
+    inherit: hipsolver-build
     build:
       files:
         include:
@@ -54,20 +52,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - ${{ compiler('fortran') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocsolver-devel
-        - librocblas-devel
     tests:
       - package_contents:
           lib:
@@ -75,9 +59,7 @@ outputs:
 
   - package:
       name: libhipsolver-devel
-    inherit:
-      from: hipsolver-build
-      run_exports: false
+    inherit: hipsolver-build
     build:
       files:
         - include/**
@@ -87,20 +69,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - ${{ compiler('fortran') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocsolver-devel
-        - librocblas-devel
-
       run:
         - hip-devel
         - librocsolver-devel
@@ -109,6 +77,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('libhipsolver', upper_bound='x.x') }}
+
     tests:
       - package_contents:
           include:

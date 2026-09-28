@@ -39,9 +39,7 @@ outputs:
 
   - package:
       name: libhipfft
-    inherit:
-      from: hipfft-build
-      run_exports: false
+    inherit: hipfft-build
     build:
       files:
         include:
@@ -53,19 +51,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocfft-devel
     tests:
       - package_contents:
           lib:
@@ -74,9 +59,7 @@ outputs:
 
   - package:
       name: libhipfft-devel
-    inherit:
-      from: hipfft-build
-      run_exports: false
+    inherit: hipfft-build
     build:
       files:
         - include/**
@@ -86,19 +69,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocfft-devel
-
       run:
         - hip-devel
         - librocfft-devel
@@ -106,6 +76,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('libhipfft', upper_bound='x.x') }}
+
     tests:
       - requirements:
           run:

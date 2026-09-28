@@ -57,9 +57,7 @@ outputs:
 
   - package:
       name: libmiopen-hip
-    inherit:
-      from: miopen-hip-build
-      run_exports: false
+    inherit: miopen-hip-build
     build:
       files:
         include:
@@ -72,35 +70,6 @@ outputs:
           - share/pkgconfig/**
           - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-        # Needed by rocm_check_target_ids CMake function
-        - lld ${{ llvm_major_version }}.*
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - hip-devel
-        - hipcc
-        - librocblas-devel
-        - libhipblas-common-devel
-        - libhipblaslt-devel
-        - librocrand-devel
-        - libcomposable-kernel-devel ${{ version }}.*
-        - rocmlir
-        - sqlite
-        - libboost-devel
-        - nlohmann_json
-        - bzip2
-        - roctracer
-        - cpp-half
-        - frugally-deep >=0.20.0
-        - functionalplus
-        - eigen-abi-devel
       run:
         - hip-runtime-amd
         - librocblas
@@ -109,6 +78,7 @@ outputs:
         - rocmlir
         - sqlite
         - bzip2
+
     tests:
       - package_contents:
           lib:
@@ -116,9 +86,7 @@ outputs:
 
   - package:
       name: libmiopen-hip-devel
-    inherit:
-      from: miopen-hip-build
-      run_exports: false
+    inherit: miopen-hip-build
     build:
       files:
         - include/**
@@ -128,35 +96,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-        # Needed by rocm_check_target_ids CMake function
-        - lld ${{ llvm_major_version }}.*
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - hip-devel
-        - hipcc
-        - librocblas-devel
-        - libhipblas-common-devel
-        - libhipblaslt-devel
-        - librocrand-devel
-        - libcomposable-kernel-devel ${{ version }}.*
-        - rocmlir
-        - sqlite
-        - libboost-devel
-        - nlohmann_json
-        - bzip2
-        - roctracer
-        - cpp-half
-        - frugally-deep >=0.20.0
-        - functionalplus
-        - eigen-abi-devel
       run:
         - hip-devel
         - librocblas-devel
@@ -176,6 +115,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('libmiopen-hip', upper_bound='x.x') }}
+
     tests:
       - package_contents:
           include:

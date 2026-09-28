@@ -39,9 +39,7 @@ outputs:
 
   - package:
       name: librocsparse
-    inherit:
-      from: rocsparse-build
-      run_exports: false
+    inherit: rocsparse-build
     build:
       files:
         include:
@@ -53,19 +51,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocprim-devel
-        - librocblas-devel
     tests:
       - package_contents:
           lib:
@@ -73,9 +58,7 @@ outputs:
 
   - package:
       name: librocsparse-devel
-    inherit:
-      from: rocsparse-build
-      run_exports: false
+    inherit: rocsparse-build
     build:
       files:
         - include/**
@@ -85,19 +68,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocprim-devel
-        - librocblas-devel
-
       run:
         - hip-devel
         - librocprim-devel
@@ -106,6 +76,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('librocsparse', upper_bound='x.x') }}
+
     tests:
       - package_contents:
           include:

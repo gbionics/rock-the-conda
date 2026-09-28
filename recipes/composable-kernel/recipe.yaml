@@ -37,9 +37,7 @@ outputs:
 
   - package:
       name: libcomposable-kernel
-    inherit:
-      from: composable-kernel-build
-      run_exports: false
+    inherit: composable-kernel-build
     build:
       files:
         include:
@@ -51,17 +49,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
     tests:
       - package_contents:
           lib:
@@ -69,9 +56,7 @@ outputs:
 
   - package:
       name: libcomposable-kernel-devel
-    inherit:
-      from: composable-kernel-build
-      run_exports: false
+    inherit: composable-kernel-build
     build:
       files:
         - include/**
@@ -81,23 +66,13 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-
       run:
         - hip-devel
         - ${{ pin_subpackage('libcomposable-kernel', exact=True) }}
 
       run_exports:
         - ${{ pin_subpackage('libcomposable-kernel', upper_bound='x.x') }}
+
     tests:
       - package_contents:
           include:

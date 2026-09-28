@@ -39,9 +39,7 @@ outputs:
 
   - package:
       name: libhiprand
-    inherit:
-      from: hiprand-build
-      run_exports: false
+    inherit: hiprand-build
     build:
       files:
         include:
@@ -53,19 +51,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - ${{ compiler('fortran') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocrand-devel
     tests:
       - package_contents:
           lib:
@@ -73,9 +58,7 @@ outputs:
 
   - package:
       name: libhiprand-devel
-    inherit:
-      from: hiprand-build
-      run_exports: false
+    inherit: hiprand-build
     build:
       files:
         - include/**
@@ -85,19 +68,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - ${{ compiler('fortran') }}
-        - cmake
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - librocrand-devel
-
       run:
         - hip-devel
         - librocrand-devel
@@ -105,6 +75,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('libhiprand', upper_bound='x.x') }}
+
     tests:
       - package_contents:
           include:

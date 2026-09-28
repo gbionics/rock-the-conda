@@ -39,9 +39,7 @@ outputs:
 
   - package:
       name: librocfft
-    inherit:
-      from: rocfft-build
-      run_exports: false
+    inherit: rocfft-build
     build:
       files:
         include:
@@ -53,19 +51,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-    requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - sqlite
     tests:
       - package_contents:
           lib:
@@ -73,9 +58,7 @@ outputs:
 
   - package:
       name: librocfft-devel
-    inherit:
-      from: rocfft-build
-      run_exports: false
+    inherit: rocfft-build
     build:
       files:
         - include/**
@@ -85,25 +68,13 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake
-        - sqlite
-
       run:
         - hip-devel
         - ${{ pin_subpackage('librocfft', exact=True) }}
 
       run_exports:
         - ${{ pin_subpackage('librocfft', upper_bound='x.x') }}
+
     tests:
       - requirements:
           run:

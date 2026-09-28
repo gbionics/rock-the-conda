@@ -47,9 +47,7 @@ outputs:
 
   - package:
       name: librocroller
-    inherit:
-      from: rocroller-build
-      run_exports: false
+    inherit: rocroller-build
     build:
       files:
         include:
@@ -62,28 +60,12 @@ outputs:
           - share/pkgconfig/**
           - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake<4
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake ${{ version }}.*
-        - rocm-comgr ${{ version }}.*
-        - fmt >=11.1.3
-        - spdlog
-        - yaml-cpp
-        - libdivide
-        - msgpack-cxx
-        - libboost-devel
       ignore_run_exports:
         from_package:
           - libboost-devel
       run:
         - rocm-comgr ${{ version }}.*
+
     tests:
       - package_contents:
           lib:
@@ -91,9 +73,7 @@ outputs:
 
   - package:
       name: librocroller-devel
-    inherit:
-      from: rocroller-build
-      run_exports: false
+    inherit: rocroller-build
     build:
       files:
         - include/**
@@ -103,23 +83,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake<4
-        - ninja
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake ${{ version }}.*
-        - rocm-comgr ${{ version }}.*
-        - fmt >=11.1.3
-        - spdlog
-        - yaml-cpp
-        - libdivide
-        - msgpack-cxx
-        - libboost-devel
       ignore_run_exports:
         from_package:
           - libboost-devel
@@ -132,6 +95,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('librocroller', upper_bound='x.x') }}
+
     tests:
       - requirements:
           run:

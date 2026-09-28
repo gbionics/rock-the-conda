@@ -69,9 +69,7 @@ outputs:
 
   - package:
       name: libhipblaslt
-    inherit:
-      from: hipblaslt-build
-      run_exports: false
+    inherit: hipblaslt-build
     build:
       files:
         include:
@@ -84,41 +82,11 @@ outputs:
           - share/pkgconfig/**
           - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-        # Needed for tensilite
-        - python ${{ python_min }}.*
-        - pip
-        - setuptools
-        - msgpack-python
-        - joblib
-        - pyyaml
-        - packaging
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake ${{ version }}.*
-        - libhipblas-common-devel
-        - librocroller-devel ${{ version }}.*
-        # Needed for tensilite
-        - python ${{ python_min }}.*
-        - pip
-        - setuptools
-        - msgpack-python
-        - joblib
-        - pyyaml
-        - packaging
-        - msgpack-cxx
-        - libboost-devel
       ignore_run_exports:
         from_package:
           - python
           - libboost-devel
+
     tests:
       - package_contents:
           lib:
@@ -126,9 +94,7 @@ outputs:
 
   - package:
       name: libhipblaslt-devel
-    inherit:
-      from: hipblaslt-build
-      run_exports: false
+    inherit: hipblaslt-build
     build:
       files:
         - include/**
@@ -138,37 +104,6 @@ outputs:
         - share/pkgconfig/**
         - share/doc/**
     requirements:
-      build:
-        - ${{ compiler('c') }}
-        - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
-        - ${{ compiler('hip') }}
-        - cmake
-        - pkg-config
-        - ninja
-        # Needed for tensilite
-        - python ${{ python_min }}.*
-        - pip
-        - setuptools
-        - msgpack-python
-        - joblib
-        - pyyaml
-        - packaging
-      host:
-        - rocm-core ${{ version }}.*
-        - rocm-cmake ${{ version }}.*
-        - libhipblas-common-devel
-        - librocroller-devel ${{ version }}.*
-        # Needed for tensilite
-        - python ${{ python_min }}.*
-        - pip
-        - setuptools
-        - msgpack-python
-        - joblib
-        - pyyaml
-        - packaging
-        - msgpack-cxx
-        - libboost-devel
       ignore_run_exports:
         from_package:
           - python
@@ -183,6 +118,7 @@ outputs:
 
       run_exports:
         - ${{ pin_subpackage('libhipblaslt', upper_bound='x.x') }}
+
     tests:
       - requirements:
           run:
