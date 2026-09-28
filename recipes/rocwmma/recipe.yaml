@@ -85,5 +85,6 @@ about:
   summary: "AMD GPU C++ header-only library for GEMM primitives based on WMMA instructions"
 
 extra:
+  feedstock-name: rocwmma
   recipe-maintainers:
     - traversaro

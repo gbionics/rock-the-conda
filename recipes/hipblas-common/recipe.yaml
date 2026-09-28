@@ -81,5 +81,6 @@ about:
   summary: "hipBLAS-common is a header-only library that provides common files for hipBLAS and hipBLASLt."
 
 extra:
+  feedstock-name: hipblas-common
   recipe-maintainers:
     - traversaro

@@ -315,6 +315,7 @@ about:
   summary: "HIP: C++ Heterogeneous-Compute Interface for Portability "
 
 extra:
+  feedstock-name: hip
   recipe-maintainers:
     - isuruf
     - zklaus

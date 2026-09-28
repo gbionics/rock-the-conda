@@ -74,9 +74,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
-        - lib/hipblaslt/**
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -198,5 +204,6 @@ about:
   summary: "HIP library for GEMM operations with extended functionality"
 
 extra:
+  feedstock-name: hipblaslt
   recipe-maintainers:
     - traversaro

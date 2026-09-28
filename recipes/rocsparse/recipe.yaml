@@ -44,8 +44,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -116,6 +123,7 @@ about:
     from C and C++ code.
 
 extra:
+  feedstock-name: rocsparse
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

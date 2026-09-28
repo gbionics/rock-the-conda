@@ -44,8 +44,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -115,6 +122,7 @@ about:
     inputs to the backend library and marshals results to the application.
 
 extra:
+  feedstock-name: hipsparse
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

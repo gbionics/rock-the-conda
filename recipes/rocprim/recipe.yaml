@@ -87,5 +87,6 @@ about:
   summary: "rocPRIM is a header-only library that provides HIP parallel primitives."
 
 extra:
+  feedstock-name: rocprim
   recipe-maintainers:
     - traversaro

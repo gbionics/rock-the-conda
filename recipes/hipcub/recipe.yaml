@@ -83,5 +83,6 @@ about:
   summary: "HIP CUB: thin layer on top of rocPRIM or CUB"
 
 extra:
+  feedstock-name: hipcub
   recipe-maintainers:
     - traversaro

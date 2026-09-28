@@ -62,9 +62,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
-        - share/miopen/**
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -187,6 +193,7 @@ about:
     for AMD GPUs using the HIP programming model.
 
 extra:
+  feedstock-name: miopen-hip
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

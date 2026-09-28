@@ -53,8 +53,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -148,5 +155,6 @@ about:
   summary: "ROCm BLAS marshalling library."
 
 extra:
+  feedstock-name: hipblas
   recipe-maintainers:
     - traversaro

@@ -84,6 +84,7 @@ about:
   summary: "ROCm parallel algorithm library, HIP back-end for Thrust."
 
 extra:
+  feedstock-name: rocthrust
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

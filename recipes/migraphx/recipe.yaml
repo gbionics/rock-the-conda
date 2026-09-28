@@ -150,6 +150,7 @@ about:
     execution of deep learning models on AMD GPUs using the HIP programming model.
 
 extra:
+  feedstock-name: migraphx
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

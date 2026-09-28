@@ -44,9 +44,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - bin/**
-        - lib/*.so*
-        - lib/rocfft/**
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -118,5 +124,6 @@ about:
   summary: "rocFFT library."
 
 extra:
+  feedstock-name: rocfft
   recipe-maintainers:
     - traversaro

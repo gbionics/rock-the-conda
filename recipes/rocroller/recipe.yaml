@@ -52,7 +52,15 @@ outputs:
       run_exports: false
     build:
       files:
-        - lib/*.so*
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -145,5 +153,6 @@ about:
   summary: "A library for generating AMDGPU kernels"
 
 extra:
+  feedstock-name: rocroller
   recipe-maintainers:
     - traversaro
