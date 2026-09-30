@@ -1,5 +1,5 @@
 context:
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: rocprofiler-sdk
@@ -13,14 +13,13 @@ source:
     - 0001-disable-yaml-cpp-and-json.patch
     - 0002-disable-cpackaging.patch
     - 0003-add-rocprofiler-register-target.patch
-    - 0004-add-missing-headers.patch
     - 0005-devendor-elfio-and-otf2.patch
     - 0006-fix-find-package-scoping.patch
     - 0007-fix-elfio-cstdint-order.patch
     - 0008-fix-fmt-join-include.patch
 
 build:
-  number: 3
+  number: 0
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
