@@ -1,10 +1,8 @@
 --- a/source/lib/rocprofiler-sdk/counters/metrics.cpp
 +++ b/source/lib/rocprofiler-sdk/counters/metrics.cpp
-@@ -44,6 +44,7 @@
- 
- #include <dlfcn.h>  // for dladdr
- #include <cstdint>
+@@ -46,0 +47 @@
 +#include <fstream>
- #include <cstdlib>
- #include <memory>
- #include <vector>
+--- a/source/lib/rocprofiler-sdk-rocpd/sql.cpp
++++ b/source/lib/rocprofiler-sdk-rocpd/sql.cpp
+@@ -41,0 +42 @@
++#include <fstream>

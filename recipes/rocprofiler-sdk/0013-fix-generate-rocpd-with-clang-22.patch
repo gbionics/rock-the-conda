@@ -1,0 +1,38 @@
+--- a/source/lib/output/generateRocpd.cpp
++++ b/source/lib/output/generateRocpd.cpp
+@@ -56,6 +56,7 @@
+ #include <rocprofiler-sdk-rocpd/types.h>
+ 
+ #include <fmt/format.h>
++#include <fmt/ranges.h>
+ #include <sqlite3.h>
+ #include <unistd.h>
+ 
+@@ -353,9 +354,9 @@
+     return insert_value(_name, _value.value(), TraitT{});
+ }
+ 
+-template <template <typename...> class ContainerT, typename... TypesT>
++template <typename ContainerT>
+ auto
+-get_insert_statement_impl(std::string_view _table, ContainerT<sql_insert_value, TypesT...>&& _data)
++get_insert_statement_impl(std::string_view _table, ContainerT&& _data)
+ {
+     auto fields = std::vector<std::string_view>{};
+     auto values = std::vector<std::string_view>{};
+@@ -376,12 +377,11 @@
+                        fmt::join(values.begin(), values.end(), ", "));
+ }
+ 
+-template <template <typename...> class ContainerT, typename... TypesT>
++template <typename ContainerT>
+ auto
+-get_insert_statement(std::string_view _table, ContainerT<sql_insert_value, TypesT...>&& _data)
++get_insert_statement(std::string_view _table, ContainerT&& _data)
+ {
+-    return get_insert_statement_impl(_table,
+-                                     std::forward<ContainerT<sql_insert_value, TypesT...>>(_data));
++    return get_insert_statement_impl(_table, std::forward<ContainerT>(_data));
+ }
+ 
+ auto
