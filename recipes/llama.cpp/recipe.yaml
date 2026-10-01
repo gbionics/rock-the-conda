@@ -1,6 +1,6 @@
 context:
   name: llama.cpp
-  version: "9851"
+  version: "10751"
   build: 0
   # ensure arm_variant_type gets detected as a used variable
   touch_arm_variant_type: ${{ arm_variant_type if (linux and aarch64) else "None" }}
@@ -10,16 +10,19 @@ package:
   version: ${{ version }}
 
 source:
-  url: https://github.com/ggml-org/${{ name }}/archive/b${{ version | split(".") | list | last }}.tar.gz
-  sha256: 6ebb3afc8afec3774e26d19348948e358fb2215bc1e9dde4fa971612ed6c4bf5
-
+  url: https://github.com/ggml-org/${{ name }}/archive/b${{ version ~ "" | split(".") | list | last }}.tar.gz
+  sha256: 1149a0f1476ccc54a7dd0b5850ab91261b6488fa2d47e48c0108238e809f0d28
+  patches:
+    - if: linux
+      then:
+        - patches/0001-vulkan-disable-spirv-opt-for-cm2-ocp.patch
 
 build:
   # See https://conda-forge.org/docs/user/tipsandtricks/#installing-cuda-enabled-packages-like-tensorflow-and-pytorch
   # Similar to https://github.com/conda-forge/jaxlib-feedstock/blob/4471f8d7b0096942f228a9c5a4324bfa75139e22/recipe/recipe.yaml#L22
   number: ${{ build if cuda_compiler_version == "None" else build + 200 }}
   string: '{%- if cuda_compiler_version != "None" -%}cuda${{ cuda_compiler_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif hip_compiler_version != "None" -%}rocm${{ rocm_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif (osx and x86_64) or cuda_compiler_version == "None" -%}cpu_${{ blas_impl }}_h${{ hash }}_${{ build }}{%- elif osx and arm64 -%}mps_h${{ hash }}_${{ build }}{%- endif -%}'
-  # Only build rocm variant (rock-the conda specific change, remove if the changes are upstreamed)
+  # rock-the-conda: build only the ROCm variant
   skip: hip_compiler_version == "None"
 
   script:
@@ -106,9 +109,7 @@ build:
         ${{ cmake_args("CMAKE_HIP_ARCHITECTURES=$CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS") }}
         ${{ cmake_args("CMAKE_HIP_COMPILER=$HIPCXX") }}
         # CMake HIP builds do not automatically inherit CXXFLAGS include paths.
-        # Ensure host ROCm headers (e.g. hipblas/hipblas.h) are visible.
         ${{ cmake_args("CMAKE_HIP_FLAGS=-I$PREFIX/include") }}
-
         {%- endif %}
 
         {%- if linux and x86_64 and cuda_compiler_version == "None" and hip_compiler_version == "None" %}
@@ -119,10 +120,10 @@ build:
         {%- endif %}
 
         {%- endif %}
-        
+
         echo $LLAMA_ARGS
         cmake -S . -B build -G Ninja ${CMAKE_ARGS} ${LLAMA_ARGS}
-        cmake --build build --verbose
+        cmake --build build
         cmake --install build
     - if: win
       then: |
@@ -151,6 +152,8 @@ build:
         {%- if cuda_compiler_version | default("None") != "None" %}
         ${{ ggml_args("CUDA=ON") }}
         ${{ cmake_args("CMAKE_CUDA_ARCHITECTURES=%CUDAARCHS%") }}
+        rem Silence all NVCC warnings on Windows to keep CI logs small enough for the runner disk.
+        set "NVCC_APPEND_FLAGS=-w"
 
         {%- else %}
 
@@ -208,17 +211,8 @@ requirements:
         - cuda-cudart-dev ${{ cuda_compiler_version }}.*
         - libcublas-dev ${{ cuda_compiler_version }}.*
 
-    - if: (not osx) and (cuda_compiler_version == "None") and (blas_impl == "mkl")
-      then:
-        - blas-devel * *_${{ blas_impl }}
-        - mkl-devel ${{ mkl }}.*
-
-    - if: osx
-      then:
-        - llvm-openmp
     - if: hip_compiler_version != "None"
       then:
-        # Mutex package to specify rocm version
         - rocm-core ${{ rocm_version }}.*
         - rocminfo
         - librocblas-devel
@@ -226,8 +220,14 @@ requirements:
         - libhipblas-common-devel
         - librocwmma-devel
         - fmt
-        # TODO(traversaro): this dependency needs to be investigated, perhaps it should be
-        # set by compiler('hip')
+        - llvm-openmp
+
+    - if: (not osx) and (cuda_compiler_version == "None") and (blas_impl == "mkl")
+      then:
+        - blas-devel * *_${{ blas_impl }}
+        - mkl-devel ${{ mkl }}.*
+    - if: osx
+      then:
         - llvm-openmp
   run:
     - if: cuda_compiler_version != "None"
@@ -318,9 +318,9 @@ tests:
         # Check CMake configuration files
           - echo "Checking CMake configuration files..."
           - check_file "$PREFIX/lib/cmake/ggml/ggml-config.cmake" "ggml-config.cmake"
-          - check_file "$PREFIX/lib/cmake/ggml/ggml-version.cmake" "ggml-version.cmake"
+          - check_file "$PREFIX/lib/cmake/ggml/ggml-config-version.cmake" "ggml-config-version.cmake"
           - check_file "$PREFIX/lib/cmake/llama/llama-config.cmake" "llama-config.cmake"
-          - check_file "$PREFIX/lib/cmake/llama/llama-version.cmake" "llama-version.cmake"
+          - check_file "$PREFIX/lib/cmake/llama/llama-config-version.cmake" "llama-config-version.cmake"
 
         # Check libraries
           - echo "Checking library files..."
@@ -334,14 +334,13 @@ tests:
           - if: cuda_compiler_version != "None"
             then:
               - check_file "$PREFIX/lib/libggml-cuda${SHLIB_EXT}" "libggml-cuda${SHLIB_EXT}"
-
-        # ROCM libraries
+        # ROCm library
           - if: hip_compiler_version != "None"
             then:
               - check_file "$PREFIX/lib/libggml-hip${SHLIB_EXT}" "libggml-hip${SHLIB_EXT}"
 
         # Packaged everywhere but for CUDA builds and on linux_aarch64
-          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None" and hip_compiler_version == "None")
+          - if: (not (linux and aarch64)) and (cuda_compiler_version == "None") and (hip_compiler_version == "None")
             then:
               - check_file "$PREFIX/lib/libggml-blas${SHLIB_EXT}" "libggml-blas${SHLIB_EXT}"
 
@@ -386,5 +385,5 @@ extra:
     - jjerphan
     - jonashaag
     - frankier
-    - sodre
     - pavelzw
+    - xhochy
