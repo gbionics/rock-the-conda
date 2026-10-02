@@ -86,6 +86,13 @@ jobs:
       run: |
         ls ${{ matrix.folder_cache }} || true
 
+    - name: Remove stale feedstock packages from cache
+      shell: bash -l {0}
+      env:
+        PACKAGE_CACHE: ${{ matrix.folder_cache }}
+      run: |
+        rm -f -- "$PACKAGE_CACHE"/{triton-,libmagma,libtorch-,pytorch,torchvision,torchcodec,flash-attn}*.{conda,tar.bz2}
+
     - name: Optional force full rebuild
       if: ${{ env.IGNORE_CACHE_AND_DO_FULL_REBUILD == 'true' }}
       shell: bash -l {0}
