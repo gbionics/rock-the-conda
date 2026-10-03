@@ -63,7 +63,14 @@ echo "Configuring for GPU targets: ${CK_ACTUALLY_USED_GPU_ARCHS}"
 
 # CK probes GPU targets with the C++ compiler and later assigns it to
 # CMAKE_HIP_COMPILER. Use HIP Clang even when the host C++ compiler is GCC.
+# GCC activation adds -fno-merge-constants, which Clang warns is unsupported.
+# CMake's compiler flag checks reject that warning even for valid GPU targets.
+export CXXFLAGS="${CXXFLAGS:-}"
+CXXFLAGS="${CXXFLAGS//-fno-merge-constants/}"
+
 # Keep these overrides after CMAKE_ARGS so compiler activation cannot replace them.
+# This workaround is rock-the-conda specific, in conda-forge just select
+# clang also as C++ compiler to avoid this problem
 cmake -GNinja \
     -DBUILD_SHARED_LIBS:BOOL=ON \
     ${CMAKE_ARGS} \
