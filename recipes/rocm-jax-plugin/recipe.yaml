@@ -45,24 +45,24 @@ requirements:
     - setuptools
     - wheel
     - rocm-core ${{ rocm_version }}.*
-    - rocblas
-    - hipblas
-    - hipblas-common
-    - rocsolver
-    - hipsolver
-    - rocfft
-    - hipfft
-    - miopen-hip ${{ rocm_version }}.*
-    - rocrand
-    - hiprand
+    - librocblas-devel
+    - libhipblas-devel
+    - libhipblas-common-devel
+    - librocsolver-devel
+    - libhipsolver-devel
+    - librocfft-devel
+    - libhipfft-devel
+    - libmiopen-hip-devel ${{ rocm_version }}.*
+    - librocrand-devel
+    - libhiprand-devel
     - roctracer
-    - rocsparse
-    - hipsparse
+    - librocsparse-devel
+    - libhipsparse-devel
     - rocprofiler-sdk
     - rccl
-    - hipblaslt
-    - rocprim
-    - hipcub
+    - libhipblaslt-devel
+    - librocprim-devel
+    - libhipcub-devel
     - numactl
   run:
     - python

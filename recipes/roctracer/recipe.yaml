@@ -1,6 +1,6 @@
 context:
   name: roctracer
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: "https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/roctracer.tar.gz"
-    sha256: 95668dccaf649335939b26670c0adb7ee909edee7272a8cd5ce913c562d96e8f
+    sha256: 81149a68ad3424d9db0b177ba40c9e03903ad4d297477f76b860ba5b7ec66847
     patches:
       - disable_tests.patch
       - disable_werror.patch
@@ -33,7 +33,7 @@ requirements:
   host:
     - rocm-core ${{ version }}.*
     # Workaround, this should not be needed but roctracer's CMake has some problems
-    - hip-clang_linux-64
+    - hip-rocm-clang_linux-64
   run_exports:
     - ${{ pin_subpackage(name, upper_bound='x.x') }}
 

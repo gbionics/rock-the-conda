@@ -1,0 +1,4 @@
+--- a/source/lib/rocprofiler-sdk-tool/tool.cpp
++++ b/source/lib/rocprofiler-sdk-tool/tool.cpp
+@@ -81,0 +82 @@
++#include <fmt/ranges.h>

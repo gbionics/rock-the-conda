@@ -34,10 +34,10 @@ requirements:
     - if: hip_compiler_version != "None"
       then:
         - rocm-core ${{ hip_compiler_version }}.*
-        - composable-kernel
-        - hipcub
-        - rocprim
-        - rocthrust
+        - libcomposable-kernel-devel
+        - libhipcub-devel
+        - librocprim-devel
+        - librocthrust-devel
     - python
     - pip
     - setuptools

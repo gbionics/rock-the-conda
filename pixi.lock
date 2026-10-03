@@ -1,7 +1,15 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 - name: win-64
+  virtual-packages:
+  - __win=10.0
+  - __archspec=0=x86_64
 environments:
   all-archs:
     channels:
@@ -163,7 +171,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/python-3.14.3-h32b2ec7_101_cp314.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qhull-2020.2-h434a139_5.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qt6-main-6.11.0-pl5321h16c4a6b_2.conda
-      - conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.61.2-ha759004_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.76.1-hf01adef_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/readline-8.3-h853b02a_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/reproc-14.2.5.post0-hb9d3cd8_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/reproc-cpp-14.2.5.post0-h5888daf_0.conda
@@ -492,7 +500,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/python-3.14.3-h4b44e0e_101_cp314.conda
       - conda: https://prefix.dev/conda-forge/win-64/qhull-2020.2-hc790b64_5.conda
       - conda: https://prefix.dev/conda-forge/win-64/qt6-main-6.10.2-pl5321hfcac499_6.conda
-      - conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.61.2-he94b42d_0.conda
+      - conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.76.1-he94b42d_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/reproc-14.2.5.post0-h2466b09_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/reproc-cpp-14.2.5.post0-he0c23c2_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/ripgrep-15.1.0-h77a83cd_0.conda
@@ -687,7 +695,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/pyyaml-6.0.2-py312h178313f_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qhull-2020.2-h434a139_5.conda
       - conda: https://prefix.dev/conda-forge/linux-64/qt6-main-6.9.2-h5bd77bc_1.conda
-      - conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.61.4-ha759004_0.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.76.1-hf01adef_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/reproc-14.2.5.post0-hb9d3cd8_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/reproc-cpp-14.2.5.post0-h5888daf_0.conda
@@ -1039,7 +1047,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/win-64/pyyaml-6.0.2-py312h31fea79_2.conda
       - conda: https://prefix.dev/conda-forge/win-64/qhull-2020.2-hc790b64_5.conda
       - conda: https://prefix.dev/conda-forge/win-64/qt6-main-6.9.2-ha0de62e_2.conda
-      - conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.61.4-he94b42d_0.conda
+      - conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.76.1-he94b42d_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/reproc-14.2.5.post0-h2466b09_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/reproc-cpp-14.2.5.post0-he0c23c2_0.conda
       - conda: https://prefix.dev/conda-forge/win-64/ripgrep-14.1.1-ha073cba_1.conda
@@ -4830,36 +4838,22 @@ packages:
   license: LGPL-3.0-only
   size: 52405921
   timestamp: 1758011263853
-- conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.61.2-ha759004_0.conda
-  sha256: 06d5aca2f1e13d61346baa35d38034ab9e646a6fa3b75664041b0f4b93f42297
-  md5: f594cb0626a6da79ccbf94a0a8dda1d0
+- conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.76.1-hf01adef_0.conda
+  sha256: d9476ee6237db525d4f2bb49e67f4e68719644a6adb754994118192e8d3cc920
+  md5: a721700e8181fb5e4c1b371987f7c0eb
   depends:
   - patchelf
+  - libstdcxx >=15
+  - libgcc >=15
   - __glibc >=2.17,<3.0.a0
-  - libstdcxx >=14
-  - libgcc >=14
-  - openssl >=3.5.5,<4.0a0
+  - openssl >=3.5.8,<4.0a0
   constrains:
   - __glibc >=2.17
   license: BSD-3-Clause
   license_family: BSD
-  size: 18951299
-  timestamp: 1774393780154
-- conda: https://prefix.dev/conda-forge/linux-64/rattler-build-0.61.4-ha759004_0.conda
-  sha256: 75c7fc60c42363b681cb52d589597b504cbf6679eb8103973803fdab170fc39b
-  md5: e2a723aea7b00504af01bb424f87b7f1
-  depends:
-  - patchelf
-  - libstdcxx >=14
-  - libgcc >=14
-  - __glibc >=2.17,<3.0.a0
-  - openssl >=3.5.5,<4.0a0
-  constrains:
-  - __glibc >=2.17
-  license: BSD-3-Clause
-  license_family: BSD
-  size: 18962901
-  timestamp: 1774984405950
+  run_exports: {}
+  size: 19561706
+  timestamp: 1789389044876
 - conda: https://prefix.dev/conda-forge/linux-64/readline-8.2-h8c095d6_2.conda
   sha256: 2d6d0c026902561ed77cd646b5021aef2d4db22e57a5b0178dfc669231e06d2c
   md5: 283b96675859b20a825f8fa30f311446
@@ -10179,28 +10173,18 @@ packages:
   license: LGPL-3.0-only
   size: 82001367
   timestamp: 1758025652766
-- conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.61.2-he94b42d_0.conda
-  sha256: 3f32870ee63c19ef0b481c48582a234091bfaa297ad25c96440e2cd665fc504d
-  md5: 43b6035f3c77900f0139b5ea16daa78a
+- conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.76.1-he94b42d_0.conda
+  sha256: 8825b67ae50f887334350f0c81a0818b4cf551e1aca00a947d1fd74105732ff6
+  md5: 2b0a2e175aa4e3239c3c91c86f32d70c
   depends:
   - vc >=14.3,<15
   - vc14_runtime >=14.44.35208
   - ucrt >=10.0.20348.0
   license: BSD-3-Clause
   license_family: BSD
-  size: 18421289
-  timestamp: 1774393858060
-- conda: https://prefix.dev/conda-forge/win-64/rattler-build-0.61.4-he94b42d_0.conda
-  sha256: de7e50dbe2224aea58204023e727d903ef9a4bf6f839da402ca7ded400f7c677
-  md5: bc0af36560c7614c45cd06ac54401db1
-  depends:
-  - vc >=14.3,<15
-  - vc14_runtime >=14.44.35208
-  - ucrt >=10.0.20348.0
-  license: BSD-3-Clause
-  license_family: BSD
-  size: 18548764
-  timestamp: 1774984492475
+  run_exports: {}
+  size: 20119294
+  timestamp: 1789389029287
 - conda: https://prefix.dev/conda-forge/win-64/reproc-14.2.5.post0-h2466b09_0.conda
   sha256: 112dee79da4f55de91f029dd9808f4284bc5e0cf0c4d308d4cec3381bf5bc836
   md5: c3ca4c18c99a3b9832e11b11af227713

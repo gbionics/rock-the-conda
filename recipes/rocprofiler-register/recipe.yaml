@@ -1,6 +1,6 @@
 context:
   name: rocprofiler-register
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocprofiler-register.tar.gz
-  sha256: e437efc67fecf8dc689b50667f69d6da88c509c947df2002fedb88a7176efa1a
+  sha256: e20ecbd5da6a18263c082b21e4a3be8b0040650a258a442ff86ee1616545db27
   patches:
     - 0001-fix-fmt-find-package-order.patch
     - 0002-disable-cpackaging.patch

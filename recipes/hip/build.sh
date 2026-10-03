@@ -2,13 +2,14 @@
 
 set -xeuo pipefail
 
-export ROCM_LIBPATCH_VERSION=${PKG_VERSION//\./0}
+: "${ROCM_LIBPATCH_VERSION:=${PKG_VERSION//\./0}}"
+export ROCM_LIBPATCH_VERSION
 export HIP_CLANG_PATH=${PREFIX}/bin
 
 pushd hipcc/amd/hipcc
 mkdir build
 cd build
-cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE ..
+cmake ${CMAKE_ARGS} -DCMAKE_REQUIRE_FIND_PACKAGE_ROCM=TRUE -DCMAKE_DISABLE_FIND_PACKAGE_Git=ON ..
 make VERBOSE=1 -j${CPU_COUNT}
 make install
 popd
@@ -33,6 +34,7 @@ cmake -LAH \
   -DAMD_OPENCL_INCLUDE_DIR=$SRC_DIR/clr/opencl/amdocl/ \
   -DHIP_ENABLE_ROCPROFILER_REGISTER=OFF \
   -DHIP_CLANG_PATH=$PREFIX/bin \
+  -DCMAKE_DISABLE_FIND_PACKAGE_Git=ON \
   ..
 
 make VERBOSE=1 -j${CPU_COUNT}
@@ -46,10 +48,14 @@ FILES_TO_REMOVE="
     include/CL/cl.hpp
     include/CL/cl2.hpp
     include/prof_protocol.h
-    share/doc/opencl-asan/LICENSE.txt
+    bin/roc-obj-extract.bat
+    bin/roc-obj-ls.bat
+    share/doc/hip-asan/LICENSE.md
+    share/doc/opencl-asan/LICENSE.md
     bin/clinfo"
 
 DIRS_TO_REMOVE="
+    share/doc/hip-asan
     share/doc/opencl-asan"
 
 for FILE in $FILES_TO_REMOVE
@@ -70,7 +76,6 @@ for CHANGE in "activate" "deactivate"
 do
     mkdir -p "${PREFIX}/etc/conda/${CHANGE}.d"
     cp "${RECIPE_DIR}/activate/hip_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip_${CHANGE}.sh"
-    cp "${RECIPE_DIR}/activate/hip-clang_${CHANGE}.sh" "${PREFIX}/etc/conda/${CHANGE}.d/hip-clang_${CHANGE}.sh"
 done
 
 # register the opencl implementation
