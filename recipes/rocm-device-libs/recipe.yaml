@@ -1,0 +1,68 @@
+context:
+  version: "7.2.4"
+  llvm_major_version: "22"
+
+package:
+  name: rocm-device-libs
+  version: ${{ version }}
+
+source:
+  url: https://github.com/ROCm/llvm-project/archive/refs/tags/rocm-${{ version }}.zip
+  sha256: 3df5359eca53d84a4c0d47dda18dea0f3afcd0382d9f0b3aeb7069bcea31b586
+  patches:
+    - patches/0001-fix-install-path.patch
+    - patches/rocm-device-libs-7.2.0-llvm-22-compat.patch
+
+build:
+  number: 0
+  skip: not linux
+  script: build
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
+    # Workaround for https://github.com/ROCm/llvm-project/commit/a18cc4c7cb51f94182b6018c7c73acde1b8ebddb
+    - cmake <4
+    - make
+  host:
+    - rocm-core ${{ version }}.*
+    # There exists rocm-cmake versions that do not depend on rocm-core, so also constrain
+    # rocm-cmake to the same ROCm release to keep toolchain compatibility.
+    - rocm-cmake ${{ version }}.*
+    - zlib
+    - clangdev ${{ llvm_major_version }}.*
+    - llvmdev ${{ llvm_major_version }}.*
+    - llvm
+
+tests:
+  - requirements:
+      run:
+        - clangdev ${{ llvm_major_version }}.*
+        - llvmdev ${{ llvm_major_version }}.*
+        - lld ${{ llvm_major_version }}.*
+        - compiler-rt ${{ llvm_major_version }}.*
+        - clang-tools ${{ llvm_major_version }}.*
+    files:
+      recipe:
+        - test/hip_smoke_test.hip
+    script:
+      # Check files are in the expected location (the one expected by clang)
+      - test -f ${PREFIX}/lib/clang/${{ llvm_major_version }}/lib/amdgcn/bitcode/hip.bc
+      # Check files are in the location expected by hipcc
+      - test -f ${PREFIX}/amdgcn/bitcode/hip.bc
+      # Test that clang can find the bitcode files out of the box
+      - clang -x hip -nogpuinc -c test/hip_smoke_test.hip -o hip_smoke_test.o
+
+about:
+  homepage: https://github.com/ROCm/ROCm-Device-Libs
+  license: NCSA
+  license_file: amd/device-libs/LICENSE.TXT
+  summary: ROCm Device libraries
+
+extra:
+  recipe-maintainers:
+    - isuruf
+    - zklaus
+    - conda-forge/rocm-core

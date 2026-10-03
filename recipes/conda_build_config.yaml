@@ -1,11 +1,5 @@
-c_compiler:
-    - clang
-cxx_compiler:
-    - clangxx
-c_compiler_version:
-    - 22
-cxx_compiler_version:
-    - 22
+# Inherit the default C/C++ compilers from conda-forge pinning (GCC/G++ on Linux).
+# HIP uses Clang independently through hip_compiler below.
 
 fortran_compiler_version:
     - 15
@@ -15,7 +9,7 @@ libstdcxx_devel_linux_64:
     - 15
 
 hip_compiler:
-    - hip-clang
+    - hip-rocm-clang
 hip_compiler_version:
     - None
     - '7.2'

@@ -160,5 +160,6 @@ about:
     Use `librealsense=*=*rocm*` to select the ROCm-enabled Linux build.
 
 extra:
+  feedstock-name: librealsense
   recipe-maintainers:
     - traversaro

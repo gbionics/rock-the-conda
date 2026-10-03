@@ -50,11 +50,11 @@ jobs:
             folder_cache: 'output/linux-64'
             pixi_env: 'default'
             token_env_var: 'ROCK_THE_CONDA_STRIX_TOKEN'
-          - job_name: 'build-all-packages'
-            runs_on: [self-hosted, linux, x64, amdgpu]
-            folder_cache: 'output/linux-64'
-            pixi_env: 'all-archs'
-            token_env_var: 'ROCK_THE_CONDA_ALL_ARCHS_TOKEN'
+          #- job_name: 'build-all-packages'
+          #  runs_on: [self-hosted, linux, x64, amdgpu]
+          #  folder_cache: 'output/linux-64'
+          #  pixi_env: 'all-archs'
+          #  token_env_var: 'ROCK_THE_CONDA_ALL_ARCHS_TOKEN'
 
     steps:
     - uses: actions/checkout@v6

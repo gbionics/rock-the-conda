@@ -1,26 +1,43 @@
 context:
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: rocprofiler-sdk
   version: ${{ version }}
 
 source:
-  # No tarball is used as a workaround for all the submodules present in the repo 
-  git: https://github.com/ROCm/rocprofiler-sdk.git
-  tag: rocm-${{ version }}
-  patches:
-    - 0001-disable-yaml-cpp-and-json.patch
-    - 0002-disable-cpackaging.patch
-    - 0003-add-rocprofiler-register-target.patch
-    - 0004-add-missing-headers.patch
-    - 0005-devendor-elfio-and-otf2.patch
-    - 0006-fix-find-package-scoping.patch
-    - 0007-fix-elfio-cstdint-order.patch
-    - 0008-fix-fmt-join-include.patch
+  - url: https://github.com/ROCm/rocm-systems/releases/download/rocm-${{ version }}/rocprofiler-sdk.tar.gz
+    sha256: 1bec6edd81b2687f2c9d4ad1ea4e4c9182763a36c7a70cf2d6f55246d3808793
+    patches:
+      - 0001-disable-yaml-cpp-and-json.patch
+      - 0002-disable-cpackaging.patch
+      - 0003-add-rocprofiler-register-target.patch
+      - 0005-devendor-elfio-and-otf2.patch
+      - 0006-fix-find-package-scoping.patch
+      - 0007-fix-elfio-cstdint-order.patch
+      - 0008-fix-fmt-join-include.patch
+      - 0009-stop-fetching-devendored-sources.patch
+      - 0011-add-missing-memory-header.patch
+      - 0012-add-missing-fstream-header.patch
+      - 0013-fix-generate-rocpd-with-clang-22.patch
+      - 0014-add-required-standard-and-fmt-headers.patch
+      - 0015-add-fmt-ranges-to-tool.patch
+      - 0015-add-fmt-ranges-to-tool.patch
+
+  - url: https://github.com/jrmadsen/PTL/archive/48df41625430d27ce43cf197fd467a8dda87cb45.tar.gz
+    sha256: 817af2307fc4b776fdf5984079d4d2631cf2c219ba1963502dd6fb41cb6b77a4
+    target_directory: external/ptl
+
+  - url: https://github.com/jrmadsen/cereal/archive/40a30defcb8874270a04836d316502b08904b2bc.tar.gz
+    sha256: 4c16319af12ff9db849d3029e16badc2751a4c25f76cbe74517b513bca63a451
+    target_directory: external/cereal
+
+  - url: https://github.com/google/perfetto/archive/eb5ef24c58d13cec289d733d03f0f3f0ed321b12.tar.gz
+    sha256: 90cbd8e4276ca43b9c3e5166ff372bfd8a55affab80169b738f87044e3c48dd2
+    target_directory: external/perfetto
 
 build:
-  number: 3
+  number: 0
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -32,11 +49,11 @@ requirements:
     - ${{ compiler('hip') }}
     - cmake
     - ninja
-    - git
     - pkg-config
   host:
     - rocprofiler-register
     - aqlprofile
+    - hip-devel
     - fmt
     - yaml-cpp
     - gotcha
