@@ -73,6 +73,8 @@ jobs:
     - name: Restore cache of conda packages
       id: cache-restore
       uses: actions/cache/restore@v4
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MINS: '30'
       with:
         path: |
           ${{ matrix.folder_cache }}
