@@ -61,10 +61,14 @@ fi
 
 echo "Configuring for GPU targets: ${CK_ACTUALLY_USED_GPU_ARCHS}"
 
-# Configure CMake
+# CK probes GPU targets with the C++ compiler and later assigns it to
+# CMAKE_HIP_COMPILER. Use HIP Clang even when the host C++ compiler is GCC.
+# Keep these overrides after CMAKE_ARGS so compiler activation cannot replace them.
 cmake -GNinja \
     -DBUILD_SHARED_LIBS:BOOL=ON \
     ${CMAKE_ARGS} \
+    -DCMAKE_CXX_COMPILER="${HIPCXX}" \
+    -DCMAKE_HIP_COMPILER="${HIPCXX}" \
     -DGPU_ARCHS=${CK_ACTUALLY_USED_GPU_ARCHS} \
     -DBUILD_DEV=OFF \
     -DBUILD_TESTING=OFF \
