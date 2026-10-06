@@ -1,7 +1,6 @@
 context:
   name: jax-rocm7-plugin
   version: "0.7.1"
-  rocm_version: "7.0.2"
   build: 2
 
 package:
@@ -44,7 +43,6 @@ requirements:
     - numpy
     - setuptools
     - wheel
-    - rocm-core ${{ hip_compiler_version }}.*
     - librocblas-devel
     - libhipblas-devel
     - libhipblas-common-devel
