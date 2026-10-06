@@ -41,7 +41,6 @@ outputs:
         - msgpack-cxx
         - openmpi
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - librocblas-devel
         - openmpi
@@ -100,7 +99,6 @@ outputs:
         - msgpack-cxx
         - openmpi
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - librocblas-devel
         - openmpi

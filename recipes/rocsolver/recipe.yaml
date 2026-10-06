@@ -31,7 +31,6 @@ outputs:
         - pkg-config
         - ninja
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - librocblas-devel
         - librocprim-devel

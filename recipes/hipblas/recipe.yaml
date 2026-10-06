@@ -35,7 +35,6 @@ outputs:
         # Needed by rocm_check_target_ids CMake function
         - lld 22.*
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - rocm-smi
         - libhipblaslt-devel

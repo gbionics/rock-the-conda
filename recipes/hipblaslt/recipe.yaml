@@ -43,7 +43,6 @@ outputs:
         - pyyaml
         - packaging
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake ${{ version }}.*
         # Tensile requires rocm-smi while generating device libraries.
         - rocm-smi ${{ version }}.*

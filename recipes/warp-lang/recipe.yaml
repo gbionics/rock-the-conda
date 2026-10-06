@@ -33,7 +33,6 @@ requirements:
   host:
     - if: hip_compiler_version != "None"
       then:
-        - rocm-core ${{ hip_compiler_version }}.*
         - libcomposable-kernel-devel
         - libhipcub-devel
         - librocprim-devel

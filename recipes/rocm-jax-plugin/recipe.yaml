@@ -14,7 +14,7 @@ source:
 
 build:
   number: ${{ build }}
-  string: rocm${{ rocm_version | replace('.', '') }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build }}
+  string: rocm${{ hip_compiler_version | replace('.', '') }}_py${{ python | version_to_buildstring }}h${{ hash }}_${{ build }}
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -44,7 +44,7 @@ requirements:
     - numpy
     - setuptools
     - wheel
-    - rocm-core ${{ rocm_version }}.*
+    - rocm-core ${{ hip_compiler_version }}.*
     - librocblas-devel
     - libhipblas-devel
     - libhipblas-common-devel
@@ -52,7 +52,7 @@ requirements:
     - libhipsolver-devel
     - librocfft-devel
     - libhipfft-devel
-    - libmiopen-hip-devel ${{ rocm_version }}.*
+    - libmiopen-hip-devel ${{ hip_compiler_version }}.*
     - librocrand-devel
     - libhiprand-devel
     - roctracer

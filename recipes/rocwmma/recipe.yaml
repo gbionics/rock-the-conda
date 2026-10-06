@@ -31,7 +31,6 @@ requirements:
     - cmake
     - ninja
   host:
-    - rocm-core ${{ version }}.*
     - rocm-cmake
     - libgomp
   run:

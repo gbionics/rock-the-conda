@@ -17,6 +17,8 @@ build:
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
+    # Temporary skip to iterate
+    - true
 
 outputs:
   - staging:
@@ -30,7 +32,6 @@ outputs:
         - cmake
         - ninja
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
     build:
       script: build.sh

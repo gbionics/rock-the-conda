@@ -19,19 +19,12 @@ hip_compiler:
 hip_compiler_version:
     - None
     - '7.2'
-rocm_version:
-    - None
-    - '7.2'
 
-llmvdev:
+llvmdev:
     - 22
 clangdev:
     - 22
 
-zip_keys:
-  -
-    - hip_compiler_version
-    - rocm_version
 
 # absl_grpc_proto_26Q1 migration
 libabseil:

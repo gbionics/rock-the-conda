@@ -31,7 +31,6 @@ requirements:
     - pkg-config
     - ninja
   host:
-    - rocm-core ${{ version }}.*
     # Workaround, this should not be needed but roctracer's CMake has some problems
     - hip-rocm-clang_linux-64
   run_exports:

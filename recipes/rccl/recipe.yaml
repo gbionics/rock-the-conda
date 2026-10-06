@@ -29,7 +29,6 @@ requirements:
     - git
     - hipify
   host:
-    - rocm-core ${{ version }}.*
     - rocm-cmake
     - rocm-smi
   run_exports:

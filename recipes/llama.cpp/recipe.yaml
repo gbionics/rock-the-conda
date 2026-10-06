@@ -21,7 +21,7 @@ build:
   # See https://conda-forge.org/docs/user/tipsandtricks/#installing-cuda-enabled-packages-like-tensorflow-and-pytorch
   # Similar to https://github.com/conda-forge/jaxlib-feedstock/blob/4471f8d7b0096942f228a9c5a4324bfa75139e22/recipe/recipe.yaml#L22
   number: ${{ build if cuda_compiler_version == "None" else build + 200 }}
-  string: '{%- if cuda_compiler_version != "None" -%}cuda${{ cuda_compiler_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif hip_compiler_version != "None" -%}rocm${{ rocm_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif (osx and x86_64) or cuda_compiler_version == "None" -%}cpu_${{ blas_impl }}_h${{ hash }}_${{ build }}{%- elif osx and arm64 -%}mps_h${{ hash }}_${{ build }}{%- endif -%}'
+  string: '{%- if cuda_compiler_version != "None" -%}cuda${{ cuda_compiler_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif hip_compiler_version != "None" -%}rocm${{ hip_compiler_version | replace(".", "") }}_h${{ hash }}_${{ build }}{%- elif (osx and x86_64) or cuda_compiler_version == "None" -%}cpu_${{ blas_impl }}_h${{ hash }}_${{ build }}{%- elif osx and arm64 -%}mps_h${{ hash }}_${{ build }}{%- endif -%}'
   # rock-the-conda: build only the ROCm variant
   skip: hip_compiler_version == "None"
 
@@ -213,7 +213,7 @@ requirements:
 
     - if: hip_compiler_version != "None"
       then:
-        - rocm-core ${{ rocm_version }}.*
+        - rocm-core ${{ hip_compiler_version }}.*
         - rocminfo
         - librocblas-devel
         - libhipblas-devel
@@ -369,7 +369,7 @@ tests:
         requirements:
           run:
             - python
-            - rocm-core ${{ rocm_version }}.*
+            - rocm-core ${{ hip_compiler_version }}.*
             - rocminfo
 
 about:

@@ -33,7 +33,6 @@ outputs:
         # Needed by rocm_check_target_ids CMake function
         - lld ${{ llvm_major_version }}.*
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - hip-devel
         - hipcc

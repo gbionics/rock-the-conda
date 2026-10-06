@@ -28,7 +28,6 @@ requirements:
     - ninja
     - git
   host:
-    - rocm-core ${{ version }}.*
     - rocm-cmake
     - rocr-runtime
 

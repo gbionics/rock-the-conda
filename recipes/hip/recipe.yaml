@@ -54,7 +54,6 @@ outputs:
         - numactl
         - llvmdev ${{ llvm_major_version }}.*
         - ocl-icd
-        - rocm-core ${{ version }}.*
         - rocm-comgr ${{ major_minor_version }}.*
         - rocr-runtime ${{ major_minor_version }}.*
         - rocm-cmake ${{ major_minor_version }}.*
@@ -93,7 +92,6 @@ outputs:
         - ${{ compiler('cxx') }}
       host:
         - numactl
-        - rocm-core ${{ version }}.*
         - rocm-comgr ${{ major_minor_version }}.*
         - rocr-runtime ${{ major_minor_version }}.*
       run:
@@ -178,7 +176,6 @@ outputs:
         - llvm-tools ${{ llvm_major_version }}.*
         - perl
         - python *
-        - rocm-core ${{ version }}.*
         - rocminfo ${{ major_minor_version }}.*
         # rocm-device-libs, lld and clang-tools are required for HIP compilation.
         - rocm-device-libs ${{ major_minor_version }}.*
@@ -272,7 +269,6 @@ outputs:
         - ${{ compiler('cxx') }}
       host:
         - numactl
-        - rocm-core ${{ version }}.*
         - rocm-comgr ${{ version }}.*
         - rocr-runtime ${{ version }}.*
       run:

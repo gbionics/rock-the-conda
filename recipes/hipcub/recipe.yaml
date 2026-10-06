@@ -28,7 +28,6 @@ requirements:
     - cmake
     - ninja
   host:
-    - rocm-core ${{ version }}.*
     - rocm-cmake
     - librocprim-devel ${{ version }}.*
   run:

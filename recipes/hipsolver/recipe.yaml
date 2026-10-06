@@ -31,7 +31,6 @@ outputs:
         - cmake
         - ninja
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake
         - librocsolver-devel
         - librocblas-devel

@@ -30,7 +30,6 @@ outputs:
         - cmake<4
         - ninja
       host:
-        - rocm-core ${{ version }}.*
         - rocm-cmake ${{ version }}.*
         - rocm-comgr ${{ version }}.*
         - fmt >=11.1.3
