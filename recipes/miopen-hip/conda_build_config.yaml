@@ -1,0 +1,5 @@
+# miopen uses the C++ compiler for GPU target probes and HIP compilation.
+cxx_compiler:
+  - clangxx
+cxx_compiler_version:
+  - 22
