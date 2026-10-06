@@ -92,6 +92,12 @@ jobs:
       run: |
         rm -rf ${{ matrix.folder_cache }}/*
 
+    # Temporary: remove cached hipblaslt packages so CI rebuilds them with Clang 22.
+    - name: Temporarily remove cached hipblaslt packages
+      shell: bash -l {0}
+      run: |
+        rm -f "${{ matrix.folder_cache }}"/libhipblaslt-*.conda "${{ matrix.folder_cache }}"/libhipblaslt-*.tar.bz2
+
     # the sccache version here needs to be the same of the one in pixi.lock
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.10
