@@ -17,6 +17,7 @@ build:
   skip: 
     - not linux
     - hip_compiler_version in (None, "None")
+    - cxx_compiler == "gxx"
 
 outputs:
   - staging:

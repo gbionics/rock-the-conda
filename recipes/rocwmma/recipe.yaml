@@ -20,6 +20,7 @@ build:
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
+    - cxx_compiler == "gxx"
   script: build.sh
 
 requirements:
