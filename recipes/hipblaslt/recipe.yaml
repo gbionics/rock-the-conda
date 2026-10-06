@@ -21,16 +21,15 @@ build:
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
-    - cxx_compiler == "gxx"
 
 outputs:
   - staging:
       name: hipblaslt-build
     requirements:
       build:
-        - ${{ compiler('c') }}
+        - ${{ compiler('clang') }}
         - ${{ stdlib('c') }}
-        - ${{ compiler('cxx') }}
+        - ${{ compiler('clangxx') }}
         - ${{ compiler('hip') }}
         - cmake
         - pkg-config
@@ -124,8 +123,8 @@ outputs:
       - requirements:
           run:
             - cmake-package-check
-            - ${{ compiler('c') }}
-            - ${{ compiler('cxx') }}
+            - ${{ compiler('clang') }}
+            - ${{ compiler('clangxx') }}
         script:
           - cmake-package-check hipblaslt
       - package_contents:

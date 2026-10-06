@@ -1,5 +1,11 @@
 # Inherit the default C/C++ compilers from conda-forge pinning (GCC/G++ on Linux).
+# Recipes that require Clang explicitly use compiler('clang') / compiler('clangxx').
 # HIP uses Clang independently through hip_compiler below.
+
+clang_compiler_version:
+    - 22
+clangxx_compiler_version:
+    - 22
 
 fortran_compiler_version:
     - 15
