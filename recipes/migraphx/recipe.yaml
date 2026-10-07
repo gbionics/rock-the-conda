@@ -32,9 +32,9 @@ outputs:
       name: ${{ name }}-build
     requirements:
       build:
-        - ${{ compiler('c') }}
+        - ${{ compiler('clang') }}
         - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
+        - ${{ compiler('clangxx') }}
         - ${{ compiler('hip') }}
         - cmake
         - ninja
@@ -89,9 +89,9 @@ outputs:
     inherit: ${{ name }}-build
     requirements:
       build:
-        - ${{ compiler('c') }}
+        - ${{ compiler('clang') }}
         - ${{ stdlib("c") }}
-        - ${{ compiler('cxx') }}
+        - ${{ compiler('clangxx') }}
         - ${{ compiler('hip') }}
         - cmake
         - ninja
