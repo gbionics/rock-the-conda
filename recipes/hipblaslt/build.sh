@@ -4,6 +4,11 @@
 # otherwise they default to /opt/rocm that is not correct in conda-forge packages
 export ROCM_PATH=${PREFIX}
 
+# Avoid creating bytecode caches inside the host prefix while Tensile imports
+# its build-time Python dependencies. Rattler otherwise sees them as unowned
+# staging files.
+export PYTHONDONTWRITEBYTECODE=1
+
 # Expand xnack variants for gfx908 and gfx90a if present in CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS.
 # The variable is a ';'-separated list. Bare gfx908/gfx90a entries expand to
 # '<arch>:xnack+;<arch>:xnack-'. Entries already with modifiers are preserved.
@@ -56,6 +61,13 @@ cmake -GNinja ${CMAKE_ARGS} \
     -DPython_EXECUTABLE=$PYTHON \
     -DPython3_EXECUTABLE=$PYTHON \
     -DFETCHCONTENT_TRY_FIND_PACKAGE_MODE=ALWAYS \
+    -DHIPBLASLT_ENABLE_ROCROLLER=ON \
+    -DHIPBLASLT_ENABLE_THEROCK=ON \
+    -DHIPBLASLT_ENABLE_FETCH=OFF \
+    -DHIPBLASLT_ENABLE_CLIENT=OFF \
+    -DHIPBLASLT_BUILD_TESTING=OFF \
+    -DHIPBLASLT_ENABLE_SAMPLES=OFF \
+    -DHIPBLASLT_ENABLE_MARKER=OFF \
     -Bbuild -S projects/hipblaslt
 cmake --build ./build
 cmake --install ./build

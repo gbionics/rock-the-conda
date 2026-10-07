@@ -1,0 +1,8 @@
+--- a/source/lib/rocprofiler-sdk/counters/metrics.cpp
++++ b/source/lib/rocprofiler-sdk/counters/metrics.cpp
+@@ -46,0 +47 @@
++#include <fstream>
+--- a/source/lib/rocprofiler-sdk-rocpd/sql.cpp
++++ b/source/lib/rocprofiler-sdk-rocpd/sql.cpp
+@@ -41,0 +42 @@
++#include <fstream>

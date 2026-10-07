@@ -3,6 +3,6 @@
 cmake -GNinja \
     -DGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
     -DAMDGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS} \
-    ${CMAKE_ARGS} -Bbuild -S.
+    ${CMAKE_ARGS} -DUSE_HIPCXX=ON -Bbuild -S.
 cmake --build ./build
 cmake --install ./build
