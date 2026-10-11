@@ -31,7 +31,6 @@ requirements:
     - ninja
     - python
   host:
-    - rocm-core ${{ rocm_version }}.*
     - migraphx
     - libmiopen-hip-devel
     - librocblas-devel
