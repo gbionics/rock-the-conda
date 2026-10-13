@@ -77,8 +77,8 @@ if(TARGET Boost::headers AND NOT TARGET Boost::mp11)\
   add_library(Boost::mp11 ALIAS Boost::headers)\
 endif()' cmake/external/onnxruntime_external_deps.cmake
 
-# Fix __builtin_ia32_tpause call for Clang 20+ (3-arg form: hint, hi32, lo32)
-sed -i 's/__builtin_ia32_tpause(0x0, __rdtsc() + tpause_spin_delay_cycles)/{ uint64_t __tsc = __rdtsc() + tpause_spin_delay_cycles; __builtin_ia32_tpause(0x0, (uint32_t)(__tsc >> 32), (uint32_t)__tsc); }/' \
+# Use the intrinsic wrapper: GCC and Clang have different builtin signatures.
+sed -i 's/__builtin_ia32_tpause(0x0, __rdtsc() + tpause_spin_delay_cycles)/_tpause(0x0, __rdtsc() + tpause_spin_delay_cycles)/' \
     onnxruntime/core/common/spin_pause.cc
 
 # MIGraphX 7.0.2 lacks fp4x2_type added in newer MIGraphX.
