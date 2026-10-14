@@ -31,16 +31,19 @@ CONDA_BLD_PATH = "$PIXI_PROJECT_ROOT/output"
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda-strix"
 ROCM_GPU_TARGETS = "gfx1150;gfx1151"
 # Prefer locally built dependencies so feedstocks use the recipes from this checkout.
-CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
+CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
+RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda-strix -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
 
 [feature.all-archs.activation.env]
 ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda"
 ROCM_GPU_TARGETS = "gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201"
-CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --output-folder ./output"
-RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml -m ./recipes/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
+CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
+RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
 
 [tasks]
+rock-the-conda-pinning-render = "python -m rock_the_conda.pinning render"
+rock-the-conda-pinning-update = { cmd = "python -m rock_the_conda.pinning update", depends-on = ["download-feedstock-all"] }
+test-pinning = "python -m pytest tests"
 download-therock-base = "git clone https://github.com/ROCm/TheRock"
 download-therock = { cmd = "git submodule update --init ./rocm-systems", cwd = "TheRock", depends-on = ["download-therock-base"] }
 extract-deps = "python extract_the_rock_deps.py TheRock"
@@ -137,7 +140,8 @@ download-pytorch-cpu-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feed
 download-torchvision-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/torchvision-feedstock/.git || git clone $TORCHVISION_FEEDSTOCK_REPO ./feedstocks/torchvision-feedstock) && git -C ./feedstocks/torchvision-feedstock fetch --all --tags && git -C ./feedstocks/torchvision-feedstock checkout $TORCHVISION_FEEDSTOCK_COMMIT" }
 download-torchcodec-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/torchcodec-feedstock/.git || git clone $TORCHCODEC_FEEDSTOCK_REPO ./feedstocks/torchcodec-feedstock) && git -C ./feedstocks/torchcodec-feedstock fetch --all --tags && git -C ./feedstocks/torchcodec-feedstock checkout $TORCHCODEC_FEEDSTOCK_COMMIT" }
 download-flash-attn-feedstock = { cmd = "mkdir -p feedstocks && (test -d ./feedstocks/flash-attn-feedstock/.git || git clone $FLASH_ATTN_FEEDSTOCK_REPO ./feedstocks/flash-attn-feedstock) && git -C ./feedstocks/flash-attn-feedstock fetch --all --tags && git -C ./feedstocks/flash-attn-feedstock checkout $FLASH_ATTN_FEEDSTOCK_COMMIT" }
-downoad-feedstock-all = { cmd = "echo 'All feedstocks downloaded'", depends-on = ["download-triton-feedstock", "download-libmagma-feedstock", "download-pytorch-cpu-feedstock", "download-torchvision-feedstock", "download-torchcodec-feedstock", "download-flash-attn-feedstock"] }
+download-feedstock-all = { cmd = "echo 'All feedstocks downloaded'", depends-on = ["download-triton-feedstock", "download-libmagma-feedstock", "download-pytorch-cpu-feedstock", "download-torchvision-feedstock", "download-torchcodec-feedstock", "download-flash-attn-feedstock"] }
+downoad-feedstock-all = { depends-on = ["download-feedstock-all"] }
 build-triton-feedstock = { cmd = "rattler-build build $RATTLER_BUILD_ARGS --recipe-dir ./feedstocks/triton-feedstock/recipe", depends-on = ["download-triton-feedstock"], outputs = ["output/linux-64/triton-*.conda"] }
 build-libmagma-feedstock = { cmd = "conda-build $CONDA_BUILD_ARGS ./feedstocks/libmagma-feedstock/recipe", depends-on = ["download-libmagma-feedstock"], outputs = ["output/linux-64/*magma*.conda"] }
 build-pytorch = { cmd = "conda-build $CONDA_BUILD_ARGS -m ./pytorch/conda_build_config.yaml -m ./feedstocks/pytorch-cpu-feedstock/recipe/conda_build_config.yaml ./feedstocks/pytorch-cpu-feedstock/recipe", depends-on = ["download-pytorch-cpu-feedstock", "build-triton-feedstock", "build-libmagma-feedstock", "build-hipblaslt-no-deps"], outputs = ["output/linux-64/pytorch-*.conda"] }
@@ -195,6 +199,13 @@ redshift_connector = "*"
 conda-build = "*"
 rattler-build = ">=0.58.2"
 conda-forge-pinning = "*"
+# Direct dependencies of the pinning maintenance tools.
+"ruamel.yaml" = ">=0.18,<0.19"
+requests = ">=2.24"
+zstandard = ">=0.19"
+packaging = ">=23"
+jinja2 = ">=3"
+pytest = ">=8"
 
 [target.unix.dependencies]
 python-magic = ">=0.4.27"

@@ -1,0 +1,40 @@
+# Conda-forge base and migrations, followed by rock-the-conda build overrides.
+conda_forge_pinning_version: 2026.10.14.02.57.01
+migrations:
+  - elfutils0196
+  - giflib6
+  - libboost190
+  - libffi37
+  - pytorch213
+pinning_overrides:
+  channel_sources: null
+  channel_targets: null
+  # We build pytorch, so we do not want to pin it here
+  pytorch: null
+  libtorch: null
+  # These packages are built from our local/feedstock recipes too.
+  librealsense: null
+  libmagma: null
+  libmagma_devel: null
+  libmagma_sparse: null
+  # Also leave the related magma package unpinned.
+  magma: null
+  # Compiler versions for ROCm HIP and Clang
+  clang_compiler_version:
+    - 22
+  clangxx_compiler_version:
+    - 22
+  llvmdev:
+    - 22
+  clangdev:
+    - 22
+  hip_compiler:
+    - hip-rocm-clang
+  hip_compiler_version:
+    - None
+    - '7.2'
+  # https://github.com/gbionics/rock-the-conda/pull/26#issuecomment-4164155322
+  c_stdlib_version:
+    - 2.28
+
+

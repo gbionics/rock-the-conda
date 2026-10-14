@@ -6,3 +6,7 @@ c_compiler_version:
     - 14
 cxx_compiler_version:
     - 14
+
+blas_impl:
+    - mkl
+    - generic
