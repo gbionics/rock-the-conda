@@ -15,7 +15,7 @@ source:
     - patches/rocm-comgr-7.2.0-llvm-22-compat.patch
 
 build:
-  number: 1
+  number: 0
   skip: not linux
 
 requirements:

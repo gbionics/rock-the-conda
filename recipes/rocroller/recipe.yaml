@@ -13,7 +13,7 @@ source:
   sha256: d37e6e468d8a0add2056b947b94b09a96dd6fce665d4f8c3164a0117596b7403
 
 build:
-  number: 1
+  number: 0
   skip:
     - not linux
     - hip_compiler_version in (None, "None")

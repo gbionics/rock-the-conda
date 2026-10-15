@@ -30,7 +30,7 @@ source:
       - 0003-hipcc-path.diff
 
 build:
-  number: 7
+  number: 0
   skip:
     - not linux
 
