@@ -1,0 +1,8 @@
+--- a/source/lib/output/sql/common.cpp
++++ b/source/lib/output/sql/common.cpp
+@@ -33,0 +34 @@
++#include <fmt/ranges.h>
+--- a/source/lib/att-tool/att_lib_wrapper.hpp
++++ b/source/lib/att-tool/att_lib_wrapper.hpp
+@@ -30,0 +31 @@
++#include <array>

@@ -1,0 +1,19 @@
+diff --git a/external/CMakeLists.txt b/external/CMakeLists.txt
+--- a/external/CMakeLists.txt
++++ b/external/CMakeLists.txt
+@@ -134,7 +134,0 @@
+-rocprofiler_checkout_git_submodule(
+-    RECURSIVE
+-    RELATIVE_PATH external/yaml-cpp
+-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+-    REPO_URL https://github.com/jbeder/yaml-cpp.git
+-    REPO_BRANCH "master")
+-
+@@ -234,7 +227,0 @@
+-rocprofiler_checkout_git_submodule(
+-    RECURSIVE
+-    RELATIVE_PATH external/json
+-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+-    REPO_URL https://github.com/nlohmann/json.git
+-    REPO_BRANCH "develop")
+-

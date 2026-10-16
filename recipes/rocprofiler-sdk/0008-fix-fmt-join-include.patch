@@ -10,3 +10,12 @@ diff --git a/source/lib/output/generateStats.cpp b/source/lib/output/generateSta
  
  #include <unistd.h>
  #include <cstdint>
+
+diff --git a/source/lib/common/logging.cpp b/source/lib/common/logging.cpp
+--- a/source/lib/common/logging.cpp
++++ b/source/lib/common/logging.cpp
+@@ -27,3 +27,4 @@
+ #include <fmt/format.h>
++#include <fmt/ranges.h>
+ #include <glog/logging.h>
+ #include <glog/vlog_is_on.h>

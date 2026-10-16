@@ -1,6 +1,6 @@
 context:
   name: hipify
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   url: https://github.com/ROCm/HIPIFY/archive/refs/tags/rocm-${{ version }}.tar.gz
-  sha256: 1d5504a69024491c582e224445df4c917b0b5ee3b0830c0909119eca97b70e9f
+  sha256: 3ffe18218c5bd0311e4359064da68f0a1d699bdc3b43472060d346a885bf8229
 
 build:
   number: 0

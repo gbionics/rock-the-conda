@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rock-the-conda"
+version = "0.1.0"
+description = "Tools for maintaining ROCm conda recipes and conda-forge pins"
+requires-python = ">=3.10"
+dependencies = [
+  "ruamel.yaml>=0.18,<0.19",
+  "requests>=2.24",
+  "zstandard>=0.19",
+  "packaging>=23",
+  "jinja2>=3",
+]
+
+[project.scripts]
+rock-the-conda-pinning-render = "rock_the_conda.pinning:render_main"
+rock-the-conda-pinning-update = "rock_the_conda.pinning:update_main"
+
+[tool.setuptools.packages.find]
+include = ["rock_the_conda*"]
+
+[tool.setuptools.package-data]
+rock_the_conda = ["LICENSE"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

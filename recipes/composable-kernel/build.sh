@@ -61,7 +61,6 @@ fi
 
 echo "Configuring for GPU targets: ${CK_ACTUALLY_USED_GPU_ARCHS}"
 
-# Configure CMake
 cmake -GNinja \
     -DBUILD_SHARED_LIBS:BOOL=ON \
     ${CMAKE_ARGS} \

@@ -2,4 +2,7 @@
 # pixi environments
 .pixi
 *.egg-info
+__pycache__/
+.pytest_cache/
 output
+feedstocks

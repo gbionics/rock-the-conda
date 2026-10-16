@@ -1,6 +1,6 @@
 context:
   name: rocmlir
-  version: "7.2.1"
+  version: "7.2.4"
 
 package:
   name: ${{ name|lower }}
@@ -13,7 +13,7 @@ source:
       - 0001-fix-mlir-execution-engine-cmake.patch
 
 build:
-  number: 2
+  number: 0
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -28,16 +28,20 @@ requirements:
     - ninja
     - git
   host:
-    - rocm-core ${{ version }}.*
     - rocm-cmake
     - rocr-runtime
 
 tests:
+  - requirements:
+      run:
+        - cmake-package-check
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+    script:
+      - cmake-package-check rocmlir
   - package_contents:
       files:
         - lib/librockCompiler.so
-        - lib/cmake/rocmlir/rocmlir-config.cmake
-        - lib/cmake/rocmlir/rocmlir-targets.cmake
       include:
         - rocmlir/Miir.h
         - rocmlir/external/include/mlir-c/IR.h
