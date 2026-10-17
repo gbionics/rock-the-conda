@@ -6,3 +6,5 @@ __pycache__/
 .pytest_cache/
 output
 feedstocks
+recipe_dependencies.svg
+recipe_dependencies.dot

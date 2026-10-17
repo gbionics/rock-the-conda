@@ -95,23 +95,90 @@ def dependencies_from_recipes(recipe_dir: str | Path) -> set[str]:
     root = Path(recipe_dir)
     paths = sorted(set(root.glob("**/recipe.yaml")) | set(root.glob("**/meta.yaml")))
     for path in paths:
-        text = path.read_text(encoding="utf-8")
-        expressions: dict[str, str] = {}
-
-        def placeholder(match: re.Match[str]) -> str:
-            key = f"ROCK_TEMPLATE_{len(expressions)}"
-            expressions[key] = match[1]
-            return key
-
-        sanitized = _EXPRESSION.sub(placeholder, _DIRECTIVE.sub("", text))
-        yaml = ruamel.yaml.YAML(typ="safe")
-        # v0 recipes commonly repeat build-string keys under line selectors.
-        yaml.allow_duplicate_keys = True
-        recipe = yaml.load(sanitized) or {}
-        context = _context(text, recipe)
+        recipe, expressions, context = read_recipe(path)
         for group in _requirement_groups(recipe):
             for requirement in _walk_requirements(group):
                 name = _dependency_name(requirement, expressions, context)
                 if name:
                     dependencies.add(name)
     return dependencies
+
+
+def read_recipe(path: Path) -> tuple[dict[str, Any], dict[str, str], dict[str, Any]]:
+    """Parse a recipe while preserving expressions for package-name resolution."""
+    text = path.read_text(encoding="utf-8")
+    expressions: dict[str, str] = {}
+
+    def placeholder(match: re.Match[str]) -> str:
+        key = f"ROCK_TEMPLATE_{len(expressions)}"
+        expressions[key] = match[1]
+        return key
+
+    sanitized = _EXPRESSION.sub(placeholder, _DIRECTIVE.sub("", text))
+    yaml = ruamel.yaml.YAML(typ="safe")
+    # v0 recipes commonly repeat build-string keys under line selectors.
+    yaml.allow_duplicate_keys = True
+    recipe = yaml.load(sanitized) or {}
+    return recipe, expressions, _context(text, recipe)
+
+
+def packages_from_recipe(path: Path) -> dict[str, set[str]]:
+    """Return real outputs and their declared build/host/run dependencies.
+
+    Includes both selector branches and requirements of inherited v1 staging
+    outputs. Tests, run constraints, and run exports do not add graph edges.
+    Top-level requirements conservatively apply to every output.
+    """
+    recipe, expressions, context = read_recipe(path)
+
+    def name(value: Any) -> str | None:
+        return _dependency_name(value, expressions, context) if isinstance(value, str) else None
+
+    def requirements(output: dict[str, Any]) -> set[str]:
+        result = set()
+        groups = output.get("requirements", {})
+        for group in ("build", "host", "run"):
+            for requirement in _walk_requirements(groups.get(group, [])):
+                dependency = name(requirement)
+                # This repo supplies the Linux HIP compiler package. Other
+                # compiler/stdlib helpers refer to externally built packages.
+                if dependency is None and requirement in expressions:
+                    expression = expressions[requirement]
+                    if re.fullmatch(r"\s*compiler\(['\"]hip['\"]\)\s*", expression):
+                        dependency = "hip-rocm-clang_linux-64"
+                if dependency:
+                    result.add(dependency)
+        return result
+
+    outputs = recipe.get("outputs")
+    if outputs is None:
+        package = name(recipe.get("package", {}).get("name"))
+        if not package:
+            raise ValueError(f"Cannot resolve package name in {path}")
+        return {package: requirements(recipe)}
+
+    staging = {
+        name(output["staging"]["name"]): output
+        for output in outputs if "staging" in output
+    }
+
+    def inherited_requirements(output: dict[str, Any], seen: set[str]) -> set[str]:
+        result = requirements(output)
+        inherit = output.get("inherit")
+        if inherit:
+            parent = name(inherit.get("from") if isinstance(inherit, dict) else inherit)
+            if parent not in staging or parent in seen:
+                raise ValueError(f"Unknown or cyclic staging inheritance {parent!r} in {path}")
+            result.update(inherited_requirements(staging[parent], seen | {parent}))
+        return result
+
+    result: dict[str, set[str]] = {}
+    common = requirements(recipe)
+    for output in outputs:
+        if "staging" in output:
+            continue
+        package = name(output.get("package", {}).get("name", output.get("name")))
+        if not package:
+            raise ValueError(f"Cannot resolve output name in {path}")
+        result.setdefault(package, set()).update(common | inherited_requirements(output, set()))
+    return result
