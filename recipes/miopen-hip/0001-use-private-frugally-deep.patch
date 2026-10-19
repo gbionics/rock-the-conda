@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -520,6 +520,10 @@ endif()
+ 
+ if(MIOPEN_ENABLE_AI_KERNEL_TUNING OR MIOPEN_ENABLE_AI_IMMED_MODE_FALLBACK)
+     find_package(frugally-deep CONFIG REQUIRED)
++    # Keep Keras 2 / LSTM initial-state compatibility local to MIOpen.
++    # Do not modify or install the shared frugally-deep package headers.
++    target_include_directories(frugally-deep::fdeep BEFORE INTERFACE
++        "${CMAKE_CURRENT_SOURCE_DIR}/fdeep-compat")
+     message(STATUS "Build with frugally-deep ${frugally-deep_VERSION} ${frugally-deep_DIR}")
+     find_package(Eigen3 REQUIRED)
+     message(STATUS "Build with Eigen3 ${Eigen3_VERSION} ${Eigen3_DIR}")
