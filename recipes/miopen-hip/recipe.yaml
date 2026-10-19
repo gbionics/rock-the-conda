@@ -88,6 +88,24 @@ outputs:
       - package_contents:
           lib:
             - libMIOpen
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+            - frugally-deep >=0.20.0
+            - functionalplus
+            - eigen-abi-devel
+            - nlohmann_json
+        files:
+          recipe:
+            - test/
+          source:
+            - fdeep-compat/
+        script:
+          - cmake -S test -B test-build -G Ninja -DTEST_CONVOLUTION=OFF -DFDEEP_COMPAT_INCLUDE_DIR=${PWD}/fdeep-compat
+          - cmake --build test-build
+          - ctest --test-dir test-build --output-on-failure
 
   - package:
       name: libmiopen-hip-devel
@@ -126,6 +144,18 @@ outputs:
           include:
             - miopen/miopen.h
             - miopen/config.h
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+        files:
+          recipe:
+            - test/
+        script:
+          - cmake -S test -B test-build -G Ninja -DTEST_AI_MODELS=OFF
+          - cmake --build test-build
+          - ctest --test-dir test-build --output-on-failure
 
 about:
   repository: https://github.com/ROCm/MIOpen
