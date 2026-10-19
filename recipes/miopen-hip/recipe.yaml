@@ -38,7 +38,6 @@ outputs:
       host:
         - rocm-cmake
         - hip-devel
-        - hipcc
         - librocblas-devel
         - libhipblas-common-devel
         - libhipblaslt-devel
