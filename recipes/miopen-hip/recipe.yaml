@@ -14,7 +14,7 @@ source:
   sha256: 3752c7463cf58f05519b6025b303f54716aa7ff47a36dfbfa71ea4bc1be21411
 
 build:
-  number: 0
+  number: 1
   skip:
     - not linux
     - hip_compiler_version in (None, "None")
@@ -35,7 +35,6 @@ outputs:
       host:
         - rocm-cmake
         - hip-devel
-        - hipcc
         - librocblas-devel
         - libhipblas-common-devel
         - libhipblaslt-devel
@@ -48,7 +47,7 @@ outputs:
         - bzip2
         - roctracer
         - cpp-half
-        - frugally-deep >=0.20.0
+        - frugally-deep 0.15.31.*
         - functionalplus
         - eigen-abi-devel
     build:
@@ -82,6 +81,22 @@ outputs:
       - package_contents:
           lib:
             - libMIOpen
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+            - frugally-deep 0.15.31.*
+            - functionalplus
+            - eigen-abi-devel
+            - nlohmann_json
+        files:
+          recipe:
+            - test/
+        script:
+          - cmake -S test -B test-build -G Ninja -DTEST_CONVOLUTION=OFF
+          - cmake --build test-build
+          - ctest --test-dir test-build --output-on-failure
 
   - package:
       name: libmiopen-hip-devel
@@ -120,6 +135,18 @@ outputs:
           include:
             - miopen/miopen.h
             - miopen/config.h
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+            - cmake
+            - ninja
+        files:
+          recipe:
+            - test/
+        script:
+          - cmake -S test -B test-build -G Ninja -DTEST_AI_MODELS=OFF
+          - cmake --build test-build
+          - ctest --test-dir test-build --output-on-failure
 
 about:
   repository: https://github.com/ROCm/MIOpen

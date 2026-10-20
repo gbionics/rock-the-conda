@@ -41,6 +41,7 @@ CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda -c conda-forge
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
 
 [tasks]
+recipe-dependency-graph = { cmd = "python -m rock_the_conda.dependency_graph", depends-on = ["download-feedstock-all"] }
 rock-the-conda-pinning-render = "python -m rock_the_conda.pinning render"
 rock-the-conda-pinning-update = { cmd = "python -m rock_the_conda.pinning update", depends-on = ["download-feedstock-all"] }
 test-pinning = "python -m pytest tests"

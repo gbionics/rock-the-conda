@@ -16,6 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
+rock-the-conda-dependency-graph = "rock_the_conda.dependency_graph:main"
 rock-the-conda-pinning-render = "rock_the_conda.pinning:render_main"
 rock-the-conda-pinning-update = "rock_the_conda.pinning:update_main"
 
