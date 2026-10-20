@@ -18,10 +18,6 @@ mkdir -p ${PREFIX}/share/miopen/db
 mkdir -p ${PREFIX}/include/half
 ln -sf ${PREFIX}/include/half_float/half.hpp ${PREFIX}/include/half/half.hpp
 
-mkdir -p fdeep-compat
-cp -r "${PREFIX}/include/fdeep" fdeep-compat/
-patch -p1 -d fdeep-compat < "${RECIPE_DIR}/frugally-deep-keras2.patch"
-
 mkdir -p build
 cd build
 

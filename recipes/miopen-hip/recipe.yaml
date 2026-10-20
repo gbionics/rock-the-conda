@@ -12,8 +12,6 @@ recipe:
 source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/miopen.tar.gz
   sha256: 3752c7463cf58f05519b6025b303f54716aa7ff47a36dfbfa71ea4bc1be21411
-  patches:
-    - 0001-use-private-frugally-deep.patch
 
 build:
   number: 1
@@ -32,7 +30,6 @@ outputs:
         - ${{ compiler('hip') }}
         - cmake
         - ninja
-        - patch
         # Needed by rocm_check_target_ids CMake function
         - lld ${{ llvm_major_version }}.*
       host:
@@ -50,12 +47,9 @@ outputs:
         - bzip2
         - roctracer
         - cpp-half
-        - frugally-deep >=0.20.0
+        - frugally-deep 0.15.31.*
         - functionalplus
         - eigen-abi-devel
-      ignore_run_exports:
-        from_package:
-          - frugally-deep
     build:
       script: build.sh
 
@@ -92,17 +86,15 @@ outputs:
             - ${{ compiler('cxx') }}
             - cmake
             - ninja
-            - frugally-deep >=0.20.0
+            - frugally-deep 0.15.31.*
             - functionalplus
             - eigen-abi-devel
             - nlohmann_json
         files:
           recipe:
             - test/
-          source:
-            - fdeep-compat/
         script:
-          - cmake -S test -B test-build -G Ninja -DTEST_CONVOLUTION=OFF -DFDEEP_COMPAT_INCLUDE_DIR=${PWD}/fdeep-compat
+          - cmake -S test -B test-build -G Ninja -DTEST_CONVOLUTION=OFF
           - cmake --build test-build
           - ctest --test-dir test-build --output-on-failure
 
