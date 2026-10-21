@@ -14,17 +14,17 @@ CMAKE_HIP_COMPILER_LAUNCHER = "sccache"
 # The tritron and pytorch recipes are quite complex, so keep them as proper forks
 # to simplify rebasing on latest versions of the feedstock
 TRITON_FEEDSTOCK_REPO = "https://github.com/gbionics/triton-feedstock"
-TRITON_FEEDSTOCK_COMMIT = "rocm"
+TRITON_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 LIBMAGMA_FEEDSTOCK_REPO = "https://github.com/gbionics/libmagma-feedstock"
-LIBMAGMA_FEEDSTOCK_COMMIT = "rocm"
+LIBMAGMA_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 PYTORCH_CPU_FEEDSTOCK_REPO = "https://github.com/gbionics/pytorch-cpu-feedstock"
-PYTORCH_CPU_FEEDSTOCK_COMMIT = "rocm"
+PYTORCH_CPU_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 TORCHVISION_FEEDSTOCK_REPO = "https://github.com/gbionics/torchvision-feedstock"
-TORCHVISION_FEEDSTOCK_COMMIT = "rocm"
+TORCHVISION_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 TORCHCODEC_FEEDSTOCK_REPO = "https://github.com/gbionics/torchcodec-feedstock"
-TORCHCODEC_FEEDSTOCK_COMMIT = "rocm"
+TORCHCODEC_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 FLASH_ATTN_FEEDSTOCK_REPO = "https://github.com/gbionics/flash-attn-feedstock"
-FLASH_ATTN_FEEDSTOCK_COMMIT = "rocm"
+FLASH_ATTN_FEEDSTOCK_COMMIT = "rock-the-conda-7.2.4.0"
 CONDA_BLD_PATH = "$PIXI_PROJECT_ROOT/output"
 
 [feature.strix-archs.activation.env]

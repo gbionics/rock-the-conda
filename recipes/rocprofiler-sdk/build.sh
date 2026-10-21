@@ -2,8 +2,13 @@
 
 set -xeuo pipefail
 
+# Use the bundled tracing headers for optional APIs absent from the recipe.
+# Otherwise system installations silently change the SDK's compiled API tables.
 cmake -S . -B build -G Ninja \
     ${CMAKE_ARGS} \
+    -DCMAKE_DISABLE_FIND_PACKAGE_rccl=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_rocDecode=ON \
+    -DCMAKE_DISABLE_FIND_PACKAGE_rocJPEG=ON \
     -DROCPROFILER_BUILD_TESTS=OFF \
     -DROCPROFILER_BUILD_GTESTS=OFF \
     -DROCPROFILER_BUILD_SAMPLES=OFF \

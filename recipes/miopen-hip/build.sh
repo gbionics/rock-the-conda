@@ -21,8 +21,11 @@ ln -sf ${PREFIX}/include/half_float/half.hpp ${PREFIX}/include/half/half.hpp
 mkdir -p build
 cd build
 
+# MIOpen optionally links zstd whenever it is discovered. The recipe does not
+# provide it, so prevent a system installation from adding a hidden dependency.
 cmake -GNinja \
     ${CMAKE_ARGS} \
+    -DCMAKE_DISABLE_FIND_PACKAGE_zstd=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_PREFIX_PATH=${PREFIX} \
     -DCMAKE_INSTALL_PREFIX=${PREFIX} \
