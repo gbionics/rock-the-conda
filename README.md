@@ -18,18 +18,34 @@ pixi run build-packages
 
 ## Environments
 
-The workspace defines two pixi environments for targeting different channels:
+The workspace defines three pixi environments for targeting different channels:
 
 | Environment | Channel | Description |
 |---|---|---|
 | `default` (includes `strix-archs` feature) | [`rock-the-conda-strix`](https://prefix.dev/channels/rock-the-conda-strix) | Builds targeting Strix (gfx1150/gfx1151) architectures. |
 | `all-archs` | [`rock-the-conda`](https://prefix.dev/channels/rock-the-conda) | Builds targeting all ROCm GPU architectures.  |
+| `generic-subset` | [`rock-the-conda/generic-subset`](https://prefix.dev/rock-the-conda/generic-subset) | Builds targeting `gfx9-generic`, `gfx10-3-generic`, and `gfx11-generic`. |
 
 By default, `pixi run build-packages` builds and publishes to the `rock-the-conda-strix` channel. To build for all architectures instead (this is not currently tested in CI, so it may fail), use:
 
 ~~~bash
 pixi run -e all-archs build-packages
 ~~~
+
+To build and upload the generic subset, use:
+
+~~~bash
+pixi run -e generic-subset build-packages
+pixi run -e generic-subset upload-all
+~~~
+
+These environments share the local `output/` directory. Use a separate checkout
+or remove existing build outputs before switching environments so that
+`--skip-existing` and `upload-all` do not reuse packages for other targets.
+Uploads use Pixi authentication or `ROCK_THE_CONDA_PREFIX_DEV_TOKEN`.
+CI builds the generic subset with a separate package cache and uses the
+`ROCK_THE_CONDA_GENERIC_SUBSET_PREFIX_DEV_TOKEN` repository secret for uploads,
+enabled by the existing workflow input or `upload-packages` PR label.
 
 
 Built packages will be placed in the `output/` subdirectory of the folder. For simplify the debugging, some built packages are available in the following channels:
@@ -38,6 +54,7 @@ Built packages will be placed in the `output/` subdirectory of the folder. For s
 |:----------------------------------------------------:|:---------------------------:|:--------------:|:-------------:| 
 | https://prefix.dev/channels/rock-the-conda-strix     | `gfx1150;gfx1151`           | Channel that contains packages that target Strix Halo and Strix Point systems. | Active. | 
 | https://prefix.dev/channels/rock-the-conda     | `gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201`  | Channel that contains packages that target all ROCm-supported architectures. | Active. | 
+| https://prefix.dev/rock-the-conda/generic-subset | `gfx9-generic;gfx10-3-generic;gfx11-generic` | Channel for packages built against the selected generic GPU targets. | Configured; builds pending validation. |
 
 ## Managing conda-forge pins
 

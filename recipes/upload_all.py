@@ -12,8 +12,16 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 DEFAULT_CHANNEL = "rock-the-conda"
+
+
+def channel_reference(channel):
+    """Preserve namespace/channel references when stripping a channel URL."""
+    if "://" in channel:
+        return urlsplit(channel).path.strip("/")
+    return channel.strip("/")
 
 
 def main():
@@ -35,13 +43,9 @@ def main():
     print(f"Found {len(conda_packages)} packages to upload")
 
     # Channel (overridable via env var)
-    # ROCK_THE_CONDA_TARGET_CHANNEL can be a full URL like https://prefix.dev/rock-the-conda-strix
-    # or just a channel name like rock-the-conda-strix. Extract the channel name for pixi upload.
+    # Accept channel URLs and canonical names, including namespace/channel.
     channel_raw = os.environ.get("ROCK_THE_CONDA_TARGET_CHANNEL", DEFAULT_CHANNEL)
-    if "/" in channel_raw:
-        channel = channel_raw.rstrip("/").rsplit("/", 1)[-1]
-    else:
-        channel = channel_raw
+    channel = channel_reference(channel_raw)
 
     # Optional API key (overrides default pixi auth)
     api_key = os.environ.get("ROCK_THE_CONDA_PREFIX_DEV_TOKEN")

@@ -40,6 +40,12 @@ ROCM_GPU_TARGETS = "gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;
 CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
 RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
 
+[feature.generic-subset.activation.env]
+ROCK_THE_CONDA_TARGET_CHANNEL = "https://prefix.dev/rock-the-conda/generic-subset"
+ROCM_GPU_TARGETS = "gfx9-generic;gfx10-3-generic;gfx11-generic"
+CONDA_BUILD_ARGS = "-c local -c https://prefix.dev/rock-the-conda/generic-subset -c conda-forge --skip-existing -m ./conda_forge_pinnings/conda_build_config.yaml --output-folder ./output"
+RATTLER_BUILD_ARGS = "-c https://prefix.dev/rock-the-conda/generic-subset -c conda-forge --skip-existing=all -m ./conda_forge_pinnings/conda_build_config.yaml --no-build-id --experimental --env-isolation none --error-unused-staging-files"
+
 [tasks]
 recipe-dependency-graph = { cmd = "python -m rock_the_conda.dependency_graph", depends-on = ["download-feedstock-all"] }
 rock-the-conda-pinning-render = "python -m rock_the_conda.pinning render"
@@ -214,3 +220,4 @@ python-magic = ">=0.4.27"
 [environments]
 default = ["strix-archs"]
 all-archs = ["all-archs"]
+generic-subset = ["generic-subset"]

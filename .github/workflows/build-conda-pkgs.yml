@@ -55,6 +55,11 @@ jobs:
             folder_cache: 'output/linux-64'
             pixi_env: 'all-archs'
             token_env_var: 'ROCK_THE_CONDA_ALL_ARCHS_TOKEN'
+          - job_name: 'build-generic-subset-packages'
+            runs_on: [self-hosted, linux, x64, amdgpu]
+            folder_cache: 'output/linux-64'
+            pixi_env: 'generic-subset'
+            token_env_var: 'ROCK_THE_CONDA_GENERIC_SUBSET_TOKEN'
 
     steps:
     - uses: actions/checkout@v6
@@ -125,6 +130,7 @@ jobs:
       env:
         ROCK_THE_CONDA_STRIX_TOKEN: ${{ secrets.ROCK_THE_CONDA_STRIX_PREFIX_DEV_TOKEN }}
         ROCK_THE_CONDA_ALL_ARCHS_TOKEN: ${{ secrets.ROCK_THE_CONDA_ALL_ARCHS_PREFIX_DEV_TOKEN }}
+        ROCK_THE_CONDA_GENERIC_SUBSET_TOKEN: ${{ secrets.ROCK_THE_CONDA_GENERIC_SUBSET_PREFIX_DEV_TOKEN }}
       run: |
         token_var="${{ matrix.token_env_var }}"
         export ROCK_THE_CONDA_PREFIX_DEV_TOKEN="${!token_var}"
