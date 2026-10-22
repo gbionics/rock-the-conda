@@ -1,0 +1,29 @@
+Remove ROCm-fork-only options unsupported by upstream Clang.
+Gentoo and Debian remove the same options; keep the FP8 feature check fatal.
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -54,7 +54,7 @@
+ #Set Clang C++ flags.
+ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O2") # clang++ crashes without -O2
+ set(CMAKE_CXX_FLAGS_MINSIZEREL "-O2 -DNDEBUG") # clang++ failed to build the project with the default -Os
+-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --driver-mode=g++ -Xclang -fallow-half-arguments-and-returns -D__HIP_HCC_COMPAT_MODE__=1 -Wno-format-nonliteral -parallel-jobs=4 -fclang-abi-compat=17")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --driver-mode=g++ -D__HIP_HCC_COMPAT_MODE__=1 -Wno-format-nonliteral -fclang-abi-compat=17")
+ 
+ # Top level configs
+ if( CMAKE_PROJECT_NAME STREQUAL "rocwmma" )
+
+The exported interface refers to HIP and OpenMP targets. Discover them when
+loading the installed config, so consumers need only find_package(rocwmma).
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -202,6 +202,8 @@
+ rocm_export_targets(
+   TARGETS roc::rocwmma
+   NAMESPACE roc::
++  DEPENDS PACKAGE hip
++  DEPENDS PACKAGE OpenMP
+ )
+ 
+ rocm_create_package(

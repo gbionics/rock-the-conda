@@ -1,3 +1,5 @@
+schema_version: 1
+
 context:
   name: hipify
   version: "7.2.4"
@@ -9,29 +11,47 @@ package:
 source:
   url: https://github.com/ROCm/HIPIFY/archive/refs/tags/rocm-${{ version }}.tar.gz
   sha256: 3ffe18218c5bd0311e4359064da68f0a1d699bdc3b43472060d346a885bf8229
+  patches:
+    - 0001-use-conda-toolchain-and-resource-headers.patch
 
 build:
   number: 0
-  skip:
-    - not linux
+  skip: not linux
+  script: build.sh
 
 requirements:
   build:
+    - ${{ compiler('c') }}
     - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
     - cmake
     - ninja
   host:
     - rocm-core ${{ version }}.*
     - llvmdev
     - clangdev
+    - libclang-cpp ${{ llvmdev }}.*
+    # llvmdev itself has no run exports; depend on the shared-library package.
+    - libllvm${{ (llvmdev | split('.'))[0] }} ${{ llvmdev }}.*
   run:
     - perl
-    - llvm 22.*
+    # The versioned compiler package owns lib/clang/<major>/include.
+    - clang-${{ (llvmdev | split('.'))[0] }} ${{ llvmdev }}.*
 
 tests:
   - script:
       - hipify-perl --help
       - hipify-clang --help
+  - package_contents:
+      bin:
+        - hipify-clang
+        - hipify-perl
+      files:
+        - libexec/hipify/hipify-perl
+      include:
+        not_exists:
+          - hipify/**
+  - script: run_test.sh
 
 about:
   repository: https://github.com/ROCm/HIPIFY

@@ -50,6 +50,7 @@ outputs:
         - wget
         - python *
       host:
+        - rocm-core ${{ version }}.*
         - clangdev ${{ llvm_major_version }}.*
         - numactl
         - llvmdev ${{ llvm_major_version }}.*

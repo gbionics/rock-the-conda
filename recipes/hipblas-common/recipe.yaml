@@ -1,7 +1,6 @@
 schema_version: 1
 
 context:
-  name: hipblas-common
   version: "7.2.4"
 
 package:
@@ -9,8 +8,8 @@ package:
   version: ${{ version }}
 
 source:
-  - url: "https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblas-common.tar.gz"
-    sha256: 5c7806accb2123b7a0a0d814517adc85335ab9c0ed3318fcbad2282d219f397b
+  url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/hipblas-common.tar.gz
+  sha256: 5c7806accb2123b7a0a0d814517adc85335ab9c0ed3318fcbad2282d219f397b
 
 build:
   number: 0
@@ -19,15 +18,14 @@ build:
 
 requirements:
   build:
-    - ${{ compiler('c') }}
     - ${{ stdlib('c') }}
     - ${{ compiler('cxx') }}
     - cmake
-    - pkg-config
     - ninja
   host:
     - rocm-core ${{ version }}.*
-    - rocm-cmake ${{ version }}.*
+    - rocm-cmake
+
 tests:
   - requirements:
       run:
@@ -35,7 +33,7 @@ tests:
         - ${{ compiler('c') }}
         - ${{ compiler('cxx') }}
     script:
-      - cmake-package-check hipblas-common
+      - cmake-package-check hipblas-common --targets roc::hipblas-common
   - package_contents:
       include:
         - hipblas-common/hipblas-common.h
@@ -46,7 +44,7 @@ about:
   license: MIT
   license_family: MIT
   license_file: LICENSE.md
-  summary: "hipBLAS-common is a header-only library that provides common files for hipBLAS and hipBLASLt."
+  summary: Header-only library providing common definitions for hipBLAS and hipBLASLt.
 
 extra:
   feedstock-name: hipblas-common
