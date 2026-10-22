@@ -1,7 +1,6 @@
 schema_version: 1
 
 context:
-  name: rocwmma
   version: "7.2.4"
 
 package:
@@ -12,8 +11,7 @@ source:
   url: https://github.com/ROCm/rocm-libraries/releases/download/rocm-${{ version }}/rocwmma.tar.gz
   sha256: 0d92dad3d7e8a16aa0aca9f09c018412630a81312cb0f8a3dae690aea9856049
   patches:
-    - 0001-no-test-install.patch
-    - 0002-relax-fp8-check.patch
+    - 0001-use-standard-clang-flags.patch
 
 build:
   number: 0
@@ -32,9 +30,10 @@ requirements:
     - ninja
   host:
     - rocm-cmake
-    - libgomp
+    - llvm-openmp
   run:
     - hip-devel
+    - llvm-openmp
 tests:
   - requirements:
       run:
@@ -42,13 +41,13 @@ tests:
         - ${{ compiler('clang') }}
         - ${{ compiler('clangxx') }}
     script:
-      - cmake-package-check rocwmma
+      - cmake-package-check rocwmma --targets roc::rocwmma
   - package_contents:
       include:
         - rocwmma/rocwmma.hpp
 
 about:
-  repository: https://github.com/ROCm/rocWMMA
+  repository: https://github.com/ROCm/rocm-libraries
   homepage: https://rocm.docs.amd.com/projects/rocWMMA/en/latest/
   license: MIT
   license_file: LICENSE.md

@@ -1,8 +1,10 @@
+schema_version: 1
+
 context:
   version: "7.2.4"
 
-package:
-  name: aqlprofile
+recipe:
+  name: aqlprofile-split
   version: ${{ version }}
 
 source:
@@ -11,31 +13,105 @@ source:
 
 build:
   number: 0
-  skip:
-    - not linux
+  skip: not linux
 
-requirements:
-  build:
-    - ${{ compiler('c') }}
-    - ${{ compiler('cxx') }}
-    - cmake
-    - ninja
-  host:
-    - rocm-core
-    - rocr-runtime
-  run_exports:
-    - ${{ pin_subpackage("aqlprofile", upper_bound="x.x") }}
+outputs:
+  - staging:
+      name: aqlprofile-build
+    build:
+      script: build.sh
+    requirements:
+      build:
+        - ${{ compiler('c') }}
+        - ${{ compiler('cxx') }}
+        - ${{ stdlib('c') }}
+        - cmake
+        - ninja
+      host:
+        - rocr-runtime ${{ version }}.*
+
+  - package:
+      name: libaqlprofile
+    inherit: aqlprofile-build
+    build:
+      files:
+        - lib/libhsa-amd-aqlprofile64.so.*
+    requirements:
+      run:
+        # rocr-runtime currently supplies no run export for libhsa-runtime64.
+        - rocr-runtime ${{ version }}.*
+    tests:
+      - package_contents:
+          files:
+            exists:
+              - lib/libhsa-amd-aqlprofile64.so.1
+            not_exists:
+              - lib/libhsa-amd-aqlprofile64.so
+              - include/**
+      - requirements:
+          run:
+            - python
+        script:
+          - python -c "import ctypes, os; ctypes.CDLL(os.path.join(os.environ['PREFIX'], 'lib/libhsa-amd-aqlprofile64.so.1'))"
+
+  - package:
+      name: libaqlprofile-devel
+    inherit: aqlprofile-build
+    build:
+      files:
+        - include/**
+        - lib/libhsa-amd-aqlprofile64.so
+    requirements:
+      run:
+        - ${{ pin_subpackage('libaqlprofile', exact=True) }}
+        # The public API includes hsa/hsa.h.
+        - rocr-runtime ${{ version }}.*
+      run_exports:
+        - ${{ pin_subpackage('libaqlprofile', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          include:
+            - aqlprofile-sdk/aql_profile_v2.h
+            - aqlprofile-sdk/version.h
+          lib:
+            - hsa-amd-aqlprofile64
+      - requirements:
+          run:
+            - ${{ compiler('cxx') }}
+        script: run_test.sh
+
+  # Preserve the old development + runtime installation for ROCm 7.2 clients.
+  - package:
+      name: aqlprofile
+    build:
+      skip: not match(version, '7.2.*')
+    requirements:
+      run:
+        - ${{ pin_subpackage('libaqlprofile', exact=True) }}
+        - ${{ pin_subpackage('libaqlprofile-devel', exact=True) }}
+      run_exports:
+        - ${{ pin_subpackage('libaqlprofile', upper_bound='x.x') }}
+    tests:
+      - package_contents:
+          files:
+            not_exists:
+              - "**/*"
+      - script:
+          - test -f "${PREFIX}/include/aqlprofile-sdk/aql_profile_v2.h"
+          - test -f "${PREFIX}/lib/libhsa-amd-aqlprofile64.so"
 
 about:
-  homepage: https://github.com/ROCm/aqlprofile
+  homepage: https://rocm.docs.amd.com/projects/aqlprofile/en/latest/
+  repository: https://github.com/ROCm/rocm-systems
   license: MIT
   license_file: LICENSE.md
-  summary: AQLPROFILE library for AMD GPU profiling
+  summary: AQL packet level profiling support for AMD GPUs
   description: |
     AQLPROFILE provides AQL packet level profiling support for AMD GPUs.
     It is used by profiling tools to collect hardware performance counters.
 
 extra:
+  feedstock-name: aqlprofile
   recipe-maintainers:
     - flferretti
     - conda-forge/rocm-core

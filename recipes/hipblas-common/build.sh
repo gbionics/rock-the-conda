@@ -1,5 +1,6 @@
 #!/bin/bash
+set -euxo pipefail
 
-cmake -GNinja ${CMAKE_ARGS} -Bbuild -S.
-cmake --build ./build
-cmake --install ./build
+cmake ${CMAKE_ARGS} -G Ninja -S . -B build -DFETCHCONTENT_FULLY_DISCONNECTED=ON
+cmake --build build
+cmake --install build
