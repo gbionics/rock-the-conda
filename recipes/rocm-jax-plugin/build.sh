@@ -95,7 +95,9 @@ done
 
 # Clean up build-only symlinks
 rm -f "${PREFIX}/llvm/bin/clang"
-rm -f "${PREFIX}/include/hip" "${PREFIX}/share/hip" "${PREFIX}/amdgcn"
+for d in include/hip share/hip amdgcn; do
+    [[ -L "${PREFIX}/${d}" ]] && rm "${PREFIX}/${d}"
+done
 rm -f "${PREFIX}/bin/hipcc" "${PREFIX}/bin/hipcc.bin" "${PREFIX}/bin/hipconfig"
 rm -f "${PREFIX}/lib/.hipInfo"
 
