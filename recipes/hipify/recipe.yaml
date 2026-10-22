@@ -29,6 +29,7 @@ requirements:
   host:
     - llvmdev
     - clangdev
+    - libclang-cpp ${{ llvmdev }}.*
     # llvmdev itself has no run exports; depend on the shared-library package.
     - libllvm${{ (llvmdev | split('.'))[0] }} ${{ llvmdev }}.*
   run:

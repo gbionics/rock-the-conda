@@ -63,7 +63,6 @@ outputs:
           - lib/pkgconfig/**
           - share/pkgconfig/**
           - share/doc/**
-          - lib/librocroller.so
     requirements:
       ignore_run_exports:
         from_package:
@@ -78,7 +77,6 @@ outputs:
             exists:
               - lib/librocroller.so.1
             not_exists:
-              - lib/librocroller.so
               - lib/*.a
 
   - package:
@@ -87,11 +85,11 @@ outputs:
     build:
       files:
         - include/**
+        - lib/*.a
         - lib/cmake/**
         - lib/pkgconfig/**
         - share/pkgconfig/**
         - share/doc/**
-        - lib/librocroller.so
     requirements:
       ignore_run_exports:
         from_package:

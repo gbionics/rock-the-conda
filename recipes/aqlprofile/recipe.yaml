@@ -35,7 +35,15 @@ outputs:
     inherit: aqlprofile-build
     build:
       files:
-        - lib/libhsa-amd-aqlprofile64.so.*
+        include:
+          - "**/*"
+        exclude:
+          - include/**
+          - lib/*.a
+          - lib/cmake/**
+          - lib/pkgconfig/**
+          - share/pkgconfig/**
+          - share/doc/**
     requirements:
       run:
         # rocr-runtime currently supplies no run export for libhsa-runtime64.
@@ -46,8 +54,8 @@ outputs:
             exists:
               - lib/libhsa-amd-aqlprofile64.so.1
             not_exists:
-              - lib/libhsa-amd-aqlprofile64.so
               - include/**
+              - lib/*.a
       - requirements:
           run:
             - python
@@ -60,7 +68,11 @@ outputs:
     build:
       files:
         - include/**
-        - lib/libhsa-amd-aqlprofile64.so
+        - lib/*.a
+        - lib/cmake/**
+        - lib/pkgconfig/**
+        - share/pkgconfig/**
+        - share/doc/**
     requirements:
       run:
         - ${{ pin_subpackage('libaqlprofile', exact=True) }}
@@ -73,8 +85,6 @@ outputs:
           include:
             - aqlprofile-sdk/aql_profile_v2.h
             - aqlprofile-sdk/version.h
-          lib:
-            - hsa-amd-aqlprofile64
       - requirements:
           run:
             - ${{ compiler('cxx') }}
