@@ -29,6 +29,7 @@ requirements:
     - ninja
     - python ${{ python_min }}.*
   host:
+    - rocm-core ${{ version }}.*
     - rocr-runtime
     - glog
     - fmt

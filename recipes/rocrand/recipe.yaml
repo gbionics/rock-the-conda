@@ -30,6 +30,7 @@ outputs:
         - cmake
         - ninja
       host:
+        - rocm-core ${{ version }}.*
         - rocm-cmake
     build:
       script: build.sh

@@ -29,6 +29,7 @@ requirements:
     - cmake
     - ninja
   host:
+    - rocm-core ${{ version }}.*
     - rocm-cmake
     - llvm-openmp
   run:

@@ -28,6 +28,7 @@ outputs:
         - cmake
         - ninja
       host:
+        - rocm-core ${{ version }}.*
         - rocr-runtime ${{ version }}.*
 
   - package:

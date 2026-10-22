@@ -27,6 +27,7 @@ requirements:
     - cmake
     - ninja
   host:
+    - rocm-core ${{ version }}.*
     - llvmdev
     - clangdev
     - libclang-cpp ${{ llvmdev }}.*
