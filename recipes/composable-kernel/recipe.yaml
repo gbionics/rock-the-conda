@@ -32,6 +32,7 @@ outputs:
         # tensilite dependency
         - python <3.15
       host:
+        - rocm-core ${{ version }}.*
         - rocm-cmake
     build:
       script: build.sh

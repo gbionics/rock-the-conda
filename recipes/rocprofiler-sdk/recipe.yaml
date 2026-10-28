@@ -51,8 +51,9 @@ requirements:
     - ninja
     - pkg-config
   host:
+    - rocm-core ${{ version }}.*
     - rocprofiler-register
-    - aqlprofile
+    - libaqlprofile-devel
     - hip-devel
     - fmt
     - yaml-cpp

@@ -44,6 +44,7 @@ outputs:
         - packaging
         - llvm-openmp
       host:
+        - rocm-core ${{ version }}.*
         - rocm-cmake
         - rocm-smi
         - roctracer
