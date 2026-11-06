@@ -3,6 +3,11 @@ set -euxo pipefail
 
 $RECIPE_DIR/add_py_toolchain.sh
 
+cp "$RECIPE_DIR/0001-fix-rocm-toolchain-bazel9.patch" third_party/xla/
+sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party/xla:0001-fix-rocm-toolchain-bazel9.patch",|' \
+    MODULE.bazel
+grep -q "0001-fix-rocm-toolchain-bazel9.patch" MODULE.bazel
+
 export JAXLIB_RELEASE=1
 
 export LDFLAGS="${LDFLAGS} -lrt -Wl,-z,noexecstack"
@@ -51,6 +56,7 @@ BUILD_ARGS=(
     --python_version="${HOST_PY_VER}"
     --bazel_startup_options="--bazelrc=build/rocm/rocm.bazelrc"
     --bazel_options="--config=rocm_clang_local"
+    --bazel_options="--extra_toolchains=@local_config_rocm//crosstool:toolchain-linux-x86_64"
     --bazel_path="${BUILD_PREFIX}/bin/bazel"
     --use_clang=true
     --clang_path="${BUILD_PREFIX}/bin/clang"
