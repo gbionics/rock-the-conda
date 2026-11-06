@@ -33,7 +33,7 @@ requirements:
     - clang-no-conda-cfg
     # Keep bazel listed twice to help migrators track dependencies
     - bazel
-    - bazel 7.*
+    - bazel 9.2.*
     - unzip
     - sed
     - patchelf
