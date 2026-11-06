@@ -1,23 +1,17 @@
 diff --git a/third_party/gpus/crosstool/BUILD.rocm.tpl b/third_party/gpus/crosstool/BUILD.rocm.tpl
 --- a/third_party/gpus/crosstool/BUILD.rocm.tpl
 +++ b/third_party/gpus/crosstool/BUILD.rocm.tpl
-@@ -3,6 +3,8 @@
- 
+@@ -4,3 +4,5 @@
  load("@config_rocm_hipcc//rocm:build_defs.bzl", "hipcc_config")
  load("@local_config_clang//:clang.bzl", "local_clang")
 +load("@rules_cc//cc/toolchains:cc_toolchain.bzl", "cc_toolchain")
 +load("@rules_cc//cc/toolchains:cc_toolchain_suite.bzl", "cc_toolchain_suite")
  load(":cc_toolchain_config.bzl", "cc_toolchain_config", "hipcc_workspace_prefix")
- 
- # Local clang configuration for non-hermetic toolchain
 diff --git a/third_party/gpus/crosstool/hipcc_cc_toolchain_config.bzl.tpl b/third_party/gpus/crosstool/hipcc_cc_toolchain_config.bzl.tpl
 --- a/third_party/gpus/crosstool/hipcc_cc_toolchain_config.bzl.tpl
 +++ b/third_party/gpus/crosstool/hipcc_cc_toolchain_config.bzl.tpl
-@@ -29,6 +29,7 @@
- )
+@@ -30,3 +30,4 @@
  load("@bazel_tools//tools/build_defs/cc:action_names.bzl", "ACTION_NAMES")
  load("@config_rocm_hipcc//rocm:build_defs.bzl", "hipcc_config")
 +load("@rules_cc//cc/common:cc_common.bzl", "cc_common")
  load("@rules_cc//cc/toolchains:cc_toolchain_config_info.bzl", "CcToolchainConfigInfo")
- 
- def hipcc_workspace_prefix():
