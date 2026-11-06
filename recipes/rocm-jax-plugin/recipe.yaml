@@ -1,6 +1,6 @@
 context:
   name: jax-rocm7-plugin
-  version: "0.11.1"
+  version: "0.12.0"
   rocm_version: "7.2.4"
   build: 0
 
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://github.com/ROCm/jax/archive/refs/tags/rocm-jax-v${{ version }}.tar.gz
-  sha256: 1cca09e4dc3c9edbee96f139d9b3854ce310469b4c31ac8ceef8729a350c4d74
+  sha256: 3cb57a9e3529cea713902da2529391ee217779846ca36c569469a22aabac8350
 
 build:
   number: ${{ build }}
