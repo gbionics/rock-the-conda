@@ -3,13 +3,6 @@ set -euxo pipefail
 
 $RECIPE_DIR/add_py_toolchain.sh
 
-# XLA's ROCm crosstool hardcodes the legacy WORKSPACE repo path for
-# config_rocm_hipcc, which does not exist under bzlmod.
-cp "$RECIPE_DIR/0001-fix-rocm-crosstool-bzlmod-paths.patch" third_party/xla/
-sed -i 's|^    module_name = "xla",|&\n    patch_strip = 1,\n    patches = ["//third_party/xla:0001-fix-rocm-crosstool-bzlmod-paths.patch"],|' \
-    MODULE.bazel
-grep -q "0001-fix-rocm-crosstool-bzlmod-paths" MODULE.bazel
-
 export JAXLIB_RELEASE=1
 
 export LDFLAGS="${LDFLAGS} -lrt -Wl,-z,noexecstack"
