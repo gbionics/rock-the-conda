@@ -31,7 +31,6 @@ By default, `pixi run build-packages` builds and publishes to the `rock-the-cond
 pixi run -e all-archs build-packages
 ~~~
 
-
 Built packages will be placed in the `output/` subdirectory of the folder. For simplify the debugging, some built packages are available in the following channels:
 
 |    Channel                                            |  Supported architectures    |  Description |  Status     |
@@ -105,7 +104,6 @@ The pinning implementation and regression tests are adapted from
 Upstream license notices are retained in `rock_the_conda/LICENSE`.
 
 Run the regression suite with `pixi run test-pinning`.
-
 
 ## Examples
 

@@ -4,7 +4,7 @@ set -euxo pipefail
 $RECIPE_DIR/add_py_toolchain.sh
 
 cp "$RECIPE_DIR/0001-fix-rocm-toolchain-bazel9.patch" third_party/xla/
-sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party/xla:0001-fix-rocm-toolchain-bazel9.patch",|' \
+sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party:xla/0001-fix-rocm-toolchain-bazel9.patch",|' \
     MODULE.bazel
 grep -q "0001-fix-rocm-toolchain-bazel9.patch" MODULE.bazel
 
