@@ -84,7 +84,10 @@ $PYTHON build/build.py build --wheels=jax-rocm-pjrt "${BUILD_ARGS[@]}"
 # Skip bazel clean to preserve cache across Python variant builds.
 # The output base lives in BUILD_PREFIX and is discarded after the final variant.
 
-$PYTHON -m pip install --no-deps --prefix="${PREFIX}" dist/*.whl
+# dist/ can contain wheels from previous Python variants.
+$PYTHON -m pip install --no-deps --prefix="${PREFIX}" \
+    "${DIST_DIR}"/jax_rocm7_plugin-*-cp"${HOST_PY_VER/./}"-*.whl \
+    "${DIST_DIR}"/jax_rocm7_pjrt-*.whl
 
 # Fix INSTALLER/RECORD (https://github.com/conda-forge/jaxlib-feedstock#293)
 HOST_SP_DIR=$($PYTHON -c "import sysconfig; print(sysconfig.get_path('purelib'))")
