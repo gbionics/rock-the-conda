@@ -9,7 +9,7 @@ diff --git a/third_party/roc_mori/clang_compat.patch b/third_party/roc_mori/clan
 new file mode 100644
 --- /dev/null
 +++ b/third_party/roc_mori/clang_compat.patch
-@@ -0,0 +1,58 @@
+@@ -0,0 +1,129 @@
 +diff --git a/include/mori/collective/XLA/collectives_common.hpp b/include/mori/collective/XLA/collectives_common.hpp
 +--- a/include/mori/collective/XLA/collectives_common.hpp
 ++++ b/include/mori/collective/XLA/collectives_common.hpp
@@ -68,3 +68,74 @@ new file mode 100644
 +-                         wc[i].status, ibv_wc_status_str(wc[i].status), wc[i].wr_id,
 ++                         static_cast<int>(wc[i].status), ibv_wc_status_str(wc[i].status), wc[i].wr_id,
 +                          qph.qp ? qph.qp->qp_num : 0);
++diff --git a/src/application/memory/symmetric_memory.cpp b/src/application/memory/symmetric_memory.cpp
++--- a/src/application/memory/symmetric_memory.cpp
+++++ b/src/application/memory/symmetric_memory.cpp
++@@ -688,2 +688,2 @@
++     MORI_APP_ERROR("VMM Init failed: hipMemAddressReserve size={} align={} err={}", totalSize,
++-                   chunkSize, result);
+++                   chunkSize, static_cast<int>(result));
++@@ -909,2 +909,2 @@
++             MORI_APP_WARN("FinalizeVMMHeap: Failed to unmap peer chunk {} from PE {}, err={}", i,
++-                          pe, result);
+++                          pe, static_cast<int>(result));
++@@ -951,2 +951,2 @@
++   if (syncResult != hipSuccess) {
++-    MORI_APP_WARN("FinalizeVMMHeap: hipDeviceSynchronize failed: {}", syncResult);
+++    MORI_APP_WARN("FinalizeVMMHeap: hipDeviceSynchronize failed: {}", static_cast<int>(syncResult));
++@@ -980,2 +980,2 @@
++       if ((err = hipFree(vmmHeapObj.gpu->peerPtrs)) != hipSuccess) {
++-        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU peerPtrs: {}", err);
+++        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU peerPtrs: {}", static_cast<int>(err));
++@@ -983,2 +983,2 @@
++       if ((err = hipFree(vmmHeapObj.gpu->p2pPeerPtrs)) != hipSuccess) {
++-        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU p2pPeerPtrs: {}", err);
+++        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU p2pPeerPtrs: {}", static_cast<int>(err));
++@@ -986,2 +986,2 @@
++       if ((err = hipFree(vmmHeapObj.gpu->vmmRkeyInfo)) != hipSuccess) {
++-        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU vmmRkeyInfo: {}", err);
+++        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU vmmRkeyInfo: {}", static_cast<int>(err));
++@@ -989,2 +989,2 @@
++       if ((err = hipFree(vmmHeapObj.gpu->vmmLkeyInfo)) != hipSuccess) {
++-        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU vmmLkeyInfo: {}", err);
+++        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU vmmLkeyInfo: {}", static_cast<int>(err));
++@@ -992,2 +992,2 @@
++       if ((err = hipFree(vmmHeapObj.gpu)) != hipSuccess) {
++-        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU states: {}", err);
+++        MORI_APP_WARN("FinalizeVMMHeap: Failed to free GPU states: {}", static_cast<int>(err));
++@@ -1131,2 +1131,2 @@
++     MORI_APP_WARN("VMMAlloc failed: hipMemCreate chunk={} size={} dev={} err={}", chunkIdx,
++-                  chunkSize, currentDev, result);
+++                  chunkSize, currentDev, static_cast<int>(result));
++@@ -1139,2 +1139,2 @@
++     MORI_APP_WARN("VMMAlloc failed: hipMemMap chunk={} addr={:p} size={} err={}", chunkIdx,
++-                  chunkPtr, chunkSize, result);
+++                  chunkPtr, chunkSize, static_cast<int>(result));
++@@ -1153,2 +1153,2 @@
++     MORI_APP_WARN("VMMAlloc failed: hipMemSetAccess chunk={} addr={:p} err={}", chunkIdx, chunkPtr,
++-                  result);
+++                  static_cast<int>(result));
++@@ -1164,2 +1164,2 @@
++     MORI_APP_WARN("VMMAlloc: hipMemExport failed chunk={} err={}, P2P and RDMA may not work",
++-                  chunkIdx, result);
+++                  chunkIdx, static_cast<int>(result));
++@@ -1189,2 +1189,2 @@
++     MORI_APP_WARN("Failed to import shareable handle from PE {}, chunk {}, hipError: {}", pe,
++-                  chunkIdx, result);
+++                  chunkIdx, static_cast<int>(result));
++@@ -1196,2 +1196,2 @@
++   if (result != hipSuccess) {
++-    MORI_APP_WARN("Failed hipMemMap imported PE={} chunk={} err={}", pe, chunkIdx, result);
+++    MORI_APP_WARN("Failed hipMemMap imported PE={} chunk={} err={}", pe, chunkIdx, static_cast<int>(result));
++@@ -1209,2 +1209,2 @@
++   if (result != hipSuccess) {
++-    MORI_APP_WARN("Failed hipMemSetAccess PE={} chunk={} err={}", pe, chunkIdx, result);
+++    MORI_APP_WARN("Failed hipMemSetAccess PE={} chunk={} err={}", pe, chunkIdx, static_cast<int>(result));
++@@ -1509,2 +1509,2 @@
++     if (result != hipSuccess) {
++-      MORI_APP_WARN("VMMAllocChunk failed: Cannot get current device, hipError: {}", result);
+++      MORI_APP_WARN("VMMAllocChunk failed: Cannot get current device, hipError: {}", static_cast<int>(result));
++@@ -1669,2 +1669,2 @@
++             MORI_APP_WARN("Failed to unmap peer memory for PE {} chunk {}, hipError: {}", pe, idx,
++-                          result);
+++                          static_cast<int>(result));
