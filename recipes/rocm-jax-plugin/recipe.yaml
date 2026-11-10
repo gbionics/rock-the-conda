@@ -61,6 +61,7 @@ requirements:
     - libhipblaslt-devel
     - librocprim-devel
     - libhipcub-devel
+    - libdrm
     - numactl
   run:
     - python
