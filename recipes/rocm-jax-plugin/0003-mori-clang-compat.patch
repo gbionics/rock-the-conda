@@ -9,7 +9,8 @@ diff --git a/third_party/roc_mori/clang_compat.patch b/third_party/roc_mori/clan
 new file mode 100644
 --- /dev/null
 +++ b/third_party/roc_mori/clang_compat.patch
-@@ -0,0 +1,33 @@
+@@ -0,0 +1,42 @@
++diff --git a/include/mori/collective/XLA/collectives_common.hpp b/include/mori/collective/XLA/collectives_common.hpp
 +--- a/include/mori/collective/XLA/collectives_common.hpp
 ++++ b/include/mori/collective/XLA/collectives_common.hpp
 +@@ -91,10 +91,2 @@
@@ -43,3 +44,11 @@ new file mode 100644
 ++    __builtin_nontemporal_store(v, ptr);
 ++#endif
 +   } else {
++diff --git a/src/application/transport/rdma/providers/bnxt/bnxt.cpp b/src/application/transport/rdma/providers/bnxt/bnxt.cpp
++--- a/src/application/transport/rdma/providers/bnxt/bnxt.cpp
+++++ b/src/application/transport/rdma/providers/bnxt/bnxt.cpp
++@@ -60,3 +60,3 @@
++   template <typename FormatContext>
++-  auto format(const bnxt_re_dv_qp_mem_info& m, FormatContext& ctx) -> decltype(ctx.out()) {
+++  auto format(const bnxt_re_dv_qp_mem_info& m, FormatContext& ctx) const -> decltype(ctx.out()) {
++     return fmt::format_to(ctx.out(),
