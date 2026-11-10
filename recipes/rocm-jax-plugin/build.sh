@@ -5,7 +5,8 @@ $RECIPE_DIR/add_py_toolchain.sh
 
 cp "$RECIPE_DIR/0001-fix-rocm-toolchain-bazel9.patch" third_party/xla/
 cp "$RECIPE_DIR/0002-use-conda-system-libraries.patch" third_party/xla/
-sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party:xla/0001-fix-rocm-toolchain-bazel9.patch",\n        "//third_party:xla/0002-use-conda-system-libraries.patch",|' \
+cp "$RECIPE_DIR/0003-mori-clang-compat.patch" third_party/xla/
+sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party:xla/0001-fix-rocm-toolchain-bazel9.patch",\n        "//third_party:xla/0002-use-conda-system-libraries.patch",\n        "//third_party:xla/0003-mori-clang-compat.patch",|' \
     MODULE.bazel
 grep -q "0001-fix-rocm-toolchain-bazel9.patch" MODULE.bazel
 

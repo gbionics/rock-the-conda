@@ -1,0 +1,45 @@
+diff --git a/third_party/roc_mori/workspace.bzl b/third_party/roc_mori/workspace.bzl
+--- a/third_party/roc_mori/workspace.bzl
++++ b/third_party/roc_mori/workspace.bzl
+@@ -29,2 +29,3 @@
+         name = "roc_mori",
++        patch_file = ["//third_party/roc_mori:clang_compat.patch"],
+         sha256 = _MORI_SHA256,
+diff --git a/third_party/roc_mori/clang_compat.patch b/third_party/roc_mori/clang_compat.patch
+new file mode 100644
+--- /dev/null
++++ b/third_party/roc_mori/clang_compat.patch
+@@ -0,0 +1,33 @@
++--- a/include/mori/collective/XLA/collectives_common.hpp
+++++ b/include/mori/collective/XLA/collectives_common.hpp
++@@ -91,10 +91,2 @@
++ // Streaming (cache-bypassing) 16-byte load/store.
++-#if (defined(__gfx942__) || defined(__gfx950__) || defined(__gfx1250__))
++-#if __has_builtin(__builtin_amdgcn_global_load_b128) && \
++-    __has_builtin(__builtin_amdgcn_global_store_b128)
++-#elif defined(__HIP_DEVICE_COMPILE__)
++-#error "Global b128 load/store not supported on this architecture"
++-#endif
++-#endif
++-
++ constexpr uint32_t VecBytes = 16;
++@@ -126,2 +118,3 @@
++   if constexpr (Bytes == 16) {
+++#if __has_builtin(__builtin_amdgcn_global_load_b128)
++     if constexpr (Scope == ESystemScope) {
++@@ -131,2 +124,5 @@
++     }
+++#else
+++    return __builtin_nontemporal_load(ptr);
+++#endif
++   } else {
++@@ -148,2 +144,3 @@
++   if constexpr (Bytes == 16) {
+++#if __has_builtin(__builtin_amdgcn_global_store_b128)
++     if constexpr (Scope == ESystemScope) {
++@@ -153,2 +150,5 @@
++     }
+++#else
+++    __builtin_nontemporal_store(v, ptr);
+++#endif
++   } else {
