@@ -11,6 +11,8 @@ WORKSPACE_DIR="$(pwd)"
 mkdir -p py_toolchain
 cp $RECIPE_DIR/py_toolchain.bzl py_toolchain/BUILD
 sed -i "s;@@SRC_DIR@@;$WORKSPACE_DIR;" py_toolchain/BUILD
+sed -i "s;@@PY_MAJOR@@;$(${PYTHON} -c 'import sys;print(sys.version_info.major)');" py_toolchain/BUILD
+sed -i "s;@@PY_MINOR@@;$(${PYTHON} -c 'import sys;print(sys.version_info.minor)');" py_toolchain/BUILD
 
 cat > python.shebang <<EOF
 #!/bin/bash

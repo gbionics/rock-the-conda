@@ -1,0 +1,24 @@
+diff --git a/third_party/gpus/rocm/BUILD.tpl b/third_party/gpus/rocm/BUILD.tpl
+--- a/third_party/gpus/rocm/BUILD.tpl
++++ b/third_party/gpus/rocm/BUILD.tpl
+@@ -565,5 +565,5 @@
+     name = "drm",
+     data = [":system_libs_data"],
+-    interface_library = "%{rocm_root}/lib/rocm_sysdeps/lib/libdrm.so",
++    interface_library = "%{rocm_root}/lib/libdrm.so",
+     deps = [":system_libs"],
+ )
+@@ -572,5 +572,5 @@
+     name = "drm_amdgpu",
+     data = [":system_libs_data"],
+-    interface_library = "%{rocm_root}/lib/rocm_sysdeps/lib/libdrm_amdgpu.so",
++    interface_library = "%{rocm_root}/lib/libdrm_amdgpu.so",
+     deps = [":system_libs"],
+ )
+@@ -579,5 +579,5 @@
+     name = "numa",
+     data = [":system_libs_data"],
+-    interface_library = "%{rocm_root}/lib/rocm_sysdeps/lib/libnuma.so",
++    interface_library = "%{rocm_root}/lib/libnuma.so",
+     deps = [":system_libs"],
+ )

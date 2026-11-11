@@ -1,17 +1,14 @@
 #!/bin/bash
 set -euxo pipefail
 
-cd jax_rocm_plugin
-
 $RECIPE_DIR/add_py_toolchain.sh
 
-# Patch XLA's rocm_configure.bzl to bake the actual ROCM_PATH into
-# TF_ROCM_TOOLKIT_PATH (instead of hardcoded /opt/rocm), so that
-# conda binary relocation fixes the path at install time.
-cp "$RECIPE_DIR/0001-use-actual-rocm-path-for-install-path.patch" \
-   third_party/xla_rocm_configure.patch
-sed -i 's|patch_file = \[\]|patch_file = ["//third_party:xla_rocm_configure.patch"]|' \
-   third_party/xla/workspace.bzl
+cp "$RECIPE_DIR/0001-fix-rocm-toolchain-bazel9.patch" third_party/xla/
+cp "$RECIPE_DIR/0002-use-conda-system-libraries.patch" third_party/xla/
+cp "$RECIPE_DIR/0003-mori-clang-compat.patch" third_party/xla/
+sed -i '/^    module_name = "xla",/,/^)/s|^    patches = \[|&\n        "//third_party:xla/0001-fix-rocm-toolchain-bazel9.patch",\n        "//third_party:xla/0002-use-conda-system-libraries.patch",\n        "//third_party:xla/0003-mori-clang-compat.patch",|' \
+    MODULE.bazel
+grep -q "0001-fix-rocm-toolchain-bazel9.patch" MODULE.bazel
 
 export JAXLIB_RELEASE=1
 
@@ -59,6 +56,9 @@ DIST_DIR="$(pwd)/dist"
 
 BUILD_ARGS=(
     --python_version="${HOST_PY_VER}"
+    --bazel_startup_options="--bazelrc=build/rocm/rocm.bazelrc"
+    --bazel_options="--config=rocm_clang_local"
+    --bazel_options="--extra_toolchains=@local_config_rocm//crosstool:toolchain-linux-x86_64"
     --bazel_path="${BUILD_PREFIX}/bin/bazel"
     --use_clang=true
     --clang_path="${BUILD_PREFIX}/bin/clang"
@@ -68,6 +68,11 @@ BUILD_ARGS=(
     --bazel_options="--action_env=LD_LIBRARY_PATH=${PREFIX}/lib:${BUILD_PREFIX}/lib"
     --bazel_options="--action_env=RCCL_ROOT=${PREFIX}"
     --bazel_options="--action_env=ROCM_PATH=${PREFIX}"
+    --bazel_options="--repo_env=ROCM_PATH=${PREFIX}"
+    --bazel_options="--repo_env=TF_ROCM_AMDGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS//;/,}"
+    --bazel_options="--copt=-DHWY_COMPILE_ONLY_STATIC"
+    --bazel_options="--host_copt=-DHWY_COMPILE_ONLY_STATIC"
+    --bazel_options="--repo_env=CLANG_COMPILER_PATH=${BUILD_PREFIX}/bin/clang"
     --bazel_options="--action_env=HIP_PATH=${PREFIX}"
 )
 
@@ -79,7 +84,10 @@ $PYTHON build/build.py build --wheels=jax-rocm-pjrt "${BUILD_ARGS[@]}"
 # Skip bazel clean to preserve cache across Python variant builds.
 # The output base lives in BUILD_PREFIX and is discarded after the final variant.
 
-$PYTHON -m pip install --no-deps --prefix="${PREFIX}" dist/*.whl
+# dist/ can contain wheels from previous Python variants.
+$PYTHON -m pip install --no-deps --prefix="${PREFIX}" \
+    "${DIST_DIR}"/jax_rocm7_plugin-*-cp"${HOST_PY_VER/./}"-*.whl \
+    "${DIST_DIR}"/jax_rocm7_pjrt-*.whl
 
 # Fix INSTALLER/RECORD (https://github.com/conda-forge/jaxlib-feedstock#293)
 HOST_SP_DIR=$($PYTHON -c "import sysconfig; print(sysconfig.get_path('purelib'))")
@@ -91,7 +99,9 @@ done
 
 # Clean up build-only symlinks
 rm -f "${PREFIX}/llvm/bin/clang"
-rm -f "${PREFIX}/include/hip" "${PREFIX}/share/hip" "${PREFIX}/amdgcn"
+for d in include/hip share/hip amdgcn; do
+    [[ -L "${PREFIX}/${d}" ]] && rm "${PREFIX}/${d}"
+done
 rm -f "${PREFIX}/bin/hipcc" "${PREFIX}/bin/hipcc.bin" "${PREFIX}/bin/hipconfig"
 rm -f "${PREFIX}/lib/.hipInfo"
 
