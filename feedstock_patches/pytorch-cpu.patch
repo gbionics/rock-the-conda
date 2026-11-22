@@ -66,14 +66,14 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..9820cac3b4b2b06f0fa8284bfd96d109
      if [[ "$target_platform" == "linux-aarch64" ]]; then
          # https://github.com/pytorch/pytorch/pull/121975
 diff --git a/recipe/meta.yaml b/recipe/meta.yaml
-index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d782025d12 100644
+index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..ec76ead8100e0728d3599632dbb424a0256891d9 100644
 --- a/recipe/meta.yaml
 +++ b/recipe/meta.yaml
 @@ -1,11 +1,11 @@
  # if you wish to build release candidate number X, append the version string with "-rcX"
  {% set version = "2.14.1" %}
 -{% set build = 3 %}
-+{% set build = 4 %}
++{% set build = 5 %}
  
 -# Use a higher build number for the CUDA variant, to ensure that it's
 +# Use a higher build number for the GPU variants, to ensure that it's
@@ -278,7 +278,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
          # avoid that people without GPUs needlessly download ~0.5-1GB
          - __cuda                            # [cuda_compiler_version != "None"]
          - python
-@@ -372,10 +449,13 @@ outputs:
+@@ -372,19 +449,29 @@ outputs:
          - {{ pin_compatible("cuda-cupti", max_pin="x.x.x") }}  # [win and cuda_compiler_version != "None"]
        run_constrained:
          # https://github.com/conda-forge/pytorch-cpu-feedstock/issues/65
@@ -296,7 +296,11 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
      test:
        imports:
          - torch
-@@ -383,8 +463,11 @@ outputs:
+         - torch._C
++      files:
++        - test_rocm_conv2d.py
++      commands:
++        - python test_rocm_conv2d.py
  
    - name: pytorch-tests
      build:
@@ -309,7 +313,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
        detect_binary_files_with_prefix: false
      requirements:
        host:
-@@ -392,13 +475,31 @@ outputs:
+@@ -392,13 +479,31 @@ outputs:
          - python
        run:
          - pytorch {{ version }} cuda*_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}   # [cuda_compiler_version != "None"]
@@ -342,7 +346,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
          - ninja
          - boto3
          - hypothesis
-@@ -454,6 +555,7 @@ outputs:
+@@ -454,6 +559,7 @@ outputs:
          - python -c "import torch; assert torch.backends.cudnn.is_available()"      # [cuda_compiler_version != "None"]
          - python -c "import torch; assert torch.backends.cudnn.enabled"             # [cuda_compiler_version != "None"]
          - python -c "import torch; assert torch.version.cuda is not None"           # [cuda_compiler_version != "None"]
@@ -350,7 +354,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
  
          # python-version-specific library (default location in SP_DIR symlinks back to this)
          - test -f $PREFIX/lib/libtorch_python${SHLIB_EXT}           # [unix]
-@@ -553,36 +655,36 @@ outputs:
+@@ -553,36 +659,36 @@ outputs:
          # https://github.com/conda-forge/pytorch-cpu-feedstock/pull/318#issuecomment-2620080859
          {% set skips = skips ~ " or test_mutable_custom_op_fixed_layout" %}
          # trivial accuracy problems
@@ -407,7 +411,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
          # these tests are failing with low -n values
          {% set skips = skips ~ " or test_base_does_not_require_grad_mode_nothing" %}    # [not win]
          {% set skips = skips ~ " or test_base_does_not_require_grad_mode_warn" %}       # [not win]
-@@ -638,6 +740,13 @@ outputs:
+@@ -638,6 +744,13 @@ outputs:
          {% set skips = skips ~ " or test_cpp_warnings_have_python_context_cuda" %}
          # "Attempt to trace generator"
          {% set skips = skips ~ " or test_lite_regional_compile_flex_attention_cuda" %}
@@ -421,7 +425,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
          # Regressions in 2.11.0
          {% set skips = skips ~ " or test_compile_dyn_quant_matmul_4bit" %}               # [win and cuda_compiler_version == "13.0"]
          {% set skips = skips ~ " or test__int8_mm_m" %}                                  # [win and cuda_compiler_version == "13.0"]
-@@ -655,10 +764,15 @@ outputs:
+@@ -655,10 +768,15 @@ outputs:
          - set ONEDNN_VERBOSE=all        # [win]
          # reduced paralellism to avoid OOM for CUDA builds
          {% set jobs = "-n 2" %}
@@ -439,7 +443,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
  
          # regression test for https://github.com/conda-forge/pytorch-cpu-feedstock/issues/329, where we picked up
          # duplicate `.pyc` files due to newest py-ver (3.14) in the build environment not matching the one in host;
-@@ -667,32 +781,40 @@ outputs:
+@@ -667,32 +785,40 @@ outputs:
          - if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-314.pyc exit 1   # [py!=314 and win]
  
          # test integrity of CMake metadata and ensure that THPLayoutType is visible as a symbol from libtorch_python
@@ -488,3 +492,43 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..d3ade662ab0f733301bd549b337556d7
      test:
        imports:
          - torch
+diff --git a/recipe/test_rocm_conv2d.py b/recipe/test_rocm_conv2d.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b726cf003fc37b265dc756f14f534d465a0d353d
+--- /dev/null
++++ b/recipe/test_rocm_conv2d.py
+@@ -0,0 +1,34 @@
++"""Regression for https://github.com/gbionics/rock-the-conda/issues/61.
++
++MIOpen's convolution solver failed with ``tensor_shape_variable needs to be an
++array`` / ``miopenStatusUnknownError`` for this shape in both FP32 and FP16.
++"""
++
++import unittest
++
++import torch
++
++
++@unittest.skipUnless(
++    torch.version.hip is not None and torch.cuda.is_available(),
++    "requires a ROCm PyTorch build and an available AMD GPU",
++)
++class TestRocmConv2d(unittest.TestCase):
++    def test_miopen_solver_issue_61(self):
++        for dtype in (torch.float32, torch.float16):
++            with self.subTest(dtype=dtype), torch.no_grad():
++                x = torch.randn(1, 3, 560, 560, device="cuda", dtype=dtype)
++                conv = torch.nn.Conv2d(3, 64, kernel_size=12, stride=12).to(
++                    "cuda", dtype=dtype
++                )
++                y = conv(x)
++                torch.cuda.synchronize()
++
++                self.assertEqual(tuple(y.shape), (1, 64, 46, 46))
++                self.assertEqual(y.dtype, dtype)
++                self.assertEqual(y.device, x.device)
++                self.assertTrue(torch.isfinite(y).all().item())
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)
