@@ -1,0 +1,170 @@
+diff --git a/recipe/build.sh b/recipe/build.sh
+index 3400f7b60672ea73d5106125a911c9fb1a465928..715a9045db857d378389c1a9711a14047780e217 100644
+--- a/recipe/build.sh
++++ b/recipe/build.sh
+@@ -3,7 +3,10 @@
+ set -ex
+ 
+ # remove outdated vendored headers
+-rm -rf $SRC_DIR/python/triton/third_party
++# These should be necessary, but it is temporary commented
++# out as cuda headers are needed even for rocm builds,
++# and the vendored headers are necessary in that case.
++# rm -rf $SRC_DIR/python/triton/third_party
+ 
+ # disable downloading dependencies entirely
+ export TRITON_OFFLINE_BUILD=1
+@@ -11,17 +14,14 @@ export TRITON_OFFLINE_BUILD=1
+ export JSON_SYSPATH=$PREFIX
+ export PYBIND11_SYSPATH=$SP_DIR/pybind11
+ 
+-# only some of them are actually used currently, but set all just in case
+-export TRITON_PTXAS_PATH=$PREFIX/bin/ptxas
+-export TRITON_CUOBJDUMP_PATH=$PREFIX/bin/cuobjdump
+-export TRITON_NVDISASM_PATH=$PREFIX/bin/nvdisasm
+-export TRITON_CUDACRT_PATH=$PREFIX
+-export TRITON_CUDART_PATH=$PREFIX
+-export TRITON_CUPTI_INCLUDE_PATH=$PREFIX/include
+-export TRITON_CUPTI_LIB_PATH=$PREFIX/lib
+-
+ export MAX_JOBS=$CPU_COUNT
+ 
++# Proton currently expects NVIDIA CUDA/CUPTI headers when enabled.
++# Disable it for ROCm builds to avoid hard dependency on cuda.h/cupti.h.
++if [[ "${hip_compiler_version:-None}" != "None" ]]; then
++    export TRITON_BUILD_PROTON=OFF
++fi
++
+ # the build does not run C++ unittests, and they implicitly fetch gtest
+ # no easy way of passing this, not really worth a whole patch
+ sed -i -e '/TRITON_BUILD_UT/s:\bON:OFF:' CMakeLists.txt
+@@ -30,6 +30,10 @@ sed -i -e '/TRITON_BUILD_UT/s:\bON:OFF:' CMakeLists.txt
+ # final library anyway (-Wl,-s below), so generating it just wastes build
+ # disk and link memory. LLVM is already built without -g (Release).
+ sed -i -e '/FLAGS_TRITONRELBUILDWITHASSERTS/s: -g::' CMakeLists.txt
++# LLVM's bundled benchmark adds -pedantic-errors, which breaks with newer
++# clang when parsing __COUNTER__ in C++11 mode (-Wc2y-extensions).
++# Remove the full helper invocation to avoid generating add_cxx_compiler_flag().
++sed -i -e '/add_cxx_compiler_flag(-pedantic-errors)/d' llvm-project/third-party/benchmark/CMakeLists.txt
+ 
+ CMAKE_HOST_ARGS=(
+     -DCMAKE_BUILD_TYPE=Release
+diff --git a/recipe/recipe.yaml b/recipe/recipe.yaml
+index 4f6df121e5975c4e1ed20b3957e87ed17a1c3eb8..828a5fd2585097b2b810089f5c65c6198bce66cf 100644
+--- a/recipe/recipe.yaml
++++ b/recipe/recipe.yaml
+@@ -2,7 +2,7 @@ context:
+   version: "3.7.1"
+   # cmake/llvm-hash.txt
+   llvm_commit: 1f126a6dea50d185c0781743a667390037ae88bd
+-  build_number: 1
++  build_number: 3
+ 
+ package:
+   name: triton
+@@ -26,18 +26,24 @@ source:
+ 
+ build:
+   number: ${{ build_number }}
+-  string: cuda${{ cuda_compiler_version | version_to_buildstring }}py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
++  string: '{%- if cuda_compiler_version != "None" -%}cuda${{ cuda_compiler_version | version_to_buildstring }}py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}{%- elif hip_compiler_version != "None" -%}rocm${{ hip_compiler_version | replace(".", "") }}py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}{%- endif -%}'
++  script:
++    file: build
+   skip:
+     # No success enabling Windows build as of 3.1.0:
+     # https://github.com/conda-forge/triton-feedstock/pull/29#issuecomment-2564371725
+     - win
+-    # TODO: CPU-only support still under development
+-    - match(cuda_compiler_version, "==None")
++    - hip_compiler_version == "None"
++    # TODO: CPU-only support still under development, build GPU-backed variants only
++    - match(cuda_compiler_version, "==None") and match(hip_compiler_version, "==None")
+ 
+ requirements:
+   build:
+     - ${{ compiler('cxx') }}
+-    - ${{ compiler('cuda') }}
++    - if: cuda_compiler_version != "None"
++      then: ${{ compiler('cuda') }}
++    - if: hip_compiler_version != "None"
++      then: ${{ compiler('hip') }}
+     - if: linux and aarch64 and cuda_compiler_version != "None"
+       then: arm-variant * ${{ arm_variant_type }}
+     - ${{ stdlib('c') }}
+@@ -58,15 +64,27 @@ requirements:
+     - zlib
+     - zstd  # for llvm
+     - nlohmann_json
+-    - cuda-cupti-dev
+-    - cuda-version ${{ cuda_compiler_version }}.*
++    - if: cuda_compiler_version != "None"
++      then:
++        - cuda-cupti-dev
++        - cuda-version ${{ cuda_compiler_version }}.*
++    - if: hip_compiler_version != "None"
++      then:
++        # Keep rocm version selected by variant and provide runtime/compiler bits for AMD backend.
++        - hip-runtime-amd
++        - rocminfo
+   run:
+     - python
+     - setuptools
+-    - cuda-nvcc-tools
+-    - cuda-cuobjdump
+-    - cuda-cudart
+-    - cuda-cupti
++    - if: cuda_compiler_version != "None"
++      then:
++        - cuda-nvcc-tools
++        - cuda-cuobjdump
++        - cuda-cudart
++        - cuda-cupti
++    - if: hip_compiler_version != "None"
++      then:
++        - hip-runtime-amd
+ 
+ tests:
+   - python:
+@@ -74,24 +92,24 @@ tests:
+         - triton
+         - triton._C.libtriton
+       pip_check: true
+-  - files:
+-      source:
+-        - python/test/
+-    requirements:
+-      run:
+-        - pip
+-        - pytest
+-        - scipy
+-        # use cpu* variant to avoid the pin on specific triton version
+-        # (also we're doing non-GPU testing)
+-        - pytorch * cpu*
+-    script:
+-      # test suite essentially depends on availability of a physical GPU,
+-      # see https://github.com/triton-lang/triton/issues/466;
+-      # run a test that does not require a GPU but checks
+-      # if triton.compile() works
+-      - TRITON_INTERPRET=1 pytest -v python/test/unit/tools/test_aot.py::test_ttgir_to_asm
+-
++  - if: cuda_compiler_version != "None"
++    then:
++      files:
++        source:
++          - python/test/
++      requirements:
++        run:
++          - pip
++          - pytest
++          - scipy
++          # use cpu* variant to avoid the pin on specific triton version
++          # (also we're doing non-GPU testing)
++          - pytorch * cpu*
++      script:
++        # test suite essentially depends on availability of a physical GPU,
++        # see https://github.com/triton-lang/triton/issues/466;
++        # run a non-GPU CUDA test in interpreter mode
++        - TRITON_INTERPRET=1 pytest -v python/test/unit/tools/test_aot.py::test_ttgir_to_asm
+ about:
+   license: MIT
+   license_file: LICENSE

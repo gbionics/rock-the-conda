@@ -1,0 +1,24 @@
+From cf97880b9f03f8e720c2a331eaffcea55d29985e Mon Sep 17 00:00:00 2001
+From: Mark Harfouche <mark.harfouche@gmail.com>
+Date: Mon, 7 Oct 2024 09:18:51 -0400
+Subject: [PATCH 3/4] Add _ALLOW_COMPILER_AND_STL_VERSION_MISMATCH for cuda
+ compilation
+
+---
+ tools/ci_build/build.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/tools/ci_build/build.py b/tools/ci_build/build.py
+index 88dd7e1c2a..cdef2f2eee 100644
+--- a/tools/ci_build/build.py
++++ b/tools/ci_build/build.py
+@@ -1129,7 +1129,8 @@ def generate_build_tree(
+         if is_windows() and not args.android and not args.build_wasm:
+             njobs = number_of_parallel_jobs(args)
+             if args.use_cuda:
+-                nvcc_flags.append("-allow-unsupported-compiler")
++                nvcc_flags.append("--allow-unsupported-compiler")
++                nvcc_flags.append("-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH")
+             if njobs > 1:
+                 if args.parallel == 0:
+                     cflags += ["/MP"]

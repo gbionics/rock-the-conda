@@ -1,0 +1,82 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Mark Harfouche <mark.harfouche@gmail.com>
+Date: Mon, 12 Oct 2026 18:30:00 +0200
+Subject: [PATCH] Use RepeatedField::resize instead of the deprecated Resize
+
+protobuf deprecates RepeatedField::Resize(new_size, value) in favour of
+the STL-style resize(new_size, value), which has the same behaviour.
+onnxruntime compiles with /sdl on Windows, which turns the resulting
+C4996 into an error when building against conda-forge's libprotobuf.
+---
+ .../providers/coreml/builders/impl/activation_op_builder.cc   | 2 +-
+ onnxruntime/core/providers/coreml/builders/model_builder.cc   | 2 +-
+ onnxruntime/test/ir/graph_test.cc                             | 4 ++--
+ .../test/optimizer/gqa_value_layout_transformer_test.cc       | 4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/onnxruntime/core/providers/coreml/builders/impl/activation_op_builder.cc b/onnxruntime/core/providers/coreml/builders/impl/activation_op_builder.cc
+index 1c4ca8d..323e126 100644
+--- a/onnxruntime/core/providers/coreml/builders/impl/activation_op_builder.cc
++++ b/onnxruntime/core/providers/coreml/builders/impl/activation_op_builder.cc
+@@ -88,7 +88,7 @@ Status AddPReluWeight(ModelBuilder& model_builder, const Node& node,
+ 
+     auto& weight_values = *prelu.mutable_alpha()->mutable_floatvalue();
+     weight_values.Clear();
+-    weight_values.Resize(narrow<int>(num_channels), value);
++    weight_values.resize(narrow<int>(num_channels), value);
+   }
+   return Status::OK();
+ }
+diff --git a/onnxruntime/core/providers/coreml/builders/model_builder.cc b/onnxruntime/core/providers/coreml/builders/model_builder.cc
+index 3dcaa55..c54bdcc 100644
+--- a/onnxruntime/core/providers/coreml/builders/model_builder.cc
++++ b/onnxruntime/core/providers/coreml/builders/model_builder.cc
+@@ -65,7 +65,7 @@ void CopyRawDataToRepeatedField(const ONNX_NAMESPACE::TensorProto& tensor_proto,
+   } else {
+     static_assert(sizeof(T1) < sizeof(T2));
+     // we need to iterate over the data and copy to the repeated field, converting to T2 as we go.
+-    repeated_field.Resize(data_end - data, T2(0));
++    repeated_field.resize(data_end - data, T2(0));
+     for (int i = 0; data != data_end; ++data, ++i) {
+       repeated_field[i] = static_cast<T2>(*data);
+     }
+diff --git a/onnxruntime/test/ir/graph_test.cc b/onnxruntime/test/ir/graph_test.cc
+index 713f374..207b638 100644
+--- a/onnxruntime/test/ir/graph_test.cc
++++ b/onnxruntime/test/ir/graph_test.cc
+@@ -266,11 +266,11 @@ static void ConstructSparseTensor(const std::string& name,
+   m_indicies.set_data_type(ONNX_NAMESPACE::TensorProto_DataType_INT64);
+   *m_indicies.mutable_dims()->Add() = static_cast<int64_t>(indices.size());
+   auto* m_indicies_data = m_indicies.mutable_int64_data();
+-  m_indicies_data->Resize(static_cast<int>(indices.size()), 0);
++  m_indicies_data->resize(static_cast<int>(indices.size()), 0);
+   std::copy(indices.cbegin(), indices.cend(), m_indicies_data->begin());
+ 
+   auto& m_dims = *sparse_proto.mutable_dims();
+-  m_dims.Resize(static_cast<int>(shape.size()), 0);
++  m_dims.resize(static_cast<int>(shape.size()), 0);
+   std::copy(shape.cbegin(), shape.cend(), m_dims.begin());
+ }
+ 
+diff --git a/onnxruntime/test/optimizer/gqa_value_layout_transformer_test.cc b/onnxruntime/test/optimizer/gqa_value_layout_transformer_test.cc
+index c9e275b..20a5b2c 100644
+--- a/onnxruntime/test/optimizer/gqa_value_layout_transformer_test.cc
++++ b/onnxruntime/test/optimizer/gqa_value_layout_transformer_test.cc
+@@ -1083,7 +1083,7 @@ TEST_F(GqaValueLayoutTransformerTest, RejectsOverridableInitializerPastValue) {
+     initializer.add_dims(dim);
+   }
+   // FLOAT16 initializer data lives in int32_data, two bytes per element.
+-  initializer.mutable_int32_data()->Resize(static_cast<int>(kBatch * kKvNumHeads * kMaxSeq * kHeadSize), 0);
++  initializer.mutable_int32_data()->resize(static_cast<int>(kBatch * kKvNumHeads * kMaxSeq * kHeadSize), 0);
+   graph.AddInitializedTensor(initializer);
+ 
+   graph.SetInputs(declared_inputs);
+@@ -1343,7 +1343,7 @@ TEST_F(GqaValueLayoutTransformerTest, DetectsConversionWhenTheBnhsBoundaryIsAnOv
+   for (const int64_t dim : {kBatch, kKvNumHeads, kHeadSize, kMaxSeq}) {
+     initializer.add_dims(dim);
+   }
+-  initializer.mutable_int32_data()->Resize(static_cast<int>(kBatch * kKvNumHeads * kHeadSize * kMaxSeq), 0);
++  initializer.mutable_int32_data()->resize(static_cast<int>(kBatch * kKvNumHeads * kHeadSize * kMaxSeq), 0);
+   graph.AddInitializedTensor(initializer);
+ 
+   graph.SetInputs(declared_inputs);

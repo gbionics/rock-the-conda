@@ -64,8 +64,9 @@ To update the base package and select completed migrations, then render:
 pixi run rock-the-conda-pinning-update --render
 ~~~
 
-Pixi runs `download-feedstock-all` first, downloading/checking out all configured
-feedstocks. The updater collects dependencies from both `recipes/` and
+Pixi runs `download-feedstock-all` first, checking out the configured upstream
+feedstock commits and applying the versioned [ROCm overlays](feedstock_patches/README.md).
+The updater collects dependencies from both `recipes/` and
 `feedstocks/`, including v1 `recipe.yaml` and v0 `meta.yaml` files, output and test
 requirements, and both branches of conditional requirements. It reads recipe
 names and literal pin helpers without solving build environments; compiler and

@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Christian Bourjau <cbourjau@users.noreply.github.com>
+Date: Mon, 12 Oct 2026 18:16:21 +0200
+Subject: [PATCH] Accept any installed abseil version
+
+abseil's CMake package config uses COMPATIBILITY ExactVersion, so
+requesting 20250814 makes find_package reject every other release and
+silently falls back to building the vendored copy.
+---
+ cmake/external/abseil-cpp.cmake | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/external/abseil-cpp.cmake b/cmake/external/abseil-cpp.cmake
+index cbdced4..1ef46db 100644
+--- a/cmake/external/abseil-cpp.cmake
++++ b/cmake/external/abseil-cpp.cmake
+@@ -40,7 +40,9 @@ onnxruntime_fetchcontent_declare(
+     URL_HASH SHA1=${DEP_SHA1_abseil_cpp}
+     EXCLUDE_FROM_ALL
+     PATCH_COMMAND ${ABSL_PATCH_COMMAND}
+-    FIND_PACKAGE_ARGS 20250814 NAMES absl
++    # abseil's CMake config uses ExactVersion compatibility, so a version here
++    # rejects every other release; conda-forge's pinning governs the version.
++    FIND_PACKAGE_ARGS NAMES absl
+ )
+ 
+ onnxruntime_fetchcontent_makeavailable(abseil_cpp)

@@ -1,0 +1,98 @@
+From: conda-forge onnxruntime-feedstock
+Subject: [PATCH] Copy the python test files in batches
+
+CMake writes every POST_BUILD step as a single line of the generated
+post-build.bat, each ending in `|| (set FAIL_LINE=N& goto :ABORT)`. The
+copies of the python test sources list every file with its absolute path,
+which makes some of those lines over 8 KB long, and cmd.exe then fails to
+parse one of them:
+
+  FAILED: [code=255] onnxruntime_pybind11_state.pyd
+  (set was unexpected at this time.
+
+It shows up once the build directory grows a few characters, because the
+path is repeated once per file: conda-forge hits it on the -novec build
+(D:\bld\onnxruntime-novec_<ts>) while the otherwise identical
+D:\bld\onnxruntime_<ts> build links fine. Probing the generated lines one
+at a time on the runner showed the transformers test copy failing at 8223
+characters and succeeding at 7749.
+
+Emit these copies in batches so every post-build.bat line stays short.
+diff --git a/cmake/onnxruntime_python.cmake b/cmake/onnxruntime_python.cmake
+index b05caad..2ed4465 100644
+--- a/cmake/onnxruntime_python.cmake
++++ b/cmake/onnxruntime_python.cmake
+@@ -920,34 +920,46 @@ if (NOT onnxruntime_MINIMAL_BUILD AND NOT onnxruntime_EXTENDED_MINIMAL_BUILD
+   )
+ endif()
+ 
++# Keep each generated post-build.bat line short: cmd.exe fails to parse the very
++# long single-line copy commands these file lists would otherwise produce.
++function(onnxruntime_copy_files_in_batches _target _dest)
++  set(_batch "")
++  set(_count 0)
++  foreach(_file ${ARGN})
++    list(APPEND _batch "${_file}")
++    math(EXPR _count "${_count} + 1")
++    if(_count EQUAL 16)
++      add_custom_command(TARGET ${_target} POST_BUILD
++          COMMAND ${CMAKE_COMMAND} -E copy ${_batch} ${_dest})
++      set(_batch "")
++      set(_count 0)
++    endif()
++  endforeach()
++  if(_batch)
++    add_custom_command(TARGET ${_target} POST_BUILD
++        COMMAND ${CMAKE_COMMAND} -E copy ${_batch} ${_dest})
++  endif()
++endfunction()
++
+ if (onnxruntime_BUILD_UNIT_TESTS)
+-  add_custom_command(
+-    TARGET onnxruntime_pybind11_state POST_BUILD
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_test_srcs}
+-        $<TARGET_FILE_DIR:${build_output_target}>
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_quantization_test_srcs}
+-        $<TARGET_FILE_DIR:${build_output_target}>/quantization/
+-    COMMAND ${CMAKE_COMMAND} -E copy_directory
+-        ${ONNXRUNTIME_ROOT}/test/python/quantization/qmoe_packed_reference
+-        $<TARGET_FILE_DIR:${build_output_target}>/quantization/qmoe_packed_reference
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_transformers_test_srcs}
+-        $<TARGET_FILE_DIR:${build_output_target}>/transformers/
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_transformers_test_onnx_attention_srcs}
+-        $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_onnx_attention/
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_transformers_testdata_srcs}
+-        $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_transformers_testdata_whisper}
+-        $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/whisper/
+-    COMMAND ${CMAKE_COMMAND} -E copy
+-        ${onnxruntime_python_transformers_testdata_conformer}
+-        $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/conformer/
+-  )
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}> ${onnxruntime_python_test_srcs})
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/quantization/ ${onnxruntime_python_quantization_test_srcs})
++  add_custom_command(TARGET onnxruntime_pybind11_state POST_BUILD
++      COMMAND ${CMAKE_COMMAND} -E copy_directory
++          ${ONNXRUNTIME_ROOT}/test/python/quantization/qmoe_packed_reference
++          $<TARGET_FILE_DIR:${build_output_target}>/quantization/qmoe_packed_reference)
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/transformers/ ${onnxruntime_python_transformers_test_srcs})
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_onnx_attention/ ${onnxruntime_python_transformers_test_onnx_attention_srcs})
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/ ${onnxruntime_python_transformers_testdata_srcs})
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/whisper/ ${onnxruntime_python_transformers_testdata_whisper})
++  onnxruntime_copy_files_in_batches(onnxruntime_pybind11_state
++      $<TARGET_FILE_DIR:${build_output_target}>/transformers/test_data/models/conformer/ ${onnxruntime_python_transformers_testdata_conformer})
+ endif()
+ 
+ if (onnxruntime_BUILD_UNIT_TESTS AND onnxruntime_ENABLE_EAGER_MODE)

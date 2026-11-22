@@ -1,2 +1,5 @@
 # SCM syntax highlighting & preventing 3-way merges
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true
+# Unified diffs contain context lines consisting of a single space.
+feedstock_patches/*.patch -whitespace
+recipes/onnxruntime/patches/*.patch -whitespace
