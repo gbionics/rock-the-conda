@@ -11,17 +11,14 @@ source:
     sha256: 6213466e5d791a492ddc4fe91f2078295468a9d5da11731b0428ce2edc080622
 
 build:
-  number: 3
+  number: 4
   skip: not linux
 
 outputs:
-  - staging:
-      name: rocm-core-build
+  - package:
+      name: librocm-core
     build:
-      script:
-        file: build.sh
-        env:
-          ROCM_VERSION: ${{ version }}
+      script: build.sh
     requirements:
       build:
         - ${{ compiler('c') }}
@@ -30,29 +27,23 @@ outputs:
         - cmake
         - ninja
 
-  - package:
-      name: librocm-core
-    inherit: rocm-core-build
-    build:
-      files:
-        - lib/librocm-core.so*
-    requirements:
       run_exports:
         - ${{ pin_subpackage('librocm-core', upper_bound='x.x') }}
     tests:
       - package_contents:
           lib:
             - rocm-core
+          include:
+            - rocm-core/rocm_version.h
+          files:
+            exists:
+              - .info/version
+              - lib/cmake/rocm-core/rocm-core-config.cmake
 
   - package:
       name: rocm-core
-    inherit: rocm-core-build
     build:
-      files:
-        include:
-          - "**/*"
-        exclude:
-          - lib/librocm-core.so*
+      script: []
     requirements:
       run:
         - ${{ pin_subpackage('librocm-core', exact=True) }}
@@ -67,14 +58,9 @@ outputs:
         script:
           - cmake-package-check rocm-core
       - package_contents:
-          include:
-            - rocm-core/rocm_version.h
           files:
-            exists:
-              - .info/version
-              - lib/cmake/rocm-core/rocm-core-config.cmake
             not_exists:
-              - lib/librocm-core.so*
+              - "**/*"
 
 about:
   homepage: https://github.com/ROCm/rocm-systems
