@@ -54,16 +54,9 @@ source:
 
 build:
   number: ${{ build_number }}
-  skip:
-    # Since 1.11, power9 seems to be required.
-    - ppc64le
-    - osx and x86_64
-    # don't build cuda versions with novec
-    - cuda_enabled and novec
-
-    - not linux
-    - not hip_enabled
-    - cuda_enabled
+  # Temporarily disabled while microsoft/onnxruntime is offline (source HTTP 404).
+  # Restore the Linux ROCm-only conditions when the source is available again.
+  skip: true
   dynamic_linking:
     missing_dso_allowlist:
       - '*/libamdhip64.so.*'

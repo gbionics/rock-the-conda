@@ -34,6 +34,8 @@ The local ONNX Runtime recipe is synchronized with
 `conda-forge/onnxruntime-feedstock` at
 `2313412bb8d031f6990cb0849499ea623c0521fd` (1.32.0), including its upstream
 patches and split Python/C++ build scripts, with MIGraphX support added.
+All ONNX Runtime outputs are temporarily skipped while its upstream GitHub
+repository is offline and the source archive returns HTTP 404.
 
 For a future refresh, update the pinned commit, port the overlay onto that
 snapshot, and regenerate the patch with `git diff --text --full-index` against
