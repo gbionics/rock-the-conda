@@ -1,5 +1,5 @@
 diff --git a/recipe/build.sh b/recipe/build.sh
-index 15f5af159df0aeb5aac3577903f31a1d2423951b..9820cac3b4b2b06f0fa8284bfd96d109f55b06ec 100644
+index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584bade180c5d 100644
 --- a/recipe/build.sh
 +++ b/recipe/build.sh
 @@ -104,6 +104,10 @@ export PYTORCH_BLAS_USE_CBLAS_DOT=ON
@@ -13,7 +13,7 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..9820cac3b4b2b06f0fa8284bfd96d109
  
  # workaround to stop setup.py from trying to check whether we checked out
  # all submodules (we don't use all of them)
-@@ -204,6 +208,51 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
+@@ -204,6 +208,53 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
              exit 1
          fi
      fi
@@ -38,7 +38,9 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..9820cac3b4b2b06f0fa8284bfd96d109
 +    # an optional system hipsparselt adds /opt/rocm/include and /opt/rocm/lib to
 +    # torch_hip, mixing system RCCL headers with the Conda RCCL library.
 +    # Keep build-prefix CMake packages available alongside the host packages.
-+    export CMAKE_FIND_ROOT_PATH="${CMAKE_FIND_ROOT_PATH};${BUILD_PREFIX}"
++    # EnvVarForwarding.cmake overrides the toolchain's -D value with this
++    # environment variable, so explicitly retain the host root as well.
++    export CMAKE_FIND_ROOT_PATH="${PREFIX};${BUILD_PREFIX}${CMAKE_FIND_ROOT_PATH:+;${CMAKE_FIND_ROOT_PATH}}"
 +    export CMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY
 +    export NCCL_ROOT_DIR=$PREFIX
 +    export NCCL_INCLUDE_DIR=$PREFIX/include
