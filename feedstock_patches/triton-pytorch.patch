@@ -50,7 +50,7 @@ index 3400f7b60672ea73d5106125a911c9fb1a465928..715a9045db857d378389c1a9711a1404
  CMAKE_HOST_ARGS=(
      -DCMAKE_BUILD_TYPE=Release
 diff --git a/recipe/recipe.yaml b/recipe/recipe.yaml
-index 4f6df121e5975c4e1ed20b3957e87ed17a1c3eb8..828a5fd2585097b2b810089f5c65c6198bce66cf 100644
+index 4f6df121e5975c4e1ed20b3957e87ed17a1c3eb8..b032608f3c147c83d54ab640379cb28f734eb4b9 100644
 --- a/recipe/recipe.yaml
 +++ b/recipe/recipe.yaml
 @@ -2,7 +2,7 @@ context:
@@ -58,11 +58,17 @@ index 4f6df121e5975c4e1ed20b3957e87ed17a1c3eb8..828a5fd2585097b2b810089f5c65c619
    # cmake/llvm-hash.txt
    llvm_commit: 1f126a6dea50d185c0781743a667390037ae88bd
 -  build_number: 1
-+  build_number: 3
++  build_number: 4
  
  package:
    name: triton
-@@ -26,18 +26,24 @@ source:
+@@ -21,23 +21,29 @@ source:
+       - patches/0004-Add-conda-forge-include-dirs-to-list-of-include-dirs.patch
+       - patches/0005-Make-test_aot-importable-without-a-GPU-backend.patch
+   - url: https://github.com/llvm/llvm-project/archive/${{ llvm_commit }}.tar.gz
+-    sha256: b6aa9fbc954895bbd69374529593bbcdc4342b0812d8884698bbfd3d92d3426d
++    sha256: 72d33c6192627cd2f7ba96bdeffc319c0d69a53dc026b75e9d086decb368947f
+     target_directory: llvm-project
  
  build:
    number: ${{ build_number }}

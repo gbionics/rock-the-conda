@@ -13,13 +13,18 @@ The snapshots were refreshed on 2026-11-22:
 | TorchCodec | 0.17.0 | `be638d73e4149b5a6d699454985a2e56c5dc80fa` | 3 |
 | torchvision | 0.29.2 | `a89a7558ad23780c38b2493965566c0a066338e8` | 1 |
 | Triton | 3.9.0 | `4f0f1b7d8fd2e4399546ced548dcf671dca1f132` | 2 |
-| Triton for PyTorch | 3.7.1 | `8b8237668081e10534081839413146dd096563be` | 3 |
+| Triton for PyTorch | 3.7.1 | `8b8237668081e10534081839413146dd096563be` | 4 |
 | libmagma | 2.10.0 | `fccc3688530114c35bd3fc7ce0f9e738c2ef54fb` | 3 |
 | flash-attn | 2.8.3.post2 (package 2.8.3) | `2f0cc37aa25854ddb16e0f3e1e7ceee4a6412d6b` | 7 |
 
 PyTorch's exact Triton 3.7.1 requirement is retained. Its build task builds that
 compatible release alongside current Triton 3.9.0. The two tasks use separate
 checkouts and version-specific artifact patterns.
+
+The Triton 3.7.1 overlay updates the LLVM archive checksum after verifying the
+download against commit `1f126a6dea50d185c0781743a667390037ae88bd`. Its file
+tree matches that commit after accounting for archive metadata substitution
+and line-ending conversion in six test fixtures.
 
 PyTorch 2.14.1 uses CMake's native HIP language and C++20. The overlay supplies
 the build environment's HIP compiler separately from the host ROCm prefix;
