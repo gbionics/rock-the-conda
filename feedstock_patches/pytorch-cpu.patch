@@ -68,14 +68,14 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584ba
      if [[ "$target_platform" == "linux-aarch64" ]]; then
          # https://github.com/pytorch/pytorch/pull/121975
 diff --git a/recipe/meta.yaml b/recipe/meta.yaml
-index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b724ca5151f 100644
+index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..142c497f312f4df77c347d9eec20629f81bb3597 100644
 --- a/recipe/meta.yaml
 +++ b/recipe/meta.yaml
 @@ -1,11 +1,11 @@
  # if you wish to build release candidate number X, append the version string with "-rcX"
  {% set version = "2.14.1" %}
 -{% set build = 3 %}
-+{% set build = 5 %}
++{% set build = 6 %}
  
 -# Use a higher build number for the CUDA variant, to ensure that it's
 +# Use a higher build number for the GPU variants, to ensure that it's
@@ -121,15 +121,16 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
      - arm-variant * {{ arm_variant_type }}   # [linux and aarch64 and cuda_compiler_version != "None"]
      - libuv                     # [win]
      - llvm-openmp
-@@ -139,6 +144,7 @@ requirements:
+@@ -139,6 +144,8 @@ requirements:
      - make      # [linux]
      - ccache    # [win]
      - m2-sed    # [win]
-+    - sccache
++    # Match pixi.lock and the CI action: different clients share one server.
++    - sccache ==0.14.0
      - grep      # [unix]
      - rsync     # [unix]
    host:
-@@ -165,6 +171,26 @@ requirements:
+@@ -165,6 +172,27 @@ requirements:
      - nccl                  # [linux]
      - nccl <2.29            # [linux and cuda_compiler_version=="12.9" and arm_variant_type!="tegra"]
      - nvtx-c
@@ -142,6 +143,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
 +    - librocthrust-devel
 +    - roctracer
 +    - rocprofiler-sdk {{ hip_compiler_version }}.*
++    - libamd-smi {{ hip_compiler_version }}.*
 +    - libhipcub-devel
 +    - libhipblas-common-devel
 +    - libhipblas-devel
@@ -156,7 +158,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
      {% endif %}
      # other requirements
      - python 3.12
-@@ -197,14 +223,21 @@ requirements:
+@@ -197,14 +225,21 @@ requirements:
      - libblas * *{{ blas_impl }}        # [blas_impl == "mkl"]
      # cuda-cupti-dev used to be pinned too widely on Windows
      - {{ pin_compatible("cuda-cupti", max_pin="x.x.x") }}  # [win and cuda_compiler_version != "None"]
@@ -183,7 +185,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
      # if using OpenBLAS, ensure that a version compatible with OpenMP is used
      # otherwise, we get the following warnings:
      # OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
-@@ -221,6 +254,23 @@ test:
+@@ -221,6 +256,23 @@ test:
      - {{ compiler('cxx') }}
      # for CMake config to find cuda & nvrtc
      - {{ compiler('cuda') }}    # [cuda_compiler_version != "None"]
@@ -207,7 +209,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
      - cuda-nvrtc-dev            # [cuda_compiler_version != "None"]
      - nvtx-c                    # [cuda_compiler_version != "None"]
      - cmake
-@@ -256,8 +306,12 @@ test:
+@@ -256,8 +308,12 @@ test:
  
      # test integrity of CMake metadata
      - cd cmake_test
@@ -222,7 +224,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
  
  outputs:
    - name: libtorch
-@@ -266,10 +320,12 @@ outputs:
+@@ -266,10 +322,12 @@ outputs:
      script: bld.bat     # [win]
      build:
        string: cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}  # [cuda_compiler_version != "None"]
@@ -236,7 +238,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
        run_exports:
          - {{ pin_subpackage('pytorch', max_pin='x.x') }}
          - {{ pin_subpackage('libtorch', max_pin='x.x') }}
-@@ -284,6 +340,7 @@ outputs:
+@@ -284,6 +342,7 @@ outputs:
          - {{ compiler('c') }}
          - {{ compiler('cxx') }}
          - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
@@ -244,7 +246,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          - arm-variant * {{ arm_variant_type }}   # [linux and aarch64 and cuda_compiler_version != "None"]
          - cmake
          - ninja
-@@ -319,6 +376,26 @@ outputs:
+@@ -319,6 +378,27 @@ outputs:
          - nccl                  # [linux]
          - nccl <2.29            # [linux and cuda_compiler_version=="12.9" and arm_variant_type!="tegra"]
          - nvtx-c
@@ -257,6 +259,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
 +        - librocthrust-devel
 +        - roctracer
 +        - rocprofiler-sdk {{ hip_compiler_version }}.*
++        - libamd-smi {{ hip_compiler_version }}.*
 +        - libhipcub-devel
 +        - libhipblas-common-devel
 +        - libhipblas-devel
@@ -271,7 +274,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          {% endif %}
          # other requirements
          - python
-@@ -351,7 +428,9 @@ outputs:
+@@ -351,7 +431,9 @@ outputs:
          - llvm-openmp
          - libblas * *{{ blas_impl }}        # [blas_impl == "mkl"]
          - nomkl                             # [blas_impl != "mkl"]
@@ -282,7 +285,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          # avoid that people without GPUs needlessly download ~0.5-1GB
          - __cuda                            # [cuda_compiler_version != "None"]
          - python
-@@ -372,19 +451,29 @@ outputs:
+@@ -372,19 +454,29 @@ outputs:
          - {{ pin_compatible("cuda-cupti", max_pin="x.x.x") }}  # [win and cuda_compiler_version != "None"]
        run_constrained:
          # https://github.com/conda-forge/pytorch-cpu-feedstock/issues/65
@@ -317,7 +320,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
        detect_binary_files_with_prefix: false
      requirements:
        host:
-@@ -392,13 +481,31 @@ outputs:
+@@ -392,13 +484,31 @@ outputs:
          - python
        run:
          - pytorch {{ version }} cuda*_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}   # [cuda_compiler_version != "None"]
@@ -350,7 +353,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          - ninja
          - boto3
          - hypothesis
-@@ -454,6 +561,7 @@ outputs:
+@@ -454,6 +564,7 @@ outputs:
          - python -c "import torch; assert torch.backends.cudnn.is_available()"      # [cuda_compiler_version != "None"]
          - python -c "import torch; assert torch.backends.cudnn.enabled"             # [cuda_compiler_version != "None"]
          - python -c "import torch; assert torch.version.cuda is not None"           # [cuda_compiler_version != "None"]
@@ -358,7 +361,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
  
          # python-version-specific library (default location in SP_DIR symlinks back to this)
          - test -f $PREFIX/lib/libtorch_python${SHLIB_EXT}           # [unix]
-@@ -553,36 +661,36 @@ outputs:
+@@ -553,36 +664,36 @@ outputs:
          # https://github.com/conda-forge/pytorch-cpu-feedstock/pull/318#issuecomment-2620080859
          {% set skips = skips ~ " or test_mutable_custom_op_fixed_layout" %}
          # trivial accuracy problems
@@ -415,7 +418,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          # these tests are failing with low -n values
          {% set skips = skips ~ " or test_base_does_not_require_grad_mode_nothing" %}    # [not win]
          {% set skips = skips ~ " or test_base_does_not_require_grad_mode_warn" %}       # [not win]
-@@ -638,6 +746,13 @@ outputs:
+@@ -638,6 +749,13 @@ outputs:
          {% set skips = skips ~ " or test_cpp_warnings_have_python_context_cuda" %}
          # "Attempt to trace generator"
          {% set skips = skips ~ " or test_lite_regional_compile_flex_attention_cuda" %}
@@ -429,7 +432,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
          # Regressions in 2.11.0
          {% set skips = skips ~ " or test_compile_dyn_quant_matmul_4bit" %}               # [win and cuda_compiler_version == "13.0"]
          {% set skips = skips ~ " or test__int8_mm_m" %}                                  # [win and cuda_compiler_version == "13.0"]
-@@ -655,10 +770,15 @@ outputs:
+@@ -655,10 +773,15 @@ outputs:
          - set ONEDNN_VERBOSE=all        # [win]
          # reduced paralellism to avoid OOM for CUDA builds
          {% set jobs = "-n 2" %}
@@ -447,7 +450,7 @@ index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..8ed34f21aee9c51bf7a995455de07b72
  
          # regression test for https://github.com/conda-forge/pytorch-cpu-feedstock/issues/329, where we picked up
          # duplicate `.pyc` files due to newest py-ver (3.14) in the build environment not matching the one in host;
-@@ -667,32 +787,40 @@ outputs:
+@@ -667,32 +790,40 @@ outputs:
          - if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-314.pyc exit 1   # [py!=314 and win]
  
          # test integrity of CMake metadata and ensure that THPLayoutType is visible as a symbol from libtorch_python

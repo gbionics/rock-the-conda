@@ -9,7 +9,7 @@ The snapshots were refreshed on 2026-11-22:
 
 | Feedstock | Recipe version | Upstream commit | Local build number |
 | --- | --- | --- | --- |
-| PyTorch | 2.14.1 | `fd9eb8541c7ebe90639685b9bf88c48b4c71b149` | 5, plus upstream GPU/BLAS offsets |
+| PyTorch | 2.14.1 | `fd9eb8541c7ebe90639685b9bf88c48b4c71b149` | 6, plus upstream GPU/BLAS offsets |
 | TorchCodec | 0.17.0 | `be638d73e4149b5a6d699454985a2e56c5dc80fa` | 3 |
 | torchvision | 0.29.2 | `a89a7558ad23780c38b2493965566c0a066338e8` | 1 |
 | Triton | 3.9.0 | `4f0f1b7d8fd2e4399546ced548dcf671dca1f132` | 2 |
@@ -28,7 +28,11 @@ and line-ending conversion in six test fixtures.
 
 PyTorch 2.14.1 uses CMake's native HIP language and C++20. The overlay supplies
 the build environment's HIP compiler separately from the host ROCm prefix;
-the old FindHIP patch no longer applies and has been removed.
+the old FindHIP patch no longer applies and has been removed. Both ROCm host
+environments include `libamd-smi` for the distributed topology code's
+`amd_smi/amdsmi.h` header and runtime library. The PyTorch task builds AMD SMI
+first. The build dependency on sccache is pinned to 0.14.0 to match `pixi.lock`
+and the CI action, keeping clients compatible with their shared server.
 
 flash-attn retains the existing ROCm fork's disabled build while adopting the
 current upstream v1 recipe and its source version. Its former ROCm-specific
