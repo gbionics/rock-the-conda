@@ -1,5 +1,5 @@
 diff --git a/recipe/build.sh b/recipe/build.sh
-index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584bade180c5d 100644
+index 15f5af159df0aeb5aac3577903f31a1d2423951b..d0a437e08850eadf103b68e7a0ed7671758099de 100644
 --- a/recipe/build.sh
 +++ b/recipe/build.sh
 @@ -104,6 +104,10 @@ export PYTORCH_BLAS_USE_CBLAS_DOT=ON
@@ -13,7 +13,7 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584ba
  
  # workaround to stop setup.py from trying to check whether we checked out
  # all submodules (we don't use all of them)
-@@ -204,6 +208,53 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
+@@ -204,6 +208,56 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
              exit 1
          fi
      fi
@@ -21,6 +21,9 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584ba
 +    # ROCm/HIP build configuration
 +    export USE_CUDA=0
 +    export USE_ROCM=1
++    # sccache 0.14 direct mode fails to parse the HIP Flash Attention AOT
++    # preprocessor output. Keep compilation caching but bypass its include parser.
++    export CMAKE_HIP_COMPILER_LAUNCHER="${BUILD_PREFIX}/bin/cmake;-E;env;SCCACHE_DIRECT=false;sccache"
 +    export USE_MKLDNN=1
 +    export USE_MAGMA=1
 +    export MAGMA_HOME="${PREFIX}"
@@ -68,14 +71,14 @@ index 15f5af159df0aeb5aac3577903f31a1d2423951b..a380f6fe95dd8ec21a71728e612584ba
      if [[ "$target_platform" == "linux-aarch64" ]]; then
          # https://github.com/pytorch/pytorch/pull/121975
 diff --git a/recipe/meta.yaml b/recipe/meta.yaml
-index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..142c497f312f4df77c347d9eec20629f81bb3597 100644
+index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..a6dde3d240326bb37922253d0c3ea84cef883e9d 100644
 --- a/recipe/meta.yaml
 +++ b/recipe/meta.yaml
 @@ -1,11 +1,11 @@
  # if you wish to build release candidate number X, append the version string with "-rcX"
  {% set version = "2.14.1" %}
 -{% set build = 3 %}
-+{% set build = 6 %}
++{% set build = 7 %}
  
 -# Use a higher build number for the CUDA variant, to ensure that it's
 +# Use a higher build number for the GPU variants, to ensure that it's
