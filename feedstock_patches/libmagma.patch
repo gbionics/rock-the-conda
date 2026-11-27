@@ -1,0 +1,280 @@
+diff --git a/recipe/build.sh b/recipe/build.sh
+index e9149e7352cbb50530bf85aa184daa5d463d664d..48942bbcccd8ba508fb26273d5ef1b031c6567ad 100644
+--- a/recipe/build.sh
++++ b/recipe/build.sh
+@@ -6,16 +6,36 @@ set -exv
+ 
+ # CUDAARCHS set by nvcc compiler package
+ 
+-# Conda-forge nvcc compiler flags environment variable doesn't match CMake environment variable
+-# Redirect it so that the flags are added to nvcc calls
+-# shellcheck disable=SC2153
+-export CUDAFLAGS="${CUDAFLAGS} ${CUDA_CFLAGS}"
+-
+-# Compress SASS and PTX in the binary to reduce disk usage
+-export CUDAFLAGS="${CUDAFLAGS} -Xfatbin -compress-all"
+-# shellcheck disable=SC2154
+-if [[ "${cuda_compiler_version}" == 13.* ]]; then
+-  export CUDAFLAGS="${CUDAFLAGS} -Xfatbin -compress-mode=size"
++backend_args=()
++if [[ "${hip_compiler_version}" != "None" ]]; then
++  backend_args+=("-DMAGMA_ENABLE_HIP:BOOL=ON")
++
++  # MAGMA consumes HIP arch targets from its GPU_TARGET cache variable.
++  # conda-forge provides semicolon-delimited gfx targets in
++  # CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS is semicolon-delimited (e.g. gfx90a;gfx942).
++  # MAGMA's GPU_TARGET expects space-separated names (it builds the list by space-appending
++  # in CMake), so convert semicolons to spaces.
++  if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
++    magma_gpu_target="${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS//;/ }"
++    backend_args+=("-DGPU_TARGET=${magma_gpu_target}")
++    echo "Using MAGMA HIP GPU_TARGET=${magma_gpu_target}"
++    backend_args+=("-DGPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}")
++    echo "Using MAGMA HIP GPU_TARGETS=${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
++  fi
++else
++  # Conda-forge nvcc compiler flags environment variable doesn't match CMake environment variable
++  # Redirect it so that the flags are added to nvcc calls
++  # shellcheck disable=SC2153
++  export CUDAFLAGS="${CUDAFLAGS} ${CUDA_CFLAGS}"
++
++  # Compress SASS and PTX in the binary to reduce disk usage
++  export CUDAFLAGS="${CUDAFLAGS} -Xfatbin -compress-all"
++  # shellcheck disable=SC2154
++  if [[ "${cuda_compiler_version}" == 13.* ]]; then
++    export CUDAFLAGS="${CUDAFLAGS} -Xfatbin -compress-mode=size"
++  fi
++
++  backend_args+=("-DMAGMA_ENABLE_CUDA:BOOL=ON")
+ fi
+ 
+ 
+@@ -28,7 +48,7 @@ cmake "${SRC_DIR}" \
+   -DBUILD_SHARED_LIBS:BOOL=ON \
+   -DCMAKE_BUILD_TYPE=Release \
+   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+-  -DMAGMA_ENABLE_CUDA:BOOL=ON \
++  "${backend_args[@]}" \
+   -DUSE_FORTRAN:BOOL=OFF \
+   -DCMAKE_CUDA_SEPARABLE_COMPILATION:BOOL=OFF \
+   -DCMAKE_CXX_STANDARD=17 \
+diff --git a/recipe/meta.yaml b/recipe/meta.yaml
+index 37f45c91b4a8beb2d9a3ff9863bb3e4a6563556b..2a08ca538d5d070eac22004cd48298f9ccea049a 100644
+--- a/recipe/meta.yaml
++++ b/recipe/meta.yaml
+@@ -74,18 +74,25 @@ package:
+ source:
+   - url: https://icl.utk.edu/projectsfiles/magma/downloads/magma-{{ version }}.tar.gz
+     sha256: ea0c57fcb64ac2fd7ffe8f02d8fe18f07055c5b7fba0164f565d1e3a85148fb5
++    patches:
++      # https://github.com/icl-utk-edu/magma/issues/90
++      - patches/0002-honor-all-hip-gpu-targets.patch
+ 
+ build:
+-  number: 1
+-  skip: true  # [cuda_compiler_version == "None"]
++  number: 3
++  script_env:
++    - CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS
++  skip: true  # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
++  skip: true  # [cuda_compiler_version != "None" and hip_compiler_version != "None"]
+   # debugging skips below
+   # skip: true  # [not (linux64 and cuda_compiler_version == "12.9")]
+ 
+ requirements:
+   build:
+-    - {{ compiler('c') }}
+-    - {{ compiler('cxx') }}
+-    - {{ compiler('cuda') }}
++    - {{ compiler('clang') }}
++    - {{ compiler('clangxx') }}
++    - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
++    - {{ compiler('hip') }}  # [hip_compiler_version != "None"]
+     - {{ stdlib('c') }}
+     - cmake >=3.30,<4
+     - libgomp  # [linux]
+@@ -98,11 +105,15 @@ requirements:
+     # - make  # [unix]
+     - ninja
+   host:
+-    - cuda-version {{ cuda_compiler_version }}
+-    - cuda-cudart-dev
+-    - cuda-profiler-api
+-    - libcublas-dev
+-    - libcusparse-dev
++    - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
++    - cuda-cudart-dev  # [cuda_compiler_version != "None"]
++    - cuda-profiler-api  # [cuda_compiler_version != "None"]
++    - libcublas-dev  # [cuda_compiler_version != "None"]
++    - libcusparse-dev  # [cuda_compiler_version != "None"]
++    - rocm-core 7.2.*  # [hip_compiler_version != "None"]
++    - libhipblas-common-devel  # [hip_compiler_version != "None"]
++    - libhipblas-devel  # [hip_compiler_version != "None"]
++    - libhipsparse-devel  # [hip_compiler_version != "None"]
+     - liblapack
+     - libblas
+     - nomkl
+@@ -118,6 +129,8 @@ outputs:
+         - lib/libmagma_sparse.so  # [linux]
+         - Library\bin\magma_sparse.dll  # [win]
+     build:
++      string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [hip_compiler_version != "None"]
+       ignore_run_exports:
+         - cuda-version
+       # Ignore run exports to implement CUDA minor version compatibility
+@@ -129,26 +142,30 @@ outputs:
+       build:
+         - {{ compiler('c') }}
+         - {{ compiler('cxx') }}
+-        - {{ compiler('cuda') }}
++        - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
++        - {{ compiler('hip') }}  # [hip_compiler_version != "None"]
+         - {{ stdlib('c') }}
+         - libgomp  # [linux]
+         - vcomp14  # [win]
+         - arm-variant * {{ arm_variant_type }}  # [linux and aarch64 and cuda_compiler_version != "None"]
+       host:
+-        - cuda-version {{ cuda_compiler_version }}
+-        - cuda-cudart-dev
+-        - libcublas-dev
+-        - libcusparse-dev
++        - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
++        - cuda-cudart-dev  # [cuda_compiler_version != "None"]
++        - libcublas-dev  # [cuda_compiler_version != "None"]
++        - libcusparse-dev  # [cuda_compiler_version != "None"]
+         - liblapack
+         - libblas
+         - nomkl
++        - rocm-core 7.2.* # [hip_compiler_version != "None"]
++        - libhipblas-devel  # [hip_compiler_version != "None"]
++        - libhipsparse-devel  # [hip_compiler_version != "None"]
+       run:
+-        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}
++        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}  # [cuda_compiler_version != "None"]
+         # Starting with CUDA 13.0 for Windows-only, cudart links are redirected to the
+         # CUDA driver at compile time. Therefore, cuda-cudart is not needed.
+-        - cuda-cudart  # [(not win) or (cuda_compiler_version or "").startswith("12")]
+-        - libcublas
+-        - libcusparse
++        - cuda-cudart  # [((not win) or (cuda_compiler_version or "").startswith("12")) and (cuda_compiler_version != "None")]
++        - libcublas  # [cuda_compiler_version != "None"]
++        - libcusparse  # [cuda_compiler_version != "None"]
+     test:
+       commands:
+         - test -f $PREFIX/lib/libmagma${SHLIB_EXT}                 # [unix]
+@@ -168,6 +185,8 @@ outputs:
+         - lib/libmagma_sparse.so  # [linux]
+         - Library\bin\magma_sparse.dll  # [win]
+     build:
++      string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [hip_compiler_version != "None"]
+       ignore_run_exports:
+         - cuda-version
+       ignore_run_exports_from:
+@@ -177,23 +196,27 @@ outputs:
+       build:
+         - {{ compiler('c') }}
+         - {{ compiler('cxx') }}
+-        - {{ compiler('cuda') }}
++        - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
++        - {{ compiler('hip') }}  # [hip_compiler_version != "None"]
+         - {{ stdlib('c') }}
+         - libgomp  # [linux]
+         - vcomp14  # [win]
+         - arm-variant * {{ arm_variant_type }}  # [linux and aarch64 and cuda_compiler_version != "None"]
+       host:
+-        - cuda-version {{ cuda_compiler_version }}
+-        - cuda-cudart-dev
+-        - libcusparse-dev
++        - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
++        - cuda-cudart-dev  # [cuda_compiler_version != "None"]
++        - libcusparse-dev  # [cuda_compiler_version != "None"]
+         - liblapack
+         - nomkl
++        - rocm-core 7.2.* # [hip_compiler_version != "None"]
++        - libhipblas-devel  # [hip_compiler_version != "None"]
++        - libhipsparse-devel  # [hip_compiler_version != "None"]
+         - {{ pin_subpackage('libmagma', exact=True) }}
+       run:
+-        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}
++        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}  # [cuda_compiler_version != "None"]
+         - {{ pin_subpackage('libmagma', exact=True) }}
+-        - cuda-cudart  # [(not win) or (cuda_compiler_version or "").startswith("12")]
+-        - libcusparse
++        - cuda-cudart  # [((not win) or (cuda_compiler_version or "").startswith("12")) and (cuda_compiler_version != "None")]
++        - libcusparse  # [cuda_compiler_version != "None"]
+     test:
+       commands:
+         - test -f $PREFIX/lib/libmagma_sparse${SHLIB_EXT}        # [unix]
+@@ -215,6 +238,8 @@ outputs:
+         - Library\include  # [win]
+         - Library\lib  # [win]
+     build:
++      string: cuda{{ cuda_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [cuda_compiler_version != "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_h{{ PKG_HASH }}_{{ PKG_BUILDNUM }}  # [hip_compiler_version != "None"]
+       run_exports:
+         - {{ pin_subpackage('libmagma', max_pin='x.x.x') }}
+         - {{ pin_subpackage('libmagma_sparse', max_pin='x.x.x') }}
+@@ -224,20 +249,26 @@ outputs:
+       build:
+         - {{ compiler('c') }}
+         - {{ compiler('cxx') }}
+-        - {{ compiler('cuda') }}
++        - {{ compiler('cuda') }}  # [cuda_compiler_version != "None"]
++        - {{ compiler('hip') }}  # [hip_compiler_version != "None"]
+         - {{ stdlib('c') }}
+         - libgomp  # [linux]
+         - vcomp14  # [win]
+         - arm-variant * {{ arm_variant_type }}  # [linux and aarch64 and cuda_compiler_version != "None"]
+       host:
+-        - cuda-version {{ cuda_compiler_version }}
++        - cuda-version {{ cuda_compiler_version }}  # [cuda_compiler_version != "None"]
++        - rocm-core 7.2.* # [hip_compiler_version != "None"]
++        - libhipblas-devel  # [hip_compiler_version != "None"]
++        - libhipsparse-devel  # [hip_compiler_version != "None"]
+         - nomkl
+         - {{ pin_subpackage('libmagma', exact=True) }}
+         - {{ pin_subpackage('libmagma_sparse', exact=True) }}
+       run:
+-        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}
++        - {{ pin_compatible('cuda-version', max_pin='x', min_pin='x') }}  # [cuda_compiler_version != "None"]
+         - {{ pin_subpackage('libmagma', exact=True) }}  # [not win]
+         - {{ pin_subpackage('libmagma_sparse', exact=True) }}  # [not win]
++        - libhipblas-devel  # [hip_compiler_version != "None"]
++        - libhipsparse-devel  # [hip_compiler_version != "None"]
+     test:
+       commands:
+         - test -f $PREFIX/include/magma.h                              # [unix]
+diff --git a/recipe/patches/0002-honor-all-hip-gpu-targets.patch b/recipe/patches/0002-honor-all-hip-gpu-targets.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..78fa559242e04b86580ae07d474fa8d81f02c67a
+--- /dev/null
++++ b/recipe/patches/0002-honor-all-hip-gpu-targets.patch
+@@ -0,0 +1,26 @@
++Honor explicit HIP GPU targets without filtering through an outdated allowlist.
++Let the HIP compiler validate architectures, including feature suffixes.
++https://github.com/icl-utk-edu/magma/issues/90
++
++--- a/CMakeLists.txt
+++++ b/CMakeLists.txt
++@@ -279,12 +279,14 @@
++         endif()
++ 
++         set( DEVCCFLAGS  "" )
++-        set(VALID_GFXS "700;701;702;703;704;705;801;802;803;805;810;900;902;904;906;908;909;90c;1010;1011;1012;1030;1031;1032;1033")
++-        foreach( GFX ${VALID_GFXS} )
++-            if ( GPU_TARGET MATCHES gfx${GFX} )
++-                set( DEVCCFLAGS ${DEVCCFLAGS} --offload-arch=gfx${GFX} )
++-            endif()
+++        string(REGEX MATCHALL "gfx[0-9a-z]+(:[a-z]+[+-])*" GFX_TARGETS "${GPU_TARGET}")
+++        if (NOT GFX_TARGETS)
+++            message(FATAL_ERROR "GPU_TARGET must contain a HIP gfx architecture. Was: ${GPU_TARGET}")
+++        endif()
+++        list(REMOVE_DUPLICATES GFX_TARGETS)
+++        foreach( GFX ${GFX_TARGETS} )
+++            list(APPEND DEVCCFLAGS "--offload-arch=${GFX}")
++         endforeach()
++ 
++         set( DEVCCFLAGS ${DEVCCFLAGS} -fPIC ${FORTRAN_CONVENTION} )
++         set(MAGMA_HAVE_HIP "1")

@@ -1,0 +1,78 @@
+From: conda-forge onnxruntime-feedstock
+Subject: [PATCH] Skip onnx-dependent python tests without onnx
+
+build.py runs these tests without requiring onnx. Skip the tests that
+import onnx when it is not installed.
+---
+diff --git a/onnxruntime/test/python/onnxruntime_test_python.py b/onnxruntime/test/python/onnxruntime_test_python.py
+index 48cf838..a2dd6d5 100644
+--- a/onnxruntime/test/python/onnxruntime_test_python.py
++++ b/onnxruntime/test/python/onnxruntime_test_python.py
+@@ -614,6 +614,10 @@ class TestInferenceSession(unittest.TestCase):
+         self.assertEqual(errors, [])
+         self.assertGreater(len(messages), 0)
+ 
++    @unittest.skipUnless(
++        importlib.util.find_spec("onnx") is not None,
++        "onnx package is required to build the test model",
++    )
+     def test_logging_callback_non_utf8_message(self):
+         # Log text can contain bytes that are not valid UTF-8, e.g. names from a model. Such messages must still reach
+         # the callback, with the bytes escaped, instead of failing argument conversion.
+@@ -3345,6 +3349,10 @@ class TestInferenceSession(unittest.TestCase):
+             if os.path.exists(file_path):
+                 os.remove(file_path)
+ 
++    @unittest.skipUnless(
++        importlib.util.find_spec("onnx") is not None,
++        "onnx package is required to build the test model",
++    )
+     def test_adapter_export_rejects_string_tensors(self):
+         # Regression test: export_adapter previously serialized Tensor::DataRaw()
+         # for SizeInBytes() bytes regardless of element type. For string tensors
+@@ -3605,6 +3613,10 @@ class TestInferenceSession(unittest.TestCase):
+         so.add_session_config_entry("ep.enable_weightless_mode", "0")
+         onnxrt.InferenceSession(get_name("mul_1.onnx"), sess_options=so, providers=["CPUExecutionProvider"])
+ 
++    @unittest.skipUnless(
++        importlib.util.find_spec("onnx") is not None,
++        "onnx package is required to build the test model",
++    )
+     def test_weightless_all_model_warns_without_source_model(self):
+         # A compiled model that depends on the source model lists "source_model" in its "external_dependencies"
+         # metadata. ORT logs a warning when such a model is loaded without "ep.context_source_model_path" or a source
+diff --git a/onnxruntime/test/python/onnxruntime_test_python_autoep.py b/onnxruntime/test/python/onnxruntime_test_python_autoep.py
+index 4e06976..4cfa9e2 100644
+--- a/onnxruntime/test/python/onnxruntime_test_python_autoep.py
++++ b/onnxruntime/test/python/onnxruntime_test_python_autoep.py
+@@ -9,7 +9,13 @@ import unittest
+ from collections.abc import Sequence
+ 
+ import numpy as np
+-import onnx
++
++try:
++    import onnx
++except ImportError:
++    # tests that need onnx are skipped via skipUnless below
++    onnx = None
++
+ from autoep_helper import AutoEpTestCase
+ from helper import get_name, get_shared_library_filename_for_platform
+ 
+@@ -424,6 +430,7 @@ class TestAutoEP(AutoEpTestCase):
+         del ort_value
+         self.unregister_execution_provider_library(self.EXAMPLE_EP_NAME)
+ 
++    @unittest.skipUnless(onnx is not None, "onnx package is required")
+     def test_ortvalue_from_shape_and_type_host_accessible_onnx_int_type(self):
+         ep_device = self._register_example_plugin_ep_or_skip()
+         mem_info = ep_device.memory_info(onnxrt.OrtDeviceMemoryType.HOST_ACCESSIBLE)
+@@ -469,6 +476,7 @@ class TestAutoEP(AutoEpTestCase):
+         with self.assertRaisesRegex(RuntimeError, "No shared allocator found"):
+             onnxrt.OrtValue.ortvalue_from_shape_and_type([2], np.float32, memory_info=bogus_mem_info)
+ 
++    @unittest.skipUnless(onnx is not None, "onnx package is required")
+     def test_ortvalue_from_shape_and_onnx_type_memory_info_string_rejected(self):
+         ep_device = self._register_example_plugin_ep_or_skip()
+         mem_info = ep_device.memory_info(onnxrt.OrtDeviceMemoryType.HOST_ACCESSIBLE)

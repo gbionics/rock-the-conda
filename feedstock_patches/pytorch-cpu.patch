@@ -1,0 +1,544 @@
+diff --git a/recipe/build.sh b/recipe/build.sh
+index 15f5af159df0aeb5aac3577903f31a1d2423951b..d0a437e08850eadf103b68e7a0ed7671758099de 100644
+--- a/recipe/build.sh
++++ b/recipe/build.sh
+@@ -104,6 +104,10 @@ export PYTORCH_BLAS_USE_CBLAS_DOT=ON
+ # search is broken and prepends sysroot to workdir paths
+ # let's override it
+ CMAKE_ARGS+=" -DIDEEP_INCLUDE_DIR=${PWD}/third_party/ideep/include"
++# Use sccache
++export CMAKE_C_COMPILER_LAUNCHER=sccache
++export CMAKE_CXX_COMPILER_LAUNCHER=sccache
++export CMAKE_HIP_COMPILER_LAUNCHER=sccache
+ 
+ # workaround to stop setup.py from trying to check whether we checked out
+ # all submodules (we don't use all of them)
+@@ -204,6 +208,56 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
+             exit 1
+         fi
+     fi
++elif [[ ${hip_compiler_version} != "None" ]]; then
++    # ROCm/HIP build configuration
++    export USE_CUDA=0
++    export USE_ROCM=1
++    # sccache 0.14 direct mode fails to parse the HIP Flash Attention AOT
++    # preprocessor output. Keep compilation caching but bypass its include parser.
++    export CMAKE_HIP_COMPILER_LAUNCHER="${BUILD_PREFIX}/bin/cmake;-E;env;SCCACHE_DIRECT=false;sccache"
++    export USE_MKLDNN=1
++    export USE_MAGMA=1
++    export MAGMA_HOME="${PREFIX}"
++    # PyTorch now uses CMake's native HIP language. The compiler is in the
++    # build environment; ROCm headers, libraries and version files are in host.
++    export HIP_CLANG_PATH="${BUILD_PREFIX}/bin"
++    export ROCM_PATH="${PREFIX}"
++    export ROCM_HOME="${PREFIX}"
++    export HIP_PATH="${PREFIX}"
++    export HIP_ROOT_DIR="${PREFIX}"
++    # Caffe2 reads this separately from ROCM_PATH; use the host ROCm libraries.
++    export ROCM_SOURCE_DIR="${PREFIX}"
++    # Conda's toolchain restricts find_library/find_path to the environment,
++    # but find_package(CONFIG) otherwise also searches the system. In particular,
++    # an optional system hipsparselt adds /opt/rocm/include and /opt/rocm/lib to
++    # torch_hip, mixing system RCCL headers with the Conda RCCL library.
++    # Keep build-prefix CMake packages available alongside the host packages.
++    # EnvVarForwarding.cmake overrides the toolchain's -D value with this
++    # environment variable, so explicitly retain the host root as well.
++    export CMAKE_FIND_ROOT_PATH="${PREFIX};${BUILD_PREFIX}${CMAKE_FIND_ROOT_PATH:+;${CMAKE_FIND_ROOT_PATH}}"
++    export CMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY
++    export NCCL_ROOT_DIR=$PREFIX
++    export NCCL_INCLUDE_DIR=$PREFIX/include
++    export USE_SYSTEM_NCCL=1
++
++    echo "[DEBUG][ROCM] CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS='${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-<unset>}'"
++    if [[ -n "${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS:-}" ]]; then
++        export PYTORCH_ROCM_ARCH="${CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS}"
++    fi
++    echo "[DEBUG][ROCM] PYTORCH_ROCM_ARCH='${PYTORCH_ROCM_ARCH:-<unset>}'"
++    if [[ -n "${PYTORCH_ROCM_ARCH:-}" ]]; then
++        echo "[DEBUG][ROCM] PYTORCH_ROCM_ARCH entries (split on ';'):"
++        echo "${PYTORCH_ROCM_ARCH}" | tr ';' '\n' | sed 's/^/[DEBUG][ROCM]   - /'
++    fi
++
++    # roctracer headers are in a subdirectory but kineto includes them without prefix
++    export CXXFLAGS="$CXXFLAGS -isystem ${PREFIX}/include/roctracer"
++
++    # when using hip with gcc, for some reason it fails with "hip/hip_runtime_api.h: No such file or directory"
++    export CXXFLAGS="$CXXFLAGS -isystem ${BUILD_PREFIX}/include"
++
++    # Hipify: convert CUDA sources to HIP before building
++    $PREFIX/bin/python tools/amd_build/build_amd.py
+ elif [[ ${cuda_compiler_version} != "None" ]]; then
+     if [[ "$target_platform" == "linux-aarch64" ]]; then
+         # https://github.com/pytorch/pytorch/pull/121975
+diff --git a/recipe/meta.yaml b/recipe/meta.yaml
+index 7a1ce0ea28483702e37ae9cd381e981cd37618c1..a6dde3d240326bb37922253d0c3ea84cef883e9d 100644
+--- a/recipe/meta.yaml
++++ b/recipe/meta.yaml
+@@ -1,11 +1,11 @@
+ # if you wish to build release candidate number X, append the version string with "-rcX"
+ {% set version = "2.14.1" %}
+-{% set build = 3 %}
++{% set build = 7 %}
+ 
+-# Use a higher build number for the CUDA variant, to ensure that it's
++# Use a higher build number for the GPU variants, to ensure that it's
+ # preferred by conda's solver, and it's preferentially
+ # installed where the platform supports it.
+-{% if cuda_compiler_version != "None" %}
++{% if cuda_compiler_version != "None" or hip_compiler_version != "None" %}
+ {% set build = build + 200 %}
+ {% endif %}
+ 
+@@ -85,6 +85,8 @@ source:
+ 
+ build:
+   number: {{ build }}
++  # Only build hip variant for now
++  skip: true  # [hip_compiler_version == "None"]
+   # This logic allows two rc variants to be defined in the conda_build_config, but only one to actually be built.
+   # We want to be able to define two variants in the cbc so we can assign different labels to each in the upload channel
+   # (by zipping is_rc with channel_targets). This prevents rc builds being used unless specifically requested.
+@@ -94,13 +96,15 @@ build:
+   skip: true  # [is_rc]
+ {% endif %}
+   # https://github.com/conda-forge/pytorch-cpu-feedstock/pull/557#issuecomment-6660054006
+-  skip: true  # [not (osx and arm64)]
++  skip: true  # [hip_compiler_version == "None" and not (osx and arm64)]
+   string: cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}  # [cuda_compiler_version != "None"]
+-  string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None"]
++  string: rocm{{ hip_compiler_version | replace('.', '') }}_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}  # [hip_compiler_version != "None"]
++  string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+   detect_binary_files_with_prefix: false
+   # the Xcode whose `xcrun metal` compiles the kernels, if not the xcode-select one
+   script_env:
+     - DEVELOPER_DIR       # [osx]
++    - CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS
+   missing_dso_whitelist:
+     - '*/libcuda.so.*'    # [linux]
+     - '*/nvcuda.dll'      # [win]
+@@ -127,6 +131,7 @@ requirements:
+     - {{ compiler('c') }}
+     - {{ compiler('cxx') }}
+     - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
++    - {{ compiler('hip') }}                  # [hip_compiler_version != "None"]
+     - arm-variant * {{ arm_variant_type }}   # [linux and aarch64 and cuda_compiler_version != "None"]
+     - libuv                     # [win]
+     - llvm-openmp
+@@ -139,6 +144,8 @@ requirements:
+     - make      # [linux]
+     - ccache    # [win]
+     - m2-sed    # [win]
++    # Match pixi.lock and the CI action: different clients share one server.
++    - sccache ==0.14.0
+     - grep      # [unix]
+     - rsync     # [unix]
+   host:
+@@ -165,6 +172,27 @@ requirements:
+     - nccl                  # [linux]
+     - nccl <2.29            # [linux and cuda_compiler_version=="12.9" and arm_variant_type!="tegra"]
+     - nvtx-c
++    {% elif hip_compiler_version != "None" %}
++    - rocm-core {{ hip_compiler_version }}.*
++    - librocblas-devel
++    - librocsolver-devel
++    - librocrand-devel
++    - librocprim-devel
++    - librocthrust-devel
++    - roctracer
++    - rocprofiler-sdk {{ hip_compiler_version }}.*
++    - libamd-smi {{ hip_compiler_version }}.*
++    - libhipcub-devel
++    - libhipblas-common-devel
++    - libhipblas-devel
++    - libhipblaslt-devel
++    - libhipfft-devel
++    - libhipsparse-devel
++    - libhipsolver-devel
++    - libhiprand-devel
++    - libmiopen-hip-devel
++    - rccl                  # [linux]
++    - libmagma-devel * rocm*
+     {% endif %}
+     # other requirements
+     - python 3.12
+@@ -197,14 +225,21 @@ requirements:
+     - libblas * *{{ blas_impl }}        # [blas_impl == "mkl"]
+     # cuda-cupti-dev used to be pinned too widely on Windows
+     - {{ pin_compatible("cuda-cupti", max_pin="x.x.x") }}  # [win and cuda_compiler_version != "None"]
++    - libmagma * rocm*                  # [hip_compiler_version != "None"]
++    # Workaround to avoid zlib not found CMake error
++    - zlib                              # [hip_compiler_version != "None"]
+   run_constrained:
+     # https://github.com/conda-forge/pytorch-cpu-feedstock/issues/65
+-    - pytorch-cpu {{ version }}    # [cuda_compiler_version == "None"]
+-    - pytorch-gpu <0.0a0           # [cuda_compiler_version == "None"]
+-    - pytorch-gpu {{ version }}    # [cuda_compiler_version != "None"]
+-    - pytorch-cpu <0.0a0           # [cuda_compiler_version != "None"]
++    {% if cuda_compiler_version == "None" and hip_compiler_version == "None" %}
++    - pytorch-cpu {{ version }}
++    - pytorch-gpu <0.0a0
++    {% else %}
++    - pytorch-gpu {{ version }}
++    - pytorch-cpu <0.0a0
++    {% endif %}
+     - pytorch {{ version }} cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_*_{{ build }}  # [cuda_compiler_version != "None"]
+-    - pytorch {{ version }} cpu_{{ blas_impl }}_*_{{ build }}                                                 # [cuda_compiler_version == "None"]
++    - pytorch {{ version }} rocm{{ hip_compiler_version | replace('.', '') }}_{{ blas_impl }}_*_{{ build }}  # [hip_compiler_version != "None"]
++    - pytorch {{ version }} cpu_{{ blas_impl }}_*_{{ build }}                                                 # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+     # if using OpenBLAS, ensure that a version compatible with OpenMP is used
+     # otherwise, we get the following warnings:
+     # OpenBLAS Warning : Detect OpenMP Loop and this application may hang. Please rebuild the library with USE_OPENMP=1 option.
+@@ -221,6 +256,23 @@ test:
+     - {{ compiler('cxx') }}
+     # for CMake config to find cuda & nvrtc
+     - {{ compiler('cuda') }}    # [cuda_compiler_version != "None"]
++    - {{ compiler('hip') }}     # [hip_compiler_version != "None"]
++    # Development dependencies for Torch CMake configuration and extensions.
++    - hip-devel  # [hip_compiler_version != "None"]
++    - librocblas-devel  # [hip_compiler_version != "None"]
++    - librocsolver-devel  # [hip_compiler_version != "None"]
++    - librocrand-devel  # [hip_compiler_version != "None"]
++    - librocprim-devel  # [hip_compiler_version != "None"]
++    - librocthrust-devel  # [hip_compiler_version != "None"]
++    - libhipcub-devel  # [hip_compiler_version != "None"]
++    - libhipblas-common-devel  # [hip_compiler_version != "None"]
++    - libhipblas-devel  # [hip_compiler_version != "None"]
++    - libhipblaslt-devel  # [hip_compiler_version != "None"]
++    - libhipfft-devel  # [hip_compiler_version != "None"]
++    - libhipsparse-devel  # [hip_compiler_version != "None"]
++    - libhipsolver-devel  # [hip_compiler_version != "None"]
++    - libhiprand-devel  # [hip_compiler_version != "None"]
++    - libmiopen-hip-devel  # [hip_compiler_version != "None"]
+     - cuda-nvrtc-dev            # [cuda_compiler_version != "None"]
+     - nvtx-c                    # [cuda_compiler_version != "None"]
+     - cmake
+@@ -256,8 +308,12 @@ test:
+ 
+     # test integrity of CMake metadata
+     - cd cmake_test
+-    - cmake -GNinja $CMAKE_ARGS .   # [unix]
+-    - cmake -GNinja %CMAKE_ARGS% .  # [win]
++    - export ROCM_PATH=${PREFIX}
++    - export ROCM_HOME=${PREFIX}
++    - export HIP_PATH=${PREFIX}
++    - export HIP_ROOT_DIR=${PREFIX}
++    - cmake -GNinja -DCMAKE_CXX_STANDARD=20 -DHIP_ROOT_DIR=$PREFIX -DROCM_INCLUDE_DIRS=$PREFIX/include $CMAKE_ARGS .   # [unix]
++    - cmake -GNinja -DCMAKE_CXX_STANDARD=20 %CMAKE_ARGS% .  # [win]
+ 
+ outputs:
+   - name: libtorch
+@@ -266,10 +322,12 @@ outputs:
+     script: bld.bat     # [win]
+     build:
+       string: cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}  # [cuda_compiler_version != "None"]
+-      string: cpu_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}  # [hip_compiler_version != "None"]
++      string: cpu_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+       detect_binary_files_with_prefix: false
+       script_env:
+         - DEVELOPER_DIR       # [osx]
++        - CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS
+       run_exports:
+         - {{ pin_subpackage('pytorch', max_pin='x.x') }}
+         - {{ pin_subpackage('libtorch', max_pin='x.x') }}
+@@ -284,6 +342,7 @@ outputs:
+         - {{ compiler('c') }}
+         - {{ compiler('cxx') }}
+         - {{ compiler('cuda') }}                 # [cuda_compiler_version != "None"]
++        - {{ compiler('hip') }}                  # [hip_compiler_version != "None"]
+         - arm-variant * {{ arm_variant_type }}   # [linux and aarch64 and cuda_compiler_version != "None"]
+         - cmake
+         - ninja
+@@ -319,6 +378,27 @@ outputs:
+         - nccl                  # [linux]
+         - nccl <2.29            # [linux and cuda_compiler_version=="12.9" and arm_variant_type!="tegra"]
+         - nvtx-c
++        {% elif hip_compiler_version != "None" %}
++        - rocm-core {{ hip_compiler_version }}.*
++        - librocblas-devel
++        - librocsolver-devel
++        - librocrand-devel
++        - librocprim-devel
++        - librocthrust-devel
++        - roctracer
++        - rocprofiler-sdk {{ hip_compiler_version }}.*
++        - libamd-smi {{ hip_compiler_version }}.*
++        - libhipcub-devel
++        - libhipblas-common-devel
++        - libhipblas-devel
++        - libhipblaslt-devel
++        - libhipfft-devel
++        - libhipsparse-devel
++        - libhipsolver-devel
++        - libhiprand-devel
++        - libmiopen-hip-devel
++        - rccl                  # [linux]
++        - libmagma-devel * rocm*
+         {% endif %}
+         # other requirements
+         - python
+@@ -351,7 +431,9 @@ outputs:
+         - llvm-openmp
+         - libblas * *{{ blas_impl }}        # [blas_impl == "mkl"]
+         - nomkl                             # [blas_impl != "mkl"]
+-        - triton =={{ triton }}             # [cuda_compiler_version != "None" and not win]
++        - triton =={{ triton }} cuda*       # [cuda_compiler_version != "None" and not win]
++        - triton =={{ triton }} rocm*       # [hip_compiler_version != "None" and not win]
++        - libmagma * rocm*                  # [hip_compiler_version != "None"]
+         # avoid that people without GPUs needlessly download ~0.5-1GB
+         - __cuda                            # [cuda_compiler_version != "None"]
+         - python
+@@ -372,19 +454,29 @@ outputs:
+         - {{ pin_compatible("cuda-cupti", max_pin="x.x.x") }}  # [win and cuda_compiler_version != "None"]
+       run_constrained:
+         # https://github.com/conda-forge/pytorch-cpu-feedstock/issues/65
+-        - pytorch-cpu {{ version }}    # [cuda_compiler_version == "None"]
+-        - pytorch-gpu <0.0a0           # [cuda_compiler_version == "None"]
+-        - pytorch-gpu {{ version }}    # [cuda_compiler_version != "None"]
+-        - pytorch-cpu <0.0a0           # [cuda_compiler_version != "None"]
++        {% if cuda_compiler_version == "None" and hip_compiler_version == "None" %}
++        - pytorch-cpu {{ version }}
++        - pytorch-gpu <0.0a0
++        {% else %}
++        - pytorch-gpu {{ version }}
++        - pytorch-cpu <0.0a0
++        {% endif %}
+     test:
+       imports:
+         - torch
+         - torch._C
++      files:
++        - test_rocm_conv2d.py
++      commands:
++        - python test_rocm_conv2d.py
+ 
+   - name: pytorch-tests
+     build:
++      script_env:
++        - CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS
+       string: cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}  # [cuda_compiler_version != "None"]
+-      string: cpu_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}  # [hip_compiler_version != "None"]
++      string: cpu_{{ blas_impl }}_py{{ CONDA_PY }}_h{{ PKG_HASH }}_{{ build }}                                                 # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+       detect_binary_files_with_prefix: false
+     requirements:
+       host:
+@@ -392,13 +484,31 @@ outputs:
+         - python
+       run:
+         - pytorch {{ version }} cuda*_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}   # [cuda_compiler_version != "None"]
+-        - pytorch {{ version }} cpu_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}     # [cuda_compiler_version == "None"]
++        - pytorch {{ version }} rocm*_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}   # [hip_compiler_version != "None"]
++        - pytorch {{ version }} cpu_{{ blas_impl }}_py{{ CONDA_PY }}*{{ build }}     # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+     test:
+       requires:
+         - {{ compiler('c') }}
+         - {{ compiler('cxx') }}
+         # for torch.compile tests
+         - {{ compiler('cuda') }}       # [cuda_compiler_version != "None"]
++        - {{ compiler('hip') }}        # [hip_compiler_version != "None"]
++        # Development dependencies for Torch CMake configuration and extensions.
++        - hip-devel  # [hip_compiler_version != "None"]
++        - librocblas-devel  # [hip_compiler_version != "None"]
++        - librocsolver-devel  # [hip_compiler_version != "None"]
++        - librocrand-devel  # [hip_compiler_version != "None"]
++        - librocprim-devel  # [hip_compiler_version != "None"]
++        - librocthrust-devel  # [hip_compiler_version != "None"]
++        - libhipcub-devel  # [hip_compiler_version != "None"]
++        - libhipblas-common-devel  # [hip_compiler_version != "None"]
++        - libhipblas-devel  # [hip_compiler_version != "None"]
++        - libhipblaslt-devel  # [hip_compiler_version != "None"]
++        - libhipfft-devel  # [hip_compiler_version != "None"]
++        - libhipsparse-devel  # [hip_compiler_version != "None"]
++        - libhipsolver-devel  # [hip_compiler_version != "None"]
++        - libhiprand-devel  # [hip_compiler_version != "None"]
++        - libmiopen-hip-devel  # [hip_compiler_version != "None"]
+         - ninja
+         - boto3
+         - hypothesis
+@@ -454,6 +564,7 @@ outputs:
+         - python -c "import torch; assert torch.backends.cudnn.is_available()"      # [cuda_compiler_version != "None"]
+         - python -c "import torch; assert torch.backends.cudnn.enabled"             # [cuda_compiler_version != "None"]
+         - python -c "import torch; assert torch.version.cuda is not None"           # [cuda_compiler_version != "None"]
++        - python -c "import torch; assert torch.version.hip is not None, f'torch.version.hip={torch.version.hip!r}'"            # [hip_compiler_version != "None"]
+ 
+         # python-version-specific library (default location in SP_DIR symlinks back to this)
+         - test -f $PREFIX/lib/libtorch_python${SHLIB_EXT}           # [unix]
+@@ -553,36 +664,36 @@ outputs:
+         # https://github.com/conda-forge/pytorch-cpu-feedstock/pull/318#issuecomment-2620080859
+         {% set skips = skips ~ " or test_mutable_custom_op_fixed_layout" %}
+         # trivial accuracy problems
+-        {% set skips = skips ~ " or test_BCELoss_weights_no_reduce_cuda" %}             # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_ctc_loss_cudnn_tensor_cuda" %}                 # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or (TestTorch and test_index_add_correctness)" %}      # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_BCELoss_weights_no_reduce_cuda" %}             # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_ctc_loss_cudnn_tensor_cuda" %}                 # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or (TestTorch and test_index_add_correctness)" %}      # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # These tests require higher-resource or more recent GPUs than the CI provides
+-        {% set skips = skips ~ " or test_sdpa_inference_mode_aot_compile" %}            # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or (TestNN and test_grid_sample)" %}                   # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_sdpa_inference_mode_aot_compile" %}            # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or (TestNN and test_grid_sample)" %}                   # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # don't mess with tests that rely on GPU failure handling
+-        {% set skips = skips ~ " or test_cublas_config_nondeterministic_alert_cuda" %}  # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_cross_entropy_loss_2d_out_of_bounds_class" %}  # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_indirect_device_assert" %}                     # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_reentrant_parent_error_on_cpu_cuda" %}         # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_cublas_config_nondeterministic_alert_cuda" %}  # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_cross_entropy_loss_2d_out_of_bounds_class" %}  # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_indirect_device_assert" %}                     # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_reentrant_parent_error_on_cpu_cuda" %}         # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # test that fails to find temporary resource
+-        {% set skips = skips ~ " or (GPUTests and test_scatter_reduce2)" %}             # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or (GPUTests and test_scatter_reduce2)" %}             # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # ROCM test whose skip doesn't trigger
+-        {% set skips = skips ~ " or test_ck_blas_library_cpu" %}                        # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_ck_blas_library_cpu" %}                        # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # problem with finding output of `torch.cuda.tunable.write_file()`
+-        {% set skips = skips ~ " or test_matmul_offline_tunableop_cuda_float16" %}      # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_matmul_offline_tunableop_cuda_float16" %}      # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # catastropic accuracy failure in convolution
+-        {% set skips = skips ~ " or test_Conv3d_1x1x1_no_bias_cuda" %}                  # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_Conv3d_1x1x1_no_bias_cuda" %}                  # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # some triton errors that appeared in #391
+-        {% set skips = skips ~ " or test_isinf_cuda" %}                                 # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_donated_buffer_inplace_gpt" %}                 # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_linear_dynamic_maxautotune_cuda" %}            # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_isinf_cuda" %}                                 # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_donated_buffer_inplace_gpt" %}                 # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_linear_dynamic_maxautotune_cuda" %}            # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # skip some very long-running groups of tests (~30 minutes total)
+-        {% set skips = skips ~ " or (test_gradgrad_nn_Transformer and _cuda_)" %}       # [linux and cuda_compiler_version != "None"]
+-        {% set skips = skips ~ " or test_avg_pool3d_backward2" %}                       # [linux and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or (test_gradgrad_nn_Transformer and _cuda_)" %}       # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
++        {% set skips = skips ~ " or test_avg_pool3d_backward2" %}                       # [linux and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # MKL problems
+-        {% set skips = skips ~ " or (TestLinalgCPU and test_inverse_errors_large_cpu)" %}   # [linux and blas_impl == "mkl" and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or (TestLinalgCPU and test_inverse_errors_large_cpu)" %}   # [linux and blas_impl == "mkl" and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # non-MKL problems
+-        {% set skips = skips ~ " or test_gather_scatter_cpu or test_index_put2_cpu" %}      # [linux and blas_impl != "mkl" and cuda_compiler_version != "None"]
++        {% set skips = skips ~ " or test_gather_scatter_cpu or test_index_put2_cpu" %}      # [linux and blas_impl != "mkl" and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # these tests are failing with low -n values
+         {% set skips = skips ~ " or test_base_does_not_require_grad_mode_nothing" %}    # [not win]
+         {% set skips = skips ~ " or test_base_does_not_require_grad_mode_warn" %}       # [not win]
+@@ -638,6 +749,13 @@ outputs:
+         {% set skips = skips ~ " or test_cpp_warnings_have_python_context_cuda" %}
+         # "Attempt to trace generator"
+         {% set skips = skips ~ " or test_lite_regional_compile_flex_attention_cuda" %}
++        # rock-the-conda specific: we run tests on gfx1151, and "_convert_weight_to_int4pack_cuda is only supported on AMD gpu arch greater than or equal to CDNA2"
++        {% set skips = skips ~ " or test__int4_mm" %}                                    # [linux and hip_compiler_version != "None"]
++
++        # the whole test suite takes forever, but we should get a good enough coverage
++        # for potential packaging problems by running a fixed subset
++        - export OMP_NUM_THREADS=4  # [unix]
++        # reduced paralellism to avoid OOM for CUDA and HIP/ROCm builds
+         # Regressions in 2.11.0
+         {% set skips = skips ~ " or test_compile_dyn_quant_matmul_4bit" %}               # [win and cuda_compiler_version == "13.0"]
+         {% set skips = skips ~ " or test__int8_mm_m" %}                                  # [win and cuda_compiler_version == "13.0"]
+@@ -655,10 +773,15 @@ outputs:
+         - set ONEDNN_VERBOSE=all        # [win]
+         # reduced paralellism to avoid OOM for CUDA builds
+         {% set jobs = "-n 2" %}
+-        {% set jobs = "-n 1" %}     # [linux64 and cuda_compiler_version != "None"]
++        {% set jobs = "-n 1" %}     # [linux64 and (cuda_compiler_version != "None" or hip_compiler_version != "None")]
+         # test only one python version on aarch because emulation is super-slow;
+         # disable hypothesis because it randomly yields health check errors
+-        - pytest {{ jobs }} {{ tests }} -k "not ({{ skips }})" -m "not hypothesis" --durations=50 --timeout=1200 --disable-warnings --force-short-summary   # [not aarch64 or py==312]
++
++        # the opengpu server has a card with sm_70, an architecture dropped by CUDA 13.0
++        # commented out in rock-the-conda as we test on gfx1151 and as of April 2026 it hangs https://github.com/ROCm/TheRock/issues/2151
++        # {% if (cuda_compiler_version or "0").split(".")[0]|int < 13 %}
++        # - pytest {{ jobs }} {{ tests }} -k "not ({{ skips }})" -m "not hypothesis" --durations=50 --timeout=1200 --disable-warnings    # [not aarch64 or py==312]
++        # {% endif %}
+ 
+         # regression test for https://github.com/conda-forge/pytorch-cpu-feedstock/issues/329, where we picked up
+         # duplicate `.pyc` files due to newest py-ver (3.14) in the build environment not matching the one in host;
+@@ -667,32 +790,40 @@ outputs:
+         - if exist %SP_DIR%\functorch\__pycache__\__init__.cpython-314.pyc exit 1   # [py!=314 and win]
+ 
+         # test integrity of CMake metadata and ensure that THPLayoutType is visible as a symbol from libtorch_python
++        - export ROCM_PATH=${PREFIX}
++        - export ROCM_HOME=${PREFIX}
++        - export HIP_PATH=${PREFIX}
++        - export HIP_ROOT_DIR=${PREFIX}
+         - cd cmake_test
+         - mkdir build build2
+         - cd build
+-        - cmake -GNinja -DWITH_TORCH_PYTHON=ON $CMAKE_ARGS ..   # [unix]
+-        - cmake -GNinja -DWITH_TORCH_PYTHON=ON %CMAKE_ARGS% ..  # [win]
++        - cmake -GNinja -DCMAKE_CXX_STANDARD=20 -DWITH_TORCH_PYTHON=ON $CMAKE_ARGS -DHIP_ROOT_DIR=$PREFIX -DROCM_INCLUDE_DIRS=$PREFIX/include ..   # [unix]
++        - cmake -GNinja -DCMAKE_CXX_STANDARD=20 -DWITH_TORCH_PYTHON=ON %CMAKE_ARGS% ..  # [win]
+         - cmake --build .                   # [unix]
+         - cmake --build . --config Release  # [win]
+         - cd ../build2
+         # regression test for https://github.com/conda-forge/pytorch-cpu-feedstock/issues/479
+-        - cmake -GNinja -DWITH_TORCH_PYTHON=ON -DTorch_DIR=$SP_DIR/torch/share/cmake/Torch $CMAKE_ARGS ..    # [unix]
+-        - cmake -GNinja -DWITH_TORCH_PYTHON=ON -DTorch_DIR=%SP_DIR%/torch/share/cmake/Torch %CMAKE_ARGS% ..  # [win]
++        - cmake -GNinja -DCMAKE_CXX_STANDARD=20 -DWITH_TORCH_PYTHON=ON -DTorch_DIR=$SP_DIR/torch/share/cmake/Torch $CMAKE_ARGS -DHIP_ROOT_DIR=$PREFIX -DROCM_INCLUDE_DIRS=$PREFIX/include ..    # [unix]
++        - cmake -GNinja -DCMAKE_CXX_STANDARD=20 -DWITH_TORCH_PYTHON=ON -DTorch_DIR=%SP_DIR%/torch/share/cmake/Torch %CMAKE_ARGS% ..  # [win]
+         - cmake --build .                   # [unix]
+         - cmake --build . --config Release  # [win]
+ 
+-  - name: pytorch-cpu   # [cuda_compiler_version == "None"]
+-  - name: pytorch-gpu   # [cuda_compiler_version != "None"]
++  - name: pytorch-cpu   # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
++  - name: pytorch-gpu   # [cuda_compiler_version != "None" or hip_compiler_version != "None"]
+     build:
++      script_env:
++        - CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS
+       string: cuda{{ cuda_compiler_version | replace('.', '') }}_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}    # [cuda_compiler_version != "None"]
+-      string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}                                                   # [cuda_compiler_version == "None"]
++      string: rocm{{ hip_compiler_version | replace('.', '') }}_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}     # [hip_compiler_version != "None"]
++      string: cpu_{{ blas_impl }}_h{{ PKG_HASH }}_{{ build }}                                                   # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+       detect_binary_files_with_prefix: false
+     requirements:
+       host:
+         - arm-variant * {{ arm_variant_type }}  # [linux and aarch64 and cuda_compiler_version != "None"]
+       run:
+         - pytorch {{ version }} cuda*_{{ blas_impl }}*{{ build }}   # [cuda_compiler_version != "None"]
+-        - pytorch {{ version }} cpu_{{ blas_impl }}*{{ build }}     # [cuda_compiler_version == "None"]
++        - pytorch {{ version }} rocm*_{{ blas_impl }}*{{ build }}   # [hip_compiler_version != "None"]
++        - pytorch {{ version }} cpu_{{ blas_impl }}*{{ build }}     # [cuda_compiler_version == "None" and hip_compiler_version == "None"]
+     test:
+       imports:
+         - torch
+diff --git a/recipe/test_rocm_conv2d.py b/recipe/test_rocm_conv2d.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..b726cf003fc37b265dc756f14f534d465a0d353d
+--- /dev/null
++++ b/recipe/test_rocm_conv2d.py
+@@ -0,0 +1,34 @@
++"""Regression for https://github.com/gbionics/rock-the-conda/issues/61.
++
++MIOpen's convolution solver failed with ``tensor_shape_variable needs to be an
++array`` / ``miopenStatusUnknownError`` for this shape in both FP32 and FP16.
++"""
++
++import unittest
++
++import torch
++
++
++@unittest.skipUnless(
++    torch.version.hip is not None and torch.cuda.is_available(),
++    "requires a ROCm PyTorch build and an available AMD GPU",
++)
++class TestRocmConv2d(unittest.TestCase):
++    def test_miopen_solver_issue_61(self):
++        for dtype in (torch.float32, torch.float16):
++            with self.subTest(dtype=dtype), torch.no_grad():
++                x = torch.randn(1, 3, 560, 560, device="cuda", dtype=dtype)
++                conv = torch.nn.Conv2d(3, 64, kernel_size=12, stride=12).to(
++                    "cuda", dtype=dtype
++                )
++                y = conv(x)
++                torch.cuda.synchronize()
++
++                self.assertEqual(tuple(y.shape), (1, 64, 46, 46))
++                self.assertEqual(y.dtype, dtype)
++                self.assertEqual(y.device, x.device)
++                self.assertTrue(torch.isfinite(y).all().item())
++
++
++if __name__ == "__main__":
++    unittest.main(verbosity=2)

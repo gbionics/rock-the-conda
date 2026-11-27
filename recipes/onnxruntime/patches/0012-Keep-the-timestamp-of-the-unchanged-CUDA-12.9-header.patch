@@ -1,0 +1,30 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Christian Bourjau <cbourjau@users.noreply.github.com>
+Date: Thu, 15 Oct 2026 13:01:47 +0200
+Subject: [PATCH] Keep the timestamp of the unchanged CUDA 12.9 header fix
+
+ort_patch_cuda_12_9_clusterlaunchcontrol_header rewrote the corrected
+clusterlaunchcontrol.h on every configure. Since every CUDA object
+depends on it, any CMake re-run rebuilt the whole CUDA provider. Only
+replace the header if its content changed.
+---
+ cmake/external/cuda_configuration.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/external/cuda_configuration.cmake b/cmake/external/cuda_configuration.cmake
+index 47d6eef..72b47f7 100644
+--- a/cmake/external/cuda_configuration.cmake
++++ b/cmake/external/cuda_configuration.cmake
+@@ -84,7 +84,11 @@ function(ort_patch_cuda_12_9_clusterlaunchcontrol_header src dst)
+   if(NOT _content STREQUAL _orig)
+     get_filename_component(_dst_dir "${dst}" DIRECTORY)
+     file(MAKE_DIRECTORY "${_dst_dir}")
+-    file(WRITE "${dst}" "${_content}")
++    # Keep the timestamp of an unchanged header, so that reconfiguring doesn't
++    # rebuild every CUDA object.
++    file(WRITE "${dst}.tmp" "${_content}")
++    file(COPY_FILE "${dst}.tmp" "${dst}" ONLY_IF_DIFFERENT)
++    file(REMOVE "${dst}.tmp")
+   elseif(EXISTS "${dst}")
+     file(REMOVE "${dst}")
+   endif()

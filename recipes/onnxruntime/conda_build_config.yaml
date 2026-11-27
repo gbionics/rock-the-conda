@@ -1,0 +1,16 @@
+suffix:
+- ''
+- -novec
+
+# The CoreML execution provider references macOS 13-era CoreML APIs
+# (e.g. MLComputeUnitsCPUAndNeuralEngine) that are not in the 11.0 SDK.
+# These are runtime-gated via @available, so only the SDK needs bumping.
+MACOSX_SDK_VERSION:  # [osx]
+- '13.3'             # [osx]
+# libcoremltools, which the CoreML execution provider links, requires macOS 12.0.
+c_stdlib_version:    # [osx and arm64]
+- '12.0'             # [osx and arm64]
+
+github_actions_labels:                # [linux or win]
+- namespace-profile-16cpu-on-linux-64 # [linux]
+- namespace-profile-16cpu-on-win-64   # [win]

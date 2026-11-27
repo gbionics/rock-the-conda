@@ -1,0 +1,57 @@
+From: conda-forge onnxruntime-feedstock
+Subject: [PATCH] Use CC, AR and NM from the environment in test_gen_def.py
+
+onnxruntime_public_exports_test (new in 1.31.0) runs bare `cc`, `ar` and `nm`.
+Toolchains such as conda-forge's only provide prefixed names (e.g.
+x86_64-conda-linux-gnu-cc), so the test fails with
+`FileNotFoundError: 'cc'`. Prefer the CC, AR and NM environment variables,
+falling back to the bare names.
+---
+--- a/tools/ci_build/test_gen_def.py
++++ b/tools/ci_build/test_gen_def.py
+@@ -1,12 +1,18 @@
+ # Copyright (c) Microsoft Corporation. All rights reserved.
+ # Licensed under the MIT License.
+ 
++import os
+ import subprocess
+ import sys
+ import tempfile
+ import unittest
+ from pathlib import Path
+ 
++# Honor the toolchain environment (conda-build, cross toolchains) instead of assuming bare names.
++CC = os.environ.get("CC", "cc")
++AR = os.environ.get("AR", "ar")
++NM = os.environ.get("NM", "nm")
++
+ 
+ class TestPublicExports(unittest.TestCase):
+     @unittest.skipUnless(sys.platform.startswith("linux"), "Requires an ELF linker and dynamic loader")
+@@ -60,12 +66,12 @@
+                 encoding="utf-8",
+             )
+             for command in (
+-                ["cc", "-fPIC", "-c", "curl.c", "-o", "curl.o"],
+-                ["ar", "rcs", "libcustom-transport.a", "curl.o"],
+-                ["cc", "-shared", "-fPIC", "host.c", "-o", "libhost.so"],
+-                ["cc", "-shared", "-fPIC", "runtime.c", "libcustom-transport.a", "-o", "libunrestricted.so"],
++                [CC, "-fPIC", "-c", "curl.c", "-o", "curl.o"],
++                [AR, "rcs", "libcustom-transport.a", "curl.o"],
++                [CC, "-shared", "-fPIC", "host.c", "-o", "libhost.so"],
++                [CC, "-shared", "-fPIC", "runtime.c", "libcustom-transport.a", "-o", "libunrestricted.so"],
+                 [
+-                    "cc",
++                    CC,
+                     "-shared",
+                     "-fPIC",
+                     "runtime.c",
+@@ -77,7 +83,7 @@
+             ):
+                 subprocess.run(command, cwd=root, check=True, capture_output=True, text=True, timeout=30)
+             symbols = subprocess.run(
+-                ["nm", "-D", "--defined-only", "libonnxruntime.so"],
++                [NM, "-D", "--defined-only", "libonnxruntime.so"],
+                 cwd=root,
+                 check=True,
+                 capture_output=True,

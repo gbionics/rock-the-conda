@@ -1,0 +1,40 @@
+From f559f11235e8b4b86b760b54efb33ceb989c1ba6 Mon Sep 17 00:00:00 2001
+From: Silvio Traversaro <silvio@traversaro.it>
+Date: Fri, 14 Apr 2023 15:17:08 +0200
+Subject: [PATCH 1/4] avoid conflicting with onnxruntime.dll in system32
+
+apparently Windows ships a onnxruntime.dll file in C:\Windows\system32\onnxruntime.dll, and according to .dll
+search order in Windows (https://docs.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order),
+anything that is found in C:\Windows\system32 has a higher priority w.r.t. to anything found in the PATH.
+See microsoft/onnxruntime#11230 for more details.
+---
+ cmake/onnxruntime.cmake                    | 2 ++
+ onnxruntime/test/shared_lib/dlopen_main.cc | 2 +-
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/onnxruntime.cmake b/cmake/onnxruntime.cmake
+index f2cf1ac9fa..342bbcb2d5 100644
+--- a/cmake/onnxruntime.cmake
++++ b/cmake/onnxruntime.cmake
+@@ -84,6 +84,8 @@ if(onnxruntime_BUILD_SHARED_LIB)
+       "${ONNXRUNTIME_ROOT}/core/dll/delay_load_hook.cc"
+       "${ONNXRUNTIME_ROOT}/core/dll/onnxruntime.rc"
+     )
++  # Workaround for https://github.com/conda-forge/onnxruntime-feedstock/pull/56#issuecomment-1586080419
++  set_target_properties(onnxruntime PROPERTIES OUTPUT_NAME onnxruntime_conda)
+   elseif(onnxruntime_BUILD_APPLE_FRAMEWORK)
+     # apple framework requires the header file be part of the library
+     onnxruntime_add_shared_library(onnxruntime
+diff --git a/onnxruntime/test/shared_lib/dlopen_main.cc b/onnxruntime/test/shared_lib/dlopen_main.cc
+index 09a0647543..4dccbeb747 100644
+--- a/onnxruntime/test/shared_lib/dlopen_main.cc
++++ b/onnxruntime/test/shared_lib/dlopen_main.cc
+@@ -151,7 +151,7 @@ int main() {
+ #endif
+ 
+     std::cout << "Loading onnxruntime.dll..." << std::endl;
+-    ort_library_handle = LoadLibrary(TEXT("onnxruntime.dll"));
++    ort_library_handle = LoadLibrary(TEXT("onnxruntime_conda.dll"));
+     if (!ort_library_handle) {
+       DWORD error_code = GetLastError();
+       throw std::runtime_error("Failed to load onnxruntime.dll. Error code: " + std::to_string(error_code));

@@ -1,0 +1,102 @@
+diff --git a/recipe/build.sh b/recipe/build.sh
+index 1d34e145822e8740111d806117c0fb843f8442b1..e22d1779acfd9a1446b6fb3862aefd5eb704469a 100644
+--- a/recipe/build.sh
++++ b/recipe/build.sh
+@@ -8,6 +8,11 @@ rm -rf $SRC_DIR/python/triton/third_party
+ # disable downloading dependencies entirely
+ export TRITON_OFFLINE_BUILD=1
+ 
++# Proton requires CUDA/CUPTI headers that are absent from ROCm builds.
++if [[ "${hip_compiler_version:-None}" != "None" ]]; then
++    export TRITON_BUILD_PROTON=OFF
++fi
++
+ export JSON_SYSPATH=$PREFIX
+ export PYBIND11_SYSPATH=$SP_DIR/pybind11
+ 
+diff --git a/recipe/recipe.yaml b/recipe/recipe.yaml
+index 99f15f26c50b51c8cc6b0b7efa9fa7bcfd722e79..d26cdd7f3e0935154504d7781c5db06c2051db79 100644
+--- a/recipe/recipe.yaml
++++ b/recipe/recipe.yaml
+@@ -4,7 +4,7 @@ context:
+   llvm_commit: b010a18d2b648cab83c83967ff26b8fde11acdc6
+   # cmake/amd-llvm-info.json
+   amd_llvm_commit: 6bc4aaf6641c56ee104f6200c96a6a571bc77052
+-  build_number: 1
++  build_number: 2
+ 
+ recipe:
+   name: triton
+@@ -35,7 +35,9 @@ build:
+     # https://github.com/conda-forge/triton-feedstock/pull/29#issuecomment-2564371725
+     - win
+     # TODO: CPU-only support still under development
+-    - match(cuda_compiler_version, "==None")
++    - cuda_compiler_version == "None" and hip_compiler_version == "None"
++    - hip_compiler_version != "None" and not linux
++    - hip_compiler_version == "None"
+ 
+ outputs:
+   - staging:
+@@ -74,12 +76,15 @@ outputs:
+ 
+     build:
+       script: build
+-      string: cuda${{ cuda_compiler_version | version_to_buildstring }}py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
++      string: rocm${{ hip_compiler_version | replace(".", "") }}py${{ python | version_to_buildstring }}h${{ hash }}_${{ build_number }}
+ 
+     requirements:
+       build:
+         - ${{ compiler('cxx') }}
+-        - ${{ compiler('cuda') }}
++        - if: cuda_compiler_version != "None"
++          then: ${{ compiler('cuda') }}
++        - if: hip_compiler_version != "None"
++          then: ${{ compiler('hip') }}
+         - if: linux and aarch64 and cuda_compiler_version != "None"
+           then: arm-variant * ${{ arm_variant_type }}
+         - ${{ stdlib('c') }}
+@@ -100,11 +105,19 @@ outputs:
+         - zlib
+         - zstd  # for llvm
+         - nlohmann_json
+-        - cuda-cupti-dev
+-        - cuda-version ${{ cuda_compiler_version }}.*
++        - if: cuda_compiler_version != "None"
++          then:
++            - cuda-cupti-dev
++            - cuda-version ${{ cuda_compiler_version }}.*
++        - if: hip_compiler_version != "None"
++          then:
++            - hip-runtime-amd
++            - rocminfo
+       run:
+         - python
+         - setuptools
++        - if: hip_compiler_version != "None"
++          then: hip-runtime-amd
+         - cuda-nvcc-tools
+         - cuda-cuobjdump
+         - cuda-cudart
+@@ -114,8 +127,10 @@ outputs:
+       - package_contents:
+           bin:
+             exists:
+-              - proton
+-              - proton-viewer
++              - if: cuda_compiler_version != "None"
++                then:
++                  - proton
++                  - proton-viewer
+             not_exists:
+               # make sure we don't accidentally install any LLVM files
+               - clang
+@@ -134,7 +149,7 @@ outputs:
+       # TODO: drop this condition once `pytorch * cpu*` is published for python 3.15;
+       # until then this test environment cannot be solved, and pytorch's CUDA builds
+       # in turn need triton for python 3.15, so this breaks the cycle
+-      - if: match(python, "<3.15")
++      - if: cuda_compiler_version != "None" and match(python, "<3.15")
+         then:
+           - files:
+               source:

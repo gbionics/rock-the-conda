@@ -1,0 +1,54 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Christian Bourjau <cbourjau@users.noreply.github.com>
+Date: Mon, 12 Oct 2026 18:37:30 +0200
+Subject: [PATCH] Link the full libprotobuf runtime when protobuf is
+ preinstalled
+
+A preinstalled shared protobuf provides both libprotobuf and
+libprotobuf-lite, and the former contains the lite runtime. Linking
+libprotobuf-lite therefore puts a second copy of the lite runtime into
+any process that also loads a libprotobuf user, such as the onnx Python
+package. Link libprotobuf instead, both for onnxruntime and for the
+vendored onnx, which picks libprotobuf-lite on its own whenever that
+target exists. The generated code remains lite.
+---
+ .../external/onnxruntime_external_deps.cmake  | 19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/external/onnxruntime_external_deps.cmake b/cmake/external/onnxruntime_external_deps.cmake
+index b7bc9af..1208e8a 100644
+--- a/cmake/external/onnxruntime_external_deps.cmake
++++ b/cmake/external/onnxruntime_external_deps.cmake
+@@ -263,7 +263,11 @@ else()
+     target_compile_options(libprotobuf-lite PRIVATE "-w")
+   endif()
+ endif()
+-if (onnxruntime_USE_FULL_PROTOBUF)
++# A preinstalled shared protobuf ships libprotobuf next to libprotobuf-lite. The full
++# library also contains the lite runtime, so linking it lets a process that loads
++# both onnxruntime and other protobuf users carry a single protobuf runtime.
++# Generated code stays lite and thus registers nothing in the descriptor pool.
++if (onnxruntime_USE_FULL_PROTOBUF OR (Protobuf_FOUND AND TARGET protobuf::libprotobuf))
+   set(PROTOBUF_LIB protobuf::libprotobuf)
+ else()
+   set(PROTOBUF_LIB protobuf::libprotobuf-lite)
+@@ -550,6 +554,19 @@ onnxruntime_fetchcontent_declare(
+ 
+ onnxruntime_fetchcontent_makeavailable(onnx)
+ 
++# ONNX links protobuf::libprotobuf-lite whenever that target exists; align it with PROTOBUF_LIB.
++if(onnx_SOURCE_DIR AND NOT PROTOBUF_LIB STREQUAL "protobuf::libprotobuf-lite")
++  foreach(_onnx_target onnx onnx_proto)
++    foreach(_link_property LINK_LIBRARIES INTERFACE_LINK_LIBRARIES)
++      get_target_property(_onnx_libs ${_onnx_target} ${_link_property})
++      if(_onnx_libs)
++        list(TRANSFORM _onnx_libs REPLACE "^protobuf::libprotobuf-lite$" "${PROTOBUF_LIB}")
++        set_target_properties(${_onnx_target} PROPERTIES ${_link_property} "${_onnx_libs}")
++      endif()
++    endforeach()
++  endforeach()
++endif()
++
+ if(TARGET ONNX::onnx AND NOT TARGET onnx)
+   message(STATUS "Aliasing ONNX::onnx to onnx")
+   add_library(onnx ALIAS ONNX::onnx)
