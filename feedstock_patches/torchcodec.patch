@@ -26,7 +26,7 @@ index a470bff9e6ee53fb694d7b72250c28603bd20cc4..23f64269256667f5d527754630a7bd43
  else
     export ENABLE_CUDA=0
 diff --git a/recipe/recipe.yaml b/recipe/recipe.yaml
-index 6f0285b488c9789951af50755a0b30875df50517..e61303a8f873601372fe7c06a6893f68fa302a64 100644
+index 6f0285b488c9789951af50755a0b30875df50517..eca6d21fdb0231e0e1997d72d5a601ad0dcdef25 100644
 --- a/recipe/recipe.yaml
 +++ b/recipe/recipe.yaml
 @@ -2,8 +2,11 @@
@@ -35,7 +35,7 @@ index 6f0285b488c9789951af50755a0b30875df50517..e61303a8f873601372fe7c06a6893f68
    version: "0.17.0"
 -  build_number: 2
 -  torch_proc_type: ${{ "cuda" ~ cuda_compiler_version | version_to_buildstring if cuda_compiler_version != "None" else "cpu" }}
-+  build_number: 4
++  build_number: 5
 +  # Note: as of April 2026, the rocm version is not actually have AMD gpu-specific code, it is
 +  # just a CPU variant that can be installed with pytorch * rocm*, see https://github.com/ROCm/TheRock/issues/1490
 +  # and https://github.com/meta-pytorch/torchcodec/issues/444
@@ -100,17 +100,35 @@ index 6f0285b488c9789951af50755a0b30875df50517..e61303a8f873601372fe7c06a6893f68
        run:
          - python
          # We temporary relatex the pytorch dependency on to be compatible with torchvision,
-@@ -171,6 +203,9 @@ outputs:
+@@ -171,6 +203,27 @@ outputs:
              - ${{ compiler('cxx') }}
              - ${{ compiler('c') }}
              - make
++            # Torch's CMake config enables HIP and finds its development packages
++            # when third-party extensions call find_package(Torch).
 +            - if: hip_compiler_version != "None"
 +              then:
++                - ${{ compiler('hip') }}
++                - rocm-core ${{ hip_compiler_version }}.*
 +                - hip-devel
++                - librocblas-devel
++                - librocsolver-devel
++                - librocrand-devel
++                - librocprim-devel
++                - librocthrust-devel
++                - libhipcub-devel
++                - libhipblas-common-devel
++                - libhipblas-devel
++                - libhipblaslt-devel
++                - libhipfft-devel
++                - libhipsparse-devel
++                - libhipsolver-devel
++                - libhiprand-devel
++                - libmiopen-hip-devel
              # Required by the plugin auto-loading test added in https://github.com/meta-pytorch/torchcodec/pull/1151
              - pip
              - if: cuda_compiler_version != "None"
-@@ -182,11 +217,37 @@ outputs:
+@@ -182,11 +235,45 @@ outputs:
          script:
            interpreter: python
            content:
@@ -131,6 +149,14 @@ index 6f0285b488c9789951af50755a0b30875df50517..e61303a8f873601372fe7c06a6893f68
 +                  os.environ["HIP_VISIBLE_DEVICES"] = ""
 +                  os.environ["ROCR_VISIBLE_DEVICES"] = ""
 +                  os.environ["CUDA_VISIBLE_DEVICES"] = ""
++                  # Torch's LoadHIP defaults to lib/llvm/bin, but Conda installs
++                  # clang++ in bin. Use the compiler and libraries under test.
++                  os.environ["HIP_CLANG_PATH"] = os.path.join(sys.prefix, "bin")
++                  os.environ["ROCM_PATH"] = sys.prefix
++                  os.environ["HIP_PATH"] = sys.prefix
++                  os.environ["PYTORCH_ROCM_ARCH"] = os.environ[
++                      "CONDA_FORGE_DEFAULT_ROCM_GPU_TARGETS"
++                  ]
 +                  pytest_extra_args += ["-m", "not needs_cuda"]
 +            - |
 +              from torchcodec import ffmpeg_major_version
@@ -149,7 +175,7 @@ index 6f0285b488c9789951af50755a0b30875df50517..e61303a8f873601372fe7c06a6893f68
              - if: build_platform != target_platform
                then:
                  # Cross-compiled test runs are often executed in emulation in CI, so run a reduced smoke suite.
-@@ -271,7 +332,7 @@ about:
+@@ -271,7 +358,7 @@ about:
    license: BSD-3-Clause
    license_file:
      - LICENSE
